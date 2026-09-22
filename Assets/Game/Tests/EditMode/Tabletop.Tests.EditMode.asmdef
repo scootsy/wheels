@@ -1,0 +1,26 @@
+{
+    "name": "Tabletop.Tests.EditMode",
+    "rootNamespace": "Tabletop.Tests.EditMode",
+    "references": [
+        "Tabletop.Domain",
+        "Tabletop.Application",
+        "Tabletop.Infrastructure.Unity",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

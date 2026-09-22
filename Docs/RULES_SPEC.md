@@ -625,6 +625,28 @@ These are the only material rules not fully recoverable from public documentatio
 
 Each test should capture before/after state, video or screenshots, game version, selected pieces, reel results, and observed ordering.
 
+### 15.1 Implementation decisions active in code (M0)
+
+These are project decisions, not recovered reference rules. Each is covered by an EditMode test and recorded in `DECISIONS.md`.
+
+| ID | Behavior implemented | Where tested |
+|---|---|---|
+| O-01 | Assassin (Shade) targets the opposing unit with the least `cost - storedEnergy`; ties target Channel A and the `EnergyDelayed` event notes the tie. | `O01_ShadeTie_TargetsChannelA_AndLogsTheTie` |
+| O-02 | Rank-up keeps absolute stored energy clamped to the new cost; a unit at or above the new cost is ready. | `RankUpLoweringCost_PreservesAbsoluteEnergyClampedToNewCost` |
+| O-03 | Uniform 1/8 per face. | `EachReel_ProducesOnlyFacesInItsDefinition_WithRoughlyUniformFrequency` |
+| O-04 | AI uses the same legal reels as the human; no NPC roll advantage. | AI tests |
+| O-05 | Warlock (Hexer) acts in stage 8. | `O05_Hexer_ResolvesInTheNormalActionStage` |
+| O-06 | Bomb order follows Section 10 only. | bomb tests |
+| O-07 | One XP grant crosses at most one threshold; excess is discarded. | `XpOverflow_IsDiscarded` |
+| IMPL-01 | Reel draws are a pure function of (seed, side, round, spin number, reel index). One side's rerolls never change the other side's faces (D-013). | `EachSidesDraws_AreIndependentOfTheOtherSidesChoices` |
+| IMPL-02 | Panel XP for a unit is one grant equal to its matching XP-face count, so overflow is discarded (D-014). | `XpOverflow_IsDiscarded` |
+| IMPL-03 | The third spin finalizes inside the simulation. `FinalizeSpin` is accepted only when all five reels are locked; the match controller issues it immediately after the fifth lock (D-016). | `LockingAllFiveReels_CanFinalizeEarly` |
+| IMPL-04 | A unit whose stored energy already meets its cost at stage 3 (for example carried from an earlier round or clamped by a rank-up) counts as ready from reel energy. | `RankUpLoweringCost...`, `PanelXp_RanksBeforeEnergyAndActions` |
+| IMPL-05 | Priest (Mender) energy is deferred to stage 9 only when the partner is ready from reel energy and has not yet acted this round; otherwise it is granted at stage 5, and a partner made ready by it acts at stage 10. | Mender tests |
+| IMPL-06 | Bombs from panel XP and stages 4-6 resolve at stage 7; bombs from stages 8 and 10 resolve at stage 11. Within a bomb step: player side first, Channel A before B, then queue order. | `Gold_Produces2DamageBomb...`, `GoldActionXpBomb_ResolvesInLateBombStep` |
+| IMPL-07 | Warlock self-damage never lowers its own Crown below 1; at 1 HP or less it has no effect. | `Hexer_SelfDamageFloorsAt1...` |
+| IMPL-08 | Safety cap: a match that reaches round 200 without a winner ends in a tie. Normal play never approaches this. | invariant tests |
+
 ## 16. Deterministic Simulation Contract
 
 The match simulation must be presentation-independent.
