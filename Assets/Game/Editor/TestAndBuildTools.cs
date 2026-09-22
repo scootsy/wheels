@@ -1,0 +1,103 @@
+using System.IO;
+using System.Text;
+using UnityEditor;
+using UnityEditor.Build.Reporting;
+using UnityEditor.TestTools.TestRunner.Api;
+using UnityEngine;
+
+namespace Tabletop.EditorTools
+{
+    /// <summary>
+    /// Runs the EditMode/PlayMode suites and writes a plain-text summary to Logs/TestResults-*.txt
+    /// (survives the domain reloads that PlayMode tests cause). Also makes the Windows development build.
+    /// </summary>
+    [InitializeOnLoad]
+    public static class TestAndBuildTools
+    {
+        private const string PendingKey = "Tabletop.PendingTestRun";
+        public const string BuildPath = "Builds/Windows/TabletopReels.exe";
+
+        static TestAndBuildTools()
+        {
+            var api = ScriptableObject.CreateInstance<TestRunnerApi>();
+            api.RegisterCallbacks(new ResultWriter());
+        }
+
+        [MenuItem("Tabletop/Tests/Run EditMode")]
+        public static void RunEditMode() => Run(TestMode.EditMode);
+
+        [MenuItem("Tabletop/Tests/Run PlayMode")]
+        public static void RunPlayMode() => Run(TestMode.PlayMode);
+
+        public static void Run(TestMode mode, string testNameFilter = null)
+        {
+            SessionState.SetString(PendingKey, mode.ToString());
+            var path = ResultPath(mode);
+            if (File.Exists(path)) File.Delete(path);
+            File.WriteAllText(path, "RUNNING " + mode + " " + System.DateTime.Now.ToString("s") + "\n");
+            var api = ScriptableObject.CreateInstance<TestRunnerApi>();
+            // Only this project's suites (the Input System package is "testable" for its test fixture).
+            var filter = new Filter { testMode = mode, assemblyNames = new[] { mode == TestMode.PlayMode ? "Tabletop.Tests.PlayMode" : "Tabletop.Tests.EditMode" } };
+            if (!string.IsNullOrEmpty(testNameFilter)) filter.testNames = new[] { testNameFilter };
+            api.Execute(new ExecutionSettings(filter));
+        }
+
+        public static string ResultPath(TestMode mode) => Path.Combine("Logs", "TestResults-" + mode + ".txt");
+
+        private sealed class ResultWriter : ICallbacks
+        {
+            public void RunStarted(ITestAdaptor testsToRun) { }
+            public void TestStarted(ITestAdaptor test) { }
+            public void TestFinished(ITestResultAdaptor result) { }
+
+            public void RunFinished(ITestResultAdaptor result)
+            {
+                string modeName = SessionState.GetString(PendingKey, "Unknown");
+                var sb = new StringBuilder();
+                sb.AppendLine("FINISHED " + modeName + " " + System.DateTime.Now.ToString("s"));
+                sb.AppendLine("Result: " + result.TestStatus + "  passed=" + result.PassCount + " failed=" + result.FailCount
+                    + " skipped=" + result.SkipCount + " inconclusive=" + result.InconclusiveCount + " duration=" + result.Duration.ToString("0.0") + "s");
+                Collect(result, sb);
+                Directory.CreateDirectory("Logs");
+                var mode = modeName == "PlayMode" ? TestMode.PlayMode : TestMode.EditMode;
+                File.WriteAllText(ResultPath(mode), sb.ToString());
+                Debug.Log("[Tabletop] Tests " + modeName + ": " + result.TestStatus + " passed=" + result.PassCount + " failed=" + result.FailCount);
+            }
+
+            private static void Collect(ITestResultAdaptor r, StringBuilder sb)
+            {
+                if (!r.HasChildren)
+                {
+                    sb.Append(r.TestStatus == TestStatus.Passed ? "  PASS " : "  " + r.TestStatus.ToString().ToUpperInvariant() + " ")
+                      .Append(r.Test.FullName).Append(" (").Append(r.Duration.ToString("0.00")).AppendLine("s)");
+                    if (r.TestStatus == TestStatus.Failed)
+                    {
+                        sb.AppendLine("    " + (r.Message ?? "").Replace("\n", "\n    "));
+                        sb.AppendLine("    " + (r.StackTrace ?? "").Replace("\n", "\n    "));
+                    }
+                    return;
+                }
+                foreach (var c in r.Children) Collect(c, sb);
+            }
+        }
+
+        [MenuItem("Tabletop/Build/Windows x64 Development Build")]
+        public static void BuildWindows()
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(BuildPath));
+            var options = new BuildPlayerOptions
+            {
+                scenes = new[] { ProjectSetup.ScenePath },
+                locationPathName = BuildPath,
+                target = BuildTarget.StandaloneWindows64,
+                options = BuildOptions.Development,
+            };
+            var report = BuildPipeline.BuildPlayer(options);
+            var summary = report.summary;
+            string line = "[Tabletop] Build " + summary.result + ": " + summary.outputPath + " size=" + summary.totalSize + " errors=" + summary.totalErrors
+                + " warnings=" + summary.totalWarnings + " time=" + summary.totalTime;
+            File.WriteAllText(Path.Combine("Logs", "BuildResult.txt"), line + "\n");
+            if (summary.result == BuildResult.Succeeded) Debug.Log(line); else Debug.LogError(line);
+        }
+    }
+}

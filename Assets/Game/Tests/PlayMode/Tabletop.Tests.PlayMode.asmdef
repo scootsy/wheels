@@ -1,0 +1,29 @@
+{
+    "name": "Tabletop.Tests.PlayMode",
+    "rootNamespace": "Tabletop.Tests.PlayMode",
+    "references": [
+        "Tabletop.Domain",
+        "Tabletop.Application",
+        "Tabletop.Infrastructure.Unity",
+        "Tabletop.Presentation",
+        "Unity.InputSystem",
+        "Unity.InputSystem.TestFramework",
+        "UnityEngine.UI",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner",
+        "Tabletop.Input"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -93,6 +93,72 @@ This log records decisions that affect rules, player experience, architecture, s
 - **Reason:** The creative director is nontechnical and the original tooling assumptions were placeholders.
 - **Consequences:** Creative/player-experience decisions and the human playtest gate still require the creative director.
 
+### D-013: Per-side reel draw streams
+
+- **Date:** 2026-09-22
+- **Status:** Accepted (implementation decision)
+- **Decision:** Each reel face is drawn from a stateless SplitMix64 hash of (seed, side, round, spin number, reel index). There is no shared draw counter.
+- **Reason:** Reproducible from seed and "draw index" as RULES_SPEC 5.4 requires, and the human's rerolls cannot change the AI's faces (or vice versa), which keeps the AI boundary and replays easy to reason about.
+- **Files updated:** `RULES_SPEC.md` 15.1 (IMPL-01)
+
+### D-014: Panel XP is one grant per unit per round
+
+- **Date:** 2026-09-22
+- **Status:** Accepted (implementation decision)
+- **Decision:** A unit's matching XP faces are summed into one grant, so overflow past 6 is discarded (the RULES_SPEC 7.2 "5/6 + 3 XP = next rank at 0/6" example can only arise this way).
+- **Files updated:** `RULES_SPEC.md` 15.1 (IMPL-02)
+
+### D-015: UI scale grows text within fixed boxes
+
+- **Date:** 2026-09-22
+- **Status:** Accepted (implementation decision)
+- **Decision:** The 100% / 125% / 150% UI scale setting enlarges text using best-fit inside the fixed 1920x1080 layout rather than enlarging panels, so nothing overlaps or leaves the safe area at 1280x720.
+- **Reason:** MATCH_UX_SPEC 8 requires both scaling and no overlap at 1280x720/150%.
+
+### D-016: Finalize flow
+
+- **Date:** 2026-09-22
+- **Status:** Accepted (implementation decision)
+- **Decision:** The simulation finalizes automatically on the third spin. `FinalizeSpin` is legal only when all five reels are locked; the match controller sends it right after the fifth lock is accepted, so both appear in the replay command log. The normal UI has no separate finalize control.
+- **Files updated:** `RULES_SPEC.md` 15.1 (IMPL-03)
+
+### D-017: Remove the unused AI inference package
+
+- **Date:** 2026-09-22
+- **Status:** Accepted (agent, under D-012)
+- **Decision:** Removed `com.unity.ai.inference` from the manifest. Nothing depends on it (the AI Assistant MCP bridge does not), and it added DirectML binaries, ~30 MB, and 485 shader warnings to every player build.
+
+### D-018: Placeholder names
+
+- **Date:** 2026-09-22
+- **Status:** Accepted (implementation decision; creative director may rename)
+- **Decision:** Player-facing units are Striker and Caster. Developer-only definitions use original placeholder names: Ranger (archer values), Mason (engineer), Shade (assassin), Mender (priest), Hexer (warlock). The prototype opponent is labelled "The Tinkerer". The game is titled "Tabletop Reels" on the setup screen.
+
+### D-019: AI profiles
+
+- **Date:** 2026-09-22
+- **Status:** Accepted (implementation decision)
+- **Decision:** Standard AI scores each possible lock mask by its exact expected RULES_SPEC 14.2 utility over every reroll outcome (integer math, no randomness). Expert uses the same search with heavier lethal/threat/waste weights. Learner locks whatever feeds its most-populated channel. All profiles use the same legal commands and reels; the AI only sees the public round-start state and its own rolls.
+
+### D-020: Placeholder presentation technology
+
+- **Date:** 2026-09-22
+- **Status:** Accepted (implementation decision)
+- **Decision:** M1 UI is built in code with uGUI (built-in font, no prefabs or imported art) over a small URP scene of Unity primitives. The scene contains only a camera pair, a light, the EventSystem (InputSystemUIInputModule), and the `MatchApp` composition root.
+- **Reason:** Fast to iterate and test; nothing here is intended as production presentation.
+
+### D-021: Default bindings beyond the UX table
+
+- **Date:** 2026-09-22
+- **Status:** Accepted (implementation decision)
+- **Decision:** `Spin` = R (keyboard) / North button (gamepad); `LockSlot1-5` = number keys 1-5; accelerate = hold Space, South button, or right trigger. Gamepad players lock reels with Navigate + Submit. All bindings live only in `GameInput.inputactions`.
+
+### D-022: Git LFS policy
+
+- **Date:** 2026-09-22
+- **Status:** Accepted (agent, under D-012)
+- **Decision:** `.gitattributes` routes future large binary source assets (models, Blender/PSD files, audio, HDR/EXR/TGA/TIF textures, video) to Git LFS. PNG/JPG stay in normal Git so existing reference images and review screenshots remain readable on GitHub.
+
 ## Open decisions
 
 The rules-level open questions and temporary prototype behaviors are maintained in `RULES_SPEC.md` Section 15. They do not block M0 or M1.

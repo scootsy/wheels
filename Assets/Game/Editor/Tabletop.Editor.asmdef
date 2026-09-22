@@ -1,0 +1,27 @@
+{
+    "name": "Tabletop.Editor",
+    "rootNamespace": "Tabletop.EditorTools",
+    "references": [
+        "Tabletop.Domain",
+        "Tabletop.Application",
+        "Tabletop.Infrastructure.Unity",
+        "Tabletop.Presentation",
+        "Tabletop.Input",
+        "Unity.InputSystem",
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.RenderPipelines.Universal.Runtime",
+        "UnityEditor.TestRunner",
+        "UnityEngine.TestRunner"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

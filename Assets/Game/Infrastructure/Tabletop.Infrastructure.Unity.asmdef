@@ -1,0 +1,17 @@
+{
+    "name": "Tabletop.Infrastructure.Unity",
+    "rootNamespace": "Tabletop.Infrastructure",
+    "references": [
+        "Tabletop.Domain",
+        "Tabletop.Application"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

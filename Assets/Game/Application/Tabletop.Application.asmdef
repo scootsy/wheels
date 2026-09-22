@@ -1,0 +1,16 @@
+{
+    "name": "Tabletop.Application",
+    "rootNamespace": "Tabletop.Application",
+    "references": [
+        "Tabletop.Domain"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": true
+}

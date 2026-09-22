@@ -1,0 +1,302 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 556efd2509b04b14893b2c2f4277e991, type: 3}
+  m_Name: ContentCatalog
+  m_EditorClassIdentifier: Tabletop.Infrastructure.Unity::Tabletop.Infrastructure.ContentCatalogAsset
+  rulesVersion: 0.1.0
+  units:
+  - id: striker
+    displayName: Striker
+    role: Ground attacker
+    description: Fires one low shot at height 1. Heavy damage, but any Barrier stops
+      it.
+    action: 0
+    heights: 01000000
+    bronze:
+      energyCost: 3
+      crownDamage: 3
+      barrierDamage: 3
+      delay: 0
+      heal: 0
+      energyGrant: 0
+      selfDamage: 0
+      friendlyBarrier: 0
+    silver:
+      energyCost: 3
+      crownDamage: 5
+      barrierDamage: 5
+      delay: 0
+      heal: 0
+      energyGrant: 0
+      selfDamage: 0
+      friendlyBarrier: 0
+    gold:
+      energyCost: 3
+      crownDamage: 7
+      barrierDamage: 5
+      delay: 0
+      heal: 0
+      energyGrant: 0
+      selfDamage: 0
+      friendlyBarrier: 0
+    playerFacing: 1
+  - id: caster
+    displayName: Caster
+    role: Twin-shot caster
+    description: 'Fires two shots: one at height 1, then one at height 6 that always
+      clears the Barrier.'
+    action: 0
+    heights: 0100000006000000
+    bronze:
+      energyCost: 5
+      crownDamage: 2
+      barrierDamage: 2
+      delay: 0
+      heal: 0
+      energyGrant: 0
+      selfDamage: 0
+      friendlyBarrier: 0
+    silver:
+      energyCost: 4
+      crownDamage: 3
+      barrierDamage: 3
+      delay: 0
+      heal: 0
+      energyGrant: 0
+      selfDamage: 0
+      friendlyBarrier: 0
+    gold:
+      energyCost: 4
+      crownDamage: 3
+      barrierDamage: 5
+      delay: 0
+      heal: 0
+      energyGrant: 0
+      selfDamage: 0
+      friendlyBarrier: 0
+    playerFacing: 1
+  - id: ranger
+    displayName: Ranger
+    role: Arcing shooter
+    description: Fires one shot at height 3. Clears Barrier 0-2; stopped by 3 or
+      more.
+    action: 0
+    heights: 03000000
+    bronze:
+      energyCost: 4
+      crownDamage: 3
+      barrierDamage: 1
+      delay: 0
+      heal: 0
+      energyGrant: 0
+      selfDamage: 0
+      friendlyBarrier: 0
+    silver:
+      energyCost: 3
+      crownDamage: 4
+      barrierDamage: 2
+      delay: 0
+      heal: 0
+      energyGrant: 0
+      selfDamage: 0
+      friendlyBarrier: 0
+    gold:
+      energyCost: 3
+      crownDamage: 6
+      barrierDamage: 3
+      delay: 0
+      heal: 0
+      energyGrant: 0
+      selfDamage: 0
+      friendlyBarrier: 0
+    playerFacing: 0
+  - id: mason
+    displayName: Mason
+    role: Siege builder
+    description: Fires one low shot, then adds 2 to your own Barrier (max 5).
+    action: 1
+    heights: 01000000
+    bronze:
+      energyCost: 4
+      crownDamage: 1
+      barrierDamage: 3
+      delay: 0
+      heal: 0
+      energyGrant: 0
+      selfDamage: 0
+      friendlyBarrier: 2
+    silver:
+      energyCost: 4
+      crownDamage: 2
+      barrierDamage: 5
+      delay: 0
+      heal: 0
+      energyGrant: 0
+      selfDamage: 0
+      friendlyBarrier: 2
+    gold:
+      energyCost: 3
+      crownDamage: 4
+      barrierDamage: 5
+      delay: 0
+      heal: 0
+      energyGrant: 0
+      selfDamage: 0
+      friendlyBarrier: 2
+    playerFacing: 0
+  - id: shade
+    displayName: Shade
+    role: Saboteur
+    description: Acts first. Drains energy from the enemy unit closest to acting,
+      then hits the Crown directly.
+    action: 2
+    heights: 
+    bronze:
+      energyCost: 3
+      crownDamage: 1
+      barrierDamage: 0
+      delay: 1
+      heal: 0
+      energyGrant: 0
+      selfDamage: 0
+      friendlyBarrier: 0
+    silver:
+      energyCost: 3
+      crownDamage: 2
+      barrierDamage: 0
+      delay: 1
+      heal: 0
+      energyGrant: 0
+      selfDamage: 0
+      friendlyBarrier: 0
+    gold:
+      energyCost: 3
+      crownDamage: 2
+      barrierDamage: 0
+      delay: 2
+      heal: 0
+      energyGrant: 0
+      selfDamage: 0
+      friendlyBarrier: 0
+    playerFacing: 0
+  - id: mender
+    displayName: Mender
+    role: Support
+    description: Heals your Crown (up to 12) and gives energy to the other unit.
+    action: 3
+    heights: 
+    bronze:
+      energyCost: 4
+      crownDamage: 0
+      barrierDamage: 0
+      delay: 0
+      heal: 1
+      energyGrant: 2
+      selfDamage: 0
+      friendlyBarrier: 0
+    silver:
+      energyCost: 3
+      crownDamage: 0
+      barrierDamage: 0
+      delay: 0
+      heal: 2
+      energyGrant: 2
+      selfDamage: 0
+      friendlyBarrier: 0
+    gold:
+      energyCost: 3
+      crownDamage: 0
+      barrierDamage: 0
+      delay: 0
+      heal: 2
+      energyGrant: 3
+      selfDamage: 0
+      friendlyBarrier: 0
+    playerFacing: 0
+  - id: hexer
+    displayName: Hexer
+    role: Reckless volley
+    description: Takes 2 damage to your own Crown (never below 1), then fires at
+      heights 5, 3, and 1.
+    action: 4
+    heights: 050000000300000001000000
+    bronze:
+      energyCost: 4
+      crownDamage: 1
+      barrierDamage: 1
+      delay: 0
+      heal: 0
+      energyGrant: 0
+      selfDamage: 2
+      friendlyBarrier: 0
+    silver:
+      energyCost: 4
+      crownDamage: 2
+      barrierDamage: 2
+      delay: 0
+      heal: 0
+      energyGrant: 0
+      selfDamage: 2
+      friendlyBarrier: 0
+    gold:
+      energyCost: 4
+      crownDamage: 3
+      barrierDamage: 3
+      delay: 0
+      heal: 0
+      energyGrant: 0
+      selfDamage: 2
+      friendlyBarrier: 0
+    playerFacing: 0
+  reelSets:
+  - tier: 0
+    reels:
+    - S,D,S,S+,D,H,DD+,H
+    - S+,D,SS,D+,S,H,DD,HH
+    - S+,D,D+,S,D,HH,SS,HH
+    - S,D,S+,D,HH,S,D+,HH
+    - S,D,H,-,-,S,D,-
+  - tier: 1
+    reels:
+    - S,D,S,S+,D,H,DD+,H
+    - S+,D,SS,D+,S,H,DD,HH
+    - S+,D,D+,S,D,HH,SS,HH
+    - S,D,S+,D,HH,S,D+,HH
+    - S,D,H,-,-,S,D,HH
+  - tier: 2
+    reels:
+    - S,D,S,S+,D,H,DD+,H
+    - S+,D,SS,D+,S,H,DD,HH
+    - S+,D,D+,S,D,HH,SS,HH
+    - S,D,S+,D,HH,S,D+,HH
+    - S,D,H,-,D,SS+,D,HH
+  - tier: 3
+    reels:
+    - S,D,S,S+,D,H,DD+,H
+    - S+,D,SS,D+,S,H,DD,HH
+    - S+,D,D+,S,D,HH,SS,HH
+    - S,D,S+,D,HH,S,D+,HH
+    - S,DD+,H,S,D,SS+,D,HH
+  - tier: 4
+    reels:
+    - S,D,S,S+,D,H,DD+,H
+    - S+,D,SS,D+,S,H,DD,HH
+    - S+,D,D+,S,D,HH,SS,HH
+    - S,D,S+,D,HH,S,D+,HH
+    - S,DD+,HH,SS,DD,SS+,D,HH
+  - tier: 5
+    reels:
+    - S,D,S,S+,D,H,DD+,H
+    - S+,D,SS,D+,S,H,DD,HH
+    - S+,D,D+,S,D,HH,SS,HH
+    - S,D,S+,D,HH,S,D+,HH
+    - S,DD+,HHH,SS+,DD+,SS+,D,HH

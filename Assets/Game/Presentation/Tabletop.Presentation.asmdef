@@ -1,0 +1,21 @@
+{
+    "name": "Tabletop.Presentation",
+    "rootNamespace": "Tabletop.Presentation",
+    "references": [
+        "Tabletop.Domain",
+        "Tabletop.Application",
+        "Tabletop.Infrastructure.Unity",
+        "Unity.InputSystem",
+        "UnityEngine.UI",
+        "Tabletop.Input"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

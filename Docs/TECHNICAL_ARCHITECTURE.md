@@ -87,6 +87,21 @@ Tabletop.Tests.PlayMode
 
 `Tabletop.Domain` must not reference `UnityEngine`, MonoBehaviours, scenes, ScriptableObjects, animation, audio, time, frame count, or device input.
 
+### 3.1 As built (M1)
+
+| Assembly | Folder | Engine references | Notes |
+|---|---|---|---|
+| `Tabletop.Domain` | `Assets/Game/Domain` | none (`noEngineReferences`) | Rules, state, commands, events, RNG, AI, replay |
+| `Tabletop.Application` | `Assets/Game/Application` | none (`noEngineReferences`) | `MatchSession` UX state machine, unit selection, preview, narration, dev scenarios |
+| `Tabletop.Infrastructure.Unity` | `Assets/Game/Infrastructure` | Unity | `ContentCatalogAsset` ScriptableObject mapped to domain definitions |
+| `Tabletop.Input` | `Assets/Game/Input/Adapters` | Unity, Input System | `GameInputRouter`: actions -> abstract intents, active control scheme |
+| `Tabletop.Presentation` | `Assets/Game/Presentation` | Unity, uGUI, Input System | `MatchApp` composition root, presenter, views, primitive diorama |
+| `Tabletop.Editor` | `Assets/Game/Editor` | Editor only | Menu: content/URP/scene setup, test runner summary, Windows build |
+| `Tabletop.Tests.EditMode` | `Assets/Game/Tests/EditMode` | Editor only | Rules, AI, replay, content, application tests |
+| `Tabletop.Tests.PlayMode` | `Assets/Game/Tests/PlayMode` | Input System test framework | Scene, input, flow, presentation, screenshots |
+
+Content authoring is a single `Assets/Game/Content/ContentCatalog.asset` (units and reel sets). `Tabletop/Setup/1. Create or Refresh Content Catalog` regenerates it from `ReferenceContent`; an EditMode test proves it maps to the same content hash.
+
 ## 4. Runtime data flow
 
 ```text
