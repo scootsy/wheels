@@ -4,7 +4,7 @@
 
 | Area | Decision |
 |---|---|
-| Engine | Unity 6.3 LTS, pinned in `ProjectVersion.txt` |
+| Engine | Unity 6000.5.9f1, pinned in `ProjectVersion.txt` (D-010) |
 | Render pipeline | Universal Render Pipeline, 3D project baseline |
 | Initial target | Windows x86-64 and Unity Editor |
 | Input | `com.unity.inputsystem`; legacy Input Manager prohibited |

@@ -17,13 +17,13 @@ Your authorization is to complete technical bootstrap, Milestone M0, and Milesto
 ## 2. Preflight the project
 
 1. Inspect the repository and the open Unity editor before changing anything.
-2. Confirm the project is pinned to Unity 6.3 LTS. If it is on another editor stream, stop and report the exact mismatch rather than upgrading it.
+2. Confirm the project is pinned to the approved baseline, Unity 6000.5.9f1 (D-010). If it is on another editor version, stop and report the exact mismatch rather than changing it.
 3. Confirm Unity MCP can inspect the active project, Console, scenes, packages, tests, Play Mode, and screenshots. If the editor is not reachable, report the exact setup blocker.
 4. Preserve all existing work. If this is not a blank project, inventory what exists and integrate without deleting unrelated assets.
 5. Verify or install only the required packages:
    - `com.unity.inputsystem`;
    - `com.unity.test-framework`;
-   - the packages already required by the chosen Unity 6.3 URP project template.
+   - the Universal Render Pipeline package (`com.unity.render-pipelines.universal`) and anything it requires.
 6. Configure Active Input Handling for the Input System package, not the legacy Input Manager. Allow the required editor restart, reconnect, and verify the setting.
 7. Ensure Git is initialized, a Unity `.gitignore` is present, and generated folders/builds are excluded. Configure Git LFS patterns for future large binary source assets, but do not place text files in LFS.
 8. Update `Docs/IMPLEMENTATION_STATUS.md` with the actual preflight state.

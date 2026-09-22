@@ -8,7 +8,7 @@ Milestones are sequential. Later work may not begin merely because it is technic
 
 Required:
 
-- Unity 6.3 LTS project verified;
+- Unity 6000.5.9f1 project verified (D-010);
 - Unity MCP connection verified;
 - Git, Unity `.gitignore`, and Git LFS policy established;
 - required packages installed;

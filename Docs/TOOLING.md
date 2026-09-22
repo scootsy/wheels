@@ -3,45 +3,28 @@
 ## Required local stack
 
 - Unity Hub;
-- Unity 6.3 LTS editor with Windows build support;
+- Unity 6000.5.9f1 editor with Windows Build Support (D-010);
 - Git available on `PATH`;
 - Git LFS;
-- Python 3.10 or newer;
-- `uv`/`uvx`;
-- an MCP-capable primary coding agent such as Codex;
-- MCP for Unity connected to the open editor.
+- GitHub CLI (`gh`) authenticated for the `scootsy/wheels` remote;
+- an MCP-capable primary coding agent (Claude Code);
+- Unity MCP connected to the open editor.
 
 Blender and Blender MCP are not required before the human playtest gate. Unity primitives are the authorized M1 art source.
 
 ## Unity MCP bridge
 
-The approved development bridge is the open-source CoplayDev MCP for Unity package. It is a development tool, not shipped gameplay code.
+The approved development bridge is Unity's own AI Assistant package, `com.unity.ai.assistant`, which exposes the editor over MCP (D-011). It is a development tool, not shipped gameplay code. The installed version is pinned in `Packages/manifest.json` and `Packages/packages-lock.json`; do not let it upgrade unreviewed.
 
-Install through Unity Package Manager using:
+The package communicates with the local editor only. Client configuration (for example `UserSettings/mcp.json`) is machine-local and must not be committed; `UserSettings/` is ignored by Git.
 
-```text
-https://github.com/CoplayDev/unity-mcp.git?path=/MCPForUnity#main
-```
+Setup path on a new machine:
 
-For a long-lived project, record the installed release or commit in `Packages/manifest.json`/`packages-lock.json` rather than allowing unreviewed upgrades.
-
-Current setup path:
-
-1. Open the actual project in Unity Editor, not only Unity Hub.
-2. Open **Window → Package Manager**.
-3. Choose **Add package from git URL** and enter the URL above.
-4. Open **Window → MCP for Unity**.
-5. Confirm Python and `uv` dependencies are green.
-6. Configure the detected Codex or other MCP client.
-7. Keep the Unity project open while the coding agent works.
-
-The default local HTTP endpoint is:
-
-```text
-http://localhost:8080/mcp
-```
-
-Client configuration is machine-local and must not be committed. Do not bind the MCP server to a LAN or public interface for this project.
+1. Open the project in Unity Editor 6000.5.9f1, not only Unity Hub.
+2. Let Package Manager restore `com.unity.ai.assistant` from the manifest.
+3. Enable the MCP server in the AI Assistant settings and register the coding agent as a client.
+4. Approve the client connection when the editor asks.
+5. Keep the Unity project open while the coding agent works.
 
 ## Connection verification
 
@@ -54,7 +37,7 @@ Before implementation, the primary agent must successfully:
 - enter and exit Play Mode;
 - discover test and screenshot capabilities.
 
-Use non-destructive inspection for the initial check. A generated object is not necessary merely to prove connection.
+Use non-destructive inspection for the initial check where possible.
 
 ## Tool responsibilities
 
@@ -62,10 +45,16 @@ Use non-destructive inspection for the initial check. A generated object is not 
 |---|---|
 | Primary coding agent | Orchestration, C#, tests, docs, diagnosis, and handoff |
 | Unity MCP | Scenes, GameObjects, prefabs, assets, editor settings, Console, Play Mode, tests, builds, screenshots |
-| Filesystem/Git | Source and documentation edits, diffs, commits, and repository inspection |
+| Filesystem/Git/GitHub | Source and documentation edits, diffs, commits, pushes to `origin`, and repository inspection |
 | Blender MCP | Production modeling only after explicit post-gate approval |
 
 The primary agent remains responsible for validating work performed through every tool. A successful tool call is not evidence that Unity compiled or the match worked.
+
+## Source control workflow
+
+- `origin` is `https://github.com/scootsy/wheels`; `main` is the working branch.
+- The agent commits coherent milestones/fixes and pushes them so the local project and GitHub stay in sync. The creative director does not need to operate Git.
+- Never force-push or rewrite published history.
 
 ## Safety and recovery
 
@@ -73,7 +62,6 @@ The primary agent remains responsible for validating work performed through ever
 - Keep the MCP endpoint local.
 - Do not store credentials or absolute user paths in project files.
 - Preserve existing project settings unless the task requires a documented change.
-- If the MCP connection fails, inspect **Window → MCP for Unity**, confirm the server is running, confirm `uv --version`, and verify the client's endpoint.
-- Restarting Unity or the MCP client is acceptable. Upgrading Unity, changing render pipelines, or replacing the MCP bridge is not an automatic troubleshooting step.
+- If the MCP connection fails, check the AI Assistant MCP settings in the editor, confirm the client connection was approved, and restart the client or editor.
+- Restarting Unity or the MCP client is acceptable. Changing editor versions, render pipelines, or the MCP bridge is not an automatic troubleshooting step; record any such change in `DECISIONS.md`.
 - Never use Blender or generated production assets to work around an unproven match loop.
-

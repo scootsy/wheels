@@ -8,7 +8,7 @@ This directory is the persistent source of truth for the Unity tabletop project.
 |---:|---|---|
 | 1 | `../AGENTS.md` | Agent behavior, workflow, Unity requirements, and hard scope gate |
 | 2 | `PROJECT_VISION.md` | Product intent and long-term boundaries |
-| 3 | `TOOLING.md` | Local Unity MCP, Git, Python/uv, and tool-safety setup |
+| 3 | `TOOLING.md` | Local Unity MCP, Git/GitHub, and tool-safety setup |
 | 4 | `RULES_SPEC.md` | Deterministic mechanics and rules tests |
 | 5 | `MATCH_UX_SPEC.md` | Match screens, controls, presentation, accessibility, and end-to-end acceptance |
 | 6 | `TECHNICAL_ARCHITECTURE.md` | Unity packages, assemblies, data flow, Input System, and project structure |

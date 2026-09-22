@@ -7,7 +7,7 @@ This log records decisions that affect rules, player experience, architecture, s
 ### D-001: Unity baseline
 
 - **Date:** 2026-09-22
-- **Status:** Accepted
+- **Status:** Superseded by D-010 (editor version only; URP and Windows x86-64 still apply)
 - **Decision:** Use Unity 6.3 LTS with Universal Render Pipeline and Windows x86-64 as the first standalone target.
 - **Reason:** Stable long-lived editor baseline and a suitable path to fixed-camera stylized low-poly 3D with crisp 2D UI.
 
@@ -66,6 +66,32 @@ This log records decisions that affect rules, player experience, architecture, s
 - **Status:** Accepted
 - **Decision:** No collection save, campaign save, or mid-match resume before M1 approval. Replay capture is diagnostic data, not a save system.
 - **Reason:** Persistence would serve unapproved progression scope and create migration work before the loop is validated.
+
+### D-010: Editor baseline is Unity 6000.5.9f1
+
+- **Date:** 2026-09-22
+- **Status:** Accepted (creative director)
+- **Decision:** Pin the project to Unity 6000.5.9f1, the editor installed on the development machine. Universal Render Pipeline and Windows x86-64 from D-001 remain in force.
+- **Reason:** The originally assumed 6.3 LTS editor was not installed; the project had already been opened and upgraded in 6000.5.9f1 while still empty.
+- **Consequences:** Shorter support window than an LTS stream. Future version changes are an agent decision under D-012 but must be recorded here.
+- **Supersedes:** D-001 (editor version)
+- **Files updated:** `AGENTS.md`, `FIRST_TASK.md`, `Docs/TOOLING.md`, `Docs/TECHNICAL_ARCHITECTURE.md`, `Docs/MILESTONES.md`, `Docs/IMPLEMENTATION_STATUS.md`
+
+### D-011: Unity MCP bridge is Unity AI Assistant
+
+- **Date:** 2026-09-22
+- **Status:** Accepted (creative director)
+- **Decision:** Use Unity's `com.unity.ai.assistant` package as the editor MCP bridge instead of the CoplayDev package originally listed. Commit the package reference; keep client configuration local.
+- **Reason:** Already installed and verified working (editor state, scenes, packages, Console, GameObject operations).
+- **Files updated:** `Docs/TOOLING.md`, `Packages/manifest.json`
+
+### D-012: Technical tooling choices are delegated to the agent
+
+- **Date:** 2026-09-22
+- **Status:** Accepted (creative director)
+- **Decision:** Editor versions, packages, tooling, and Git/GitHub mechanics are engineering decisions for the agent. The agent chooses what is best for the project, records the choice here, updates affected documents, and does not ask the creative director. The agent keeps the local repository and GitHub `origin/main` in sync.
+- **Reason:** The creative director is nontechnical and the original tooling assumptions were placeholders.
+- **Consequences:** Creative/player-experience decisions and the human playtest gate still require the creative director.
 
 ## Open decisions
 

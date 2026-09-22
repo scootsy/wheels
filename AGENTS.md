@@ -58,7 +58,7 @@ Approval must be explicit. A successful test run, a positive comment, or silence
 
 ## Unity requirements
 
-- Use the Unity editor version pinned by `ProjectSettings/ProjectVersion.txt`. The expected baseline is **Unity 6.3 LTS**. Never upgrade or downgrade the project without approval.
+- Use the Unity editor version pinned by `ProjectSettings/ProjectVersion.txt`. The approved baseline is **Unity 6000.5.9f1** (see `Docs/DECISIONS.md` D-010). Do not change editor versions casually; version and tooling choices are delegated to the agent (D-012) but must be recorded in `Docs/DECISIONS.md` and every affected document.
 - Use Universal Render Pipeline for the eventual fixed-camera, stylized low-poly presentation. The M1 build uses primitives and placeholder materials.
 - Use `com.unity.test-framework` for EditMode and PlayMode tests.
 - Use `com.unity.inputsystem`. The legacy Input Manager is prohibited.
