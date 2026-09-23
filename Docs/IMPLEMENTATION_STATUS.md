@@ -80,6 +80,25 @@ Screenshots (1920x1080 unless noted), in `Docs/Screenshots/M1/`:
 - Frame rate was measured in the editor only; the built player was smoke-tested headless.
 - Standard AI balance is untuned; the playtest should judge whether it feels fair.
 
+## Update 2026-09-23 — readability pass (D-023)
+
+```text
+Date/time: 2026-09-23 11:05 (local)
+Milestone: M1 (playtest-readability fix; gate still active)
+Completed: original icon set (gems, hammer, XP star, crown, wall, padlock, bomb, unit portraits);
+  knight/wizard figures, real crown, growing brick wall, energy rods, 3D name/number labels,
+  floating +/- numbers on impact, symbol legend, reel captions naming the unit each symbol feeds,
+  larger table view, crown/wall readouts over the table, portraits on plaques and selection cards,
+  player-facing "Wall" wording for Barrier
+Tests: EditMode 92/92, PlayMode 21/21 (bootstrap test now also checks the icon set)
+Console/build: 0 errors / 0 warnings; Windows build succeeded (0 errors, 0 warnings), headless launch clean
+Screenshots/build path: Docs/Screenshots/M1/*.png refreshed; Builds/Windows/TabletopReels.exe
+Known defects: figures are still crude primitive shapes; no audio
+Blockers: none
+Next authorized work: playtest fixes only
+Gate status: HUMAN PLAYTEST GATE ACTIVE — awaiting creative-director approval.
+```
+
 ## Active blockers
 
 None.

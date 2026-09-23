@@ -44,31 +44,38 @@ namespace Tabletop.Presentation
             // Enemy reels (top center) and player reels (bottom center).
             for (int r = 0; r < 5; r++)
             {
-                _enemyReels[r] = new ReelView(t, r, 615 + r * 140, 8, 130, 124, false);
+                _enemyReels[r] = new ReelView(t, r, 615 + r * 140, 8, 130, 124, false, icons);
                 _enemyReels[r].Button.GetComponent<Image>().raycastTarget = false;
                 int reel = r;
-                _playerReels[r] = new ReelView(t, r, 561 + r * 162, 800, 150, 150, true);
+                _playerReels[r] = new ReelView(t, r, 561 + r * 162, 800, 150, 150, true, icons);
                 _playerReels[r].Button.onClick.AddListener(() => OnReelClicked(reel));
             }
             L("EnemyReelsLabel", t, "ENEMY REELS", 16, TextAnchor.UpperRight, Theme.Enemy).rectTransform.Place(440, 10, 165, 24);
             L("PlayerReelsLabel", t, "YOUR\nREELS", 16, TextAnchor.UpperRight, Theme.Player).rectTransform.Place(440, 800, 112, 44);
 
-            // Crown + Barrier bars.
-            _enemyCrown = L("EnemyCrown", t, "", 30, TextAnchor.MiddleLeft, Theme.Crown, FontStyle.Bold);
-            _enemyCrown.rectTransform.Place(450, 140, 520, 66);
-            _enemyBarrier = L("EnemyBarrier", t, "", 24, TextAnchor.MiddleLeft, Theme.Text, FontStyle.Bold);
-            _enemyBarrier.rectTransform.Place(980, 140, 250, 66);
-            _playerCrown = L("PlayerCrown", t, "", 30, TextAnchor.MiddleLeft, Theme.Crown, FontStyle.Bold);
-            _playerCrown.rectTransform.Place(450, 602, 520, 66);
-            _playerBarrier = L("PlayerBarrier", t, "", 24, TextAnchor.MiddleLeft, Theme.Text, FontStyle.Bold);
-            _playerBarrier.rectTransform.Place(980, 602, 250, 66);
+            // Crown + Barrier readouts overlaid on the table view (top = enemy, bottom = you).
             for (int side = 0; side < 2; side++)
+            {
+                float y = side == 1 ? LaneY + 6 : LaneY + LaneH - 50;
+                var chip = Ui.Panel(side == 1 ? "EnemyChip" : "PlayerChip", t, new Color(0.08f, 0.07f, 0.07f, 0.82f));
+                chip.rectTransform.Place(LaneX + 6, y, 640, 44);
+                chip.raycastTarget = false;
+                Ui.Icon("CrownIcon", chip.transform, icons != null ? icons.crown : null, 38, Theme.Crown).rectTransform.Place(6, 3, 38, 38);
+                var crownText = L(side == 1 ? "EnemyCrown" : "PlayerCrown", chip.transform, "", 26, TextAnchor.MiddleLeft, Theme.Crown, FontStyle.Bold);
+                crownText.rectTransform.Place(50, 0, 330, 44);
+                Ui.Icon("WallIcon", chip.transform, icons != null ? icons.wall : null, 38, Theme.Barrier).rectTransform.Place(384, 3, 38, 38);
+                var wallText = L(side == 1 ? "EnemyWall" : "PlayerWall", chip.transform, "", 20, TextAnchor.MiddleLeft, Theme.Text, FontStyle.Bold);
+                wallText.rectTransform.Place(426, 0, 90, 44);
                 for (int i = 0; i < 5; i++)
                 {
-                    var pip = Ui.Panel("BarrierPip" + side + i, t, Theme.Barrier);
-                    pip.rectTransform.Place(1236 + i * 46, side == 1 ? 156 : 618, 40, 34);
+                    var pip = Ui.Panel("WallPip" + side + i, chip.transform, Theme.Barrier);
+                    pip.rectTransform.Place(516 + i * 24, 12, 20, 20);
+                    pip.raycastTarget = false;
                     _barrierPips[side, i] = pip;
                 }
+                if (side == 1) { _enemyCrown = crownText; _enemyBarrier = wallText; }
+                else { _playerCrown = crownText; _playerBarrier = wallText; }
+            }
 
             _banner = L("Banner", t, "", 26, TextAnchor.MiddleCenter, Theme.Text, FontStyle.Bold);
             _banner.rectTransform.Place(440, 668, 1040, 52);
@@ -92,10 +99,10 @@ namespace Tabletop.Presentation
             ((RectTransform)_helpButton.transform).Place(1325, 962, 150, 96);
 
             // Unit plaques.
-            _unitPanels.Add(new UnitPanelView(t, 1, 0, 10, 10, 420, 262));
-            _unitPanels.Add(new UnitPanelView(t, 1, 1, 1490, 10, 420, 262));
-            _unitPanels.Add(new UnitPanelView(t, 0, 0, 10, 700, 420, 262));
-            _unitPanels.Add(new UnitPanelView(t, 0, 1, 1490, 700, 420, 262));
+            _unitPanels.Add(new UnitPanelView(t, 1, 0, 10, 10, 420, 262, icons));
+            _unitPanels.Add(new UnitPanelView(t, 1, 1, 1490, 10, 420, 262, icons));
+            _unitPanels.Add(new UnitPanelView(t, 0, 0, 10, 700, 420, 262, icons));
+            _unitPanels.Add(new UnitPanelView(t, 0, 1, 1490, 700, 420, 262, icons));
             foreach (var p in _unitPanels)
             {
                 var panel = p;
@@ -107,10 +114,11 @@ namespace Tabletop.Presentation
 
             // Info columns.
             var info = Ui.Panel("RoundInfoBg", t, Theme.PanelDark);
-            info.rectTransform.Place(10, 296, 420, 396);
+            info.rectTransform.Place(10, 296, 420, 190);
             info.raycastTarget = false;
-            _roundInfo = L("RoundInfo", info.transform, "", 22, TextAnchor.UpperLeft);
-            _roundInfo.rectTransform.Fill(14);
+            _roundInfo = L("RoundInfo", info.transform, "", 20, TextAnchor.UpperLeft);
+            _roundInfo.rectTransform.Fill(12);
+            BuildLegend(t);
             var logBg = Ui.Panel("EventLogBg", t, Theme.PanelDark);
             logBg.rectTransform.Place(1490, 296, 420, 396);
             logBg.raycastTarget = false;
@@ -124,6 +132,33 @@ namespace Tabletop.Presentation
 
             foreach (var r in _playerReels) foreach (var text in r.Button.GetComponentsInChildren<Text>(true)) { _scalableLabels.Add(text); _baseSizes.Add(text.fontSize); }
             RefreshPrompts();
+        }
+
+        private readonly Text[] _legendText = new Text[2];
+
+        /// <summary>Symbol legend: what each reel symbol does for you (names follow your chosen units).</summary>
+        private void BuildLegend(Transform t)
+        {
+            var bg = Ui.Panel("LegendBg", t, Theme.PanelDark);
+            bg.rectTransform.Place(10, 492, 420, 200);
+            bg.raycastTarget = false;
+            L("LegendTitle", bg.transform, "WHAT THE SYMBOLS DO", 17, TextAnchor.UpperLeft, Theme.Focus, FontStyle.Bold).rectTransform.Place(12, 6, 396, 22);
+            var rows = new[]
+            {
+                (icons != null ? icons.energyA : null, Theme.ChannelA, "A gem: energy for your A unit"),
+                (icons != null ? icons.energyB : null, Theme.ChannelB, "B gem: energy for your B unit"),
+                (icons != null ? icons.hammer : null, Theme.Hammer, "Hammer: builds your wall"),
+                (icons != null ? icons.xp : null, Theme.Xp, "Star: +1 XP to that unit"),
+            };
+            for (int i = 0; i < rows.Length; i++)
+            {
+                Ui.Icon("LegendIcon" + i, bg.transform, rows[i].Item1, 30, rows[i].Item2).rectTransform.Place(12, 32 + i * 34, 30, 30);
+                var text = L("LegendText" + i, bg.transform, rows[i].Item3, 17, TextAnchor.MiddleLeft);
+                text.rectTransform.Place(50, 32 + i * 34, 360, 30);
+                if (i < 2) _legendText[i] = text;
+            }
+            L("LegendRule", bg.transform, "Count matching symbols: 3 = 1 point, then +1 for each extra.", 15, TextAnchor.UpperLeft, Theme.TextDim)
+                .rectTransform.Place(12, 170, 400, 26);
         }
 
         private static void AddTrigger(EventTrigger trigger, EventTriggerType type, System.Action action)
@@ -195,6 +230,7 @@ namespace Tabletop.Presentation
             if (m != _renderedMatch)
             {
                 _renderedMatch = m;
+                _diorama.ClearFloating();
                 if (m != null)
                 {
                     for (int s = 0; s < 2; s++)
@@ -210,6 +246,9 @@ namespace Tabletop.Presentation
             var pDefs = m.ReelDefinitions(SideId.Player);
             var eDefs = m.ReelDefinitions(SideId.Opponent);
             string nameA = m.UnitDefinition(SideId.Player, 0).DisplayName, nameB = m.UnitDefinition(SideId.Player, 1).DisplayName;
+            string enemyA = m.UnitDefinition(SideId.Opponent, 0).DisplayName, enemyB = m.UnitDefinition(SideId.Opponent, 1).DisplayName;
+            _legendText[0].text = "A gem: energy for your " + nameA;
+            _legendText[1].text = "B gem: energy for your " + nameB;
             bool spinningNow = cur != null && cur.Type == MatchEventType.ReelsSpun && !Presenter.Applied;
             for (int r = 0; r < 5; r++)
             {
@@ -228,7 +267,7 @@ namespace Tabletop.Presentation
                 _playerReels[r].Button.interactable = state == UxState.SpinDecision && !Session.Paused || state == UxState.RoundReady;
 
                 var ef = v.Face[1, r];
-                _enemyReels[r].SetFace(ef >= 0 ? eDefs[r].Faces[ef] : null);
+                _enemyReels[r].SetFace(ef >= 0 ? eDefs[r].Faces[ef] : null, enemyA, enemyB);
                 _enemyReels[r].SetLocked(false);
                 _enemyReels[r].SetHidden(!Presenter.OpponentRevealed);
             }
@@ -236,8 +275,8 @@ namespace Tabletop.Presentation
             // Crowns and Barriers.
             _enemyCrown.text = CrownText("ENEMY CROWN", v.Crown[1]);
             _playerCrown.text = CrownText("YOUR CROWN", v.Crown[0]);
-            _enemyBarrier.text = "BARRIER " + v.Barrier[1] + " / 5";
-            _playerBarrier.text = "BARRIER " + v.Barrier[0] + " / 5";
+            _enemyBarrier.text = "WALL " + v.Barrier[1];
+            _playerBarrier.text = "WALL " + v.Barrier[0];
             for (int s = 0; s < 2; s++)
                 for (int i = 0; i < 5; i++)
                     _barrierPips[s, i].color = i < v.Barrier[s] ? Theme.Barrier : new Color(0.22f, 0.22f, 0.24f, 1f);
@@ -338,7 +377,7 @@ namespace Tabletop.Presentation
             for (int r = 0; r < 5; r++) if (v.Face[side, r] >= 0) faces.Add(defs[r].Faces[v.Face[side, r]]);
             var t = SymbolEvaluator.Evaluate(faces);
             return "A x" + t.ChannelA + " -> +" + t.Energy(Channel.A) + " energy,  B x" + t.ChannelB + " -> +" + t.Energy(Channel.B)
-                + " energy,  Hammers x" + t.Hammer + " -> +" + t.BarrierGain + " Barrier,  XP A+" + t.XpA + " B+" + t.XpB;
+                + " energy,  Hammers x" + t.Hammer + " -> +" + t.BarrierGain + " Wall,  XP A+" + t.XpA + " B+" + t.XpB;
         }
 
         private void RefreshControlHints()

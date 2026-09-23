@@ -308,6 +308,9 @@ namespace Tabletop.Presentation
                 card.GetComponentInChildren<Text>().gameObject.SetActive(false);
                 ((RectTransform)card.transform).Place(0, 0, cardW, 470);
                 var s = def.Stats(Rank.Bronze);
+                float portrait = cardW >= 400 ? 120 : 64;
+                Ui.Icon("Portrait", card.transform, icons != null ? icons.Unit(def.Id) : null, portrait, Theme.TextDim)
+                    .rectTransform.Place(cardW - portrait - 16, 14, portrait, portrait);
                 L("Name", card.transform, def.DisplayName.ToUpperInvariant(), 34, TextAnchor.UpperLeft, Theme.Text, FontStyle.Bold).rectTransform.Place(20, 16, cardW - 40, 44);
                 L("Role", card.transform, def.Role + (def.PlayerFacing ? "" : "  [DEV ONLY]"), 20, TextAnchor.UpperLeft, Theme.TextDim).rectTransform.Place(20, 62, cardW - 40, 28);
                 L("Stats", card.transform,
@@ -522,7 +525,7 @@ namespace Tabletop.Presentation
             foreach (Rank r in new[] { Rank.Bronze, Rank.Silver, Rank.Gold })
                 sb.Append(r.ToString().ToUpperInvariant()).Append(": cost ").Append(def.Stats(r).EnergyCost).Append(". ")
                   .Append(UnitPanelView.StatsLine(def, def.Stats(r)).Replace("\n", ". ")).Append('\n');
-            sb.Append("Ranks up at 6 XP (XP faces +1 each, acting +2). At Gold, 6 XP launches a 2-damage bomb that ignores Barrier.");
+            sb.Append("Ranks up at 6 XP (XP faces +1 each, acting +2). At Gold, 6 XP launches a 2-damage bomb that ignores Wall.");
             return sb.ToString();
         }
 
@@ -547,12 +550,12 @@ namespace Tabletop.Presentation
                 "- The enemy spins after you, using the same reels. You cannot see their reels until both sides are done.\n\n" +
                 "SYMBOLS  (orange SQUARE = Channel A / left unit, teal DIAMOND = Channel B / right unit, bar = HAMMER)\n" +
                 "- Count every printed symbol of a kind, then subtract 2: 3 symbols = 1, 4 = 2, 5 = 3, 6 = 4.\n" +
-                "- Squares give energy to your A unit, diamonds to your B unit, hammers build your Barrier (max 5).\n" +
+                "- Squares give energy to your A unit, diamonds to your B unit, hammers build your Wall (max 5).\n" +
                 "- An XP badge gives exactly +1 XP to that unit, even with fewer than 3 symbols.\n\n" +
-                "UNITS, CROWN, BARRIER\n" +
+                "UNITS, CROWN, WALL\n" +
                 "- A unit acts when its energy reaches its cost; extra energy is wasted. Acting gives +2 XP.\n" +
-                "- 6 XP ranks Bronze -> Silver -> Gold. At Gold, 6 XP launches a 2-damage BOMB that ignores Barrier.\n" +
-                "- A shot hits the Crown only if its height is GREATER than the Barrier; otherwise it damages the Barrier (no spill-over).\n" +
+                "- 6 XP ranks Bronze -> Silver -> Gold. At Gold, 6 XP launches a 2-damage BOMB that ignores Wall.\n" +
+                "- A shot hits the Crown only if its height is GREATER than the Wall; otherwise it damages the Wall (no spill-over).\n" +
                 "- Crowns start at 10. The match is checked only after the whole round: 0 HP = defeat, both 0 = tie.\n\n" +
                 "CONTROLS (" + (Input.ActiveScheme == Tabletop.Input.ControlScheme.Gamepad ? "gamepad" : "keyboard / mouse") + ")\n" +
                 "- Move focus: " + B("UI", "Navigate") + "     Confirm / toggle lock on focused reel: " + B("UI", "Submit") + "\n" +

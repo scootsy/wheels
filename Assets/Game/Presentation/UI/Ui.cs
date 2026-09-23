@@ -128,6 +128,17 @@ namespace Tabletop.Presentation
             if (t != null) t.text = text;
         }
 
+        /// <summary>Sprite icon of a fixed size; falls back to a flat colored square if the sprite is missing.</summary>
+        public static Image Icon(string name, Transform parent, Sprite sprite, float size, Color fallback)
+        {
+            var img = Panel(name, parent, sprite != null ? Color.white : fallback);
+            img.sprite = sprite;
+            img.preserveAspect = true;
+            img.raycastTarget = false;
+            img.rectTransform.sizeDelta = new Vector2(size, size);
+            return img;
+        }
+
         /// <summary>Filled square (Channel A), diamond (Channel B), or bar (Hammer) glyph.</summary>
         public static Image Glyph(string name, Transform parent, GlyphShape shape, float size)
         {

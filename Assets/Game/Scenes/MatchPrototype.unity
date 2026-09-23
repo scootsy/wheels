@@ -487,6 +487,7 @@ MonoBehaviour:
   content: {fileID: 11400000, guid: ffbe9fa268143e44a9e13d8c948d649c, type: 2}
   boardCamera: {fileID: 324685996}
   eventSystem: {fileID: 311056561}
+  icons: {fileID: 11400000, guid: 8c00e37dd6da8664cab1207ac0ae2a79, type: 2}
 --- !u!4 &2045253965
 Transform:
   m_ObjectHideFlags: 0

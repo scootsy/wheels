@@ -22,6 +22,7 @@ namespace Tabletop.Presentation
         [SerializeField] private ContentCatalogAsset content;
         [SerializeField] private Camera boardCamera;
         [SerializeField] private EventSystem eventSystem;
+        [SerializeField] private IconSet icons;
 
         public MatchSession Session { get; private set; }
         public MatchPresenter Presenter { get; private set; }
@@ -43,9 +44,10 @@ namespace Tabletop.Presentation
         private UxState _lastRenderedState = (UxState)(-1);
 
         // Lane rectangle in 1920x1080 reference pixels (the 3D diorama shows through here).
-        private const float LaneX = 440, LaneY = 212, LaneW = 1040, LaneH = 386;
+        private const float LaneX = 440, LaneY = 140, LaneW = 1040, LaneH = 522;
 
         public ContentCatalog Catalog { get; private set; }
+        public IconSet Icons => icons;
 
         private void Awake()
         {
@@ -82,10 +84,12 @@ namespace Tabletop.Presentation
             Input.SchemeChanged += _ => RefreshPrompts();
             ConfigureEventSystem();
 
+            ConfigureCamera();
             _diorama = new GameObject("Board").AddComponent<BoardDiorama>();
             _diorama.transform.SetParent(transform, false);
+            _diorama.Camera = boardCamera;
             _diorama.Build();
-            ConfigureCamera();
+            Presenter.EventImpact += e => _diorama.ShowDelta(e);
 
             BuildCanvas();
             BuildSetupScreen();
@@ -133,9 +137,9 @@ namespace Tabletop.Presentation
             boardCamera.rect = new Rect(LaneX / 1920f, 1f - (LaneY + LaneH) / 1080f, LaneW / 1920f, LaneH / 1080f);
             boardCamera.clearFlags = CameraClearFlags.SolidColor;
             boardCamera.backgroundColor = new Color(0.16f, 0.12f, 0.10f);
-            boardCamera.transform.position = new Vector3(0, 7.8f, -6.2f);
-            boardCamera.transform.LookAt(new Vector3(0, 0.4f, 0.15f));
-            boardCamera.fieldOfView = 34f;
+            boardCamera.transform.position = new Vector3(0, 10.5f, -8.2f);
+            boardCamera.transform.LookAt(new Vector3(0, 0.2f, 0.4f));
+            boardCamera.fieldOfView = 36f;
         }
 
         // ------------------------------------------------------------------ frame loop

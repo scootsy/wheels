@@ -90,7 +90,7 @@ namespace Tabletop.Application
 
         public string BarrierText()
         {
-            string s = "Hammers x" + Hammers + " -> +" + (BarrierAfter - BarrierBefore) + " Barrier (" + BarrierAfter + "/5)";
+            string s = "Hammers x" + Hammers + " -> +" + (BarrierAfter - BarrierBefore) + " Wall (" + BarrierAfter + "/5)";
             if (BarrierWasted > 0) s += " [CAPPED " + BarrierWasted + "]";
             return s;
         }

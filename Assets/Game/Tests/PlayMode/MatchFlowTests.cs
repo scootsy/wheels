@@ -20,6 +20,8 @@ namespace Tabletop.Tests.PlayMode
         {
             Assert.AreEqual(UxState.MatchSetup, Session.State);
             Assert.IsNull(App.ConfigError, "content must validate");
+            Assert.IsNotNull(App.Icons, "icon set assigned in the scene");
+            Assert.IsTrue(App.Icons.IsComplete, "every required icon sprite is present");
             yield return null;
             Assert.AreEqual(App.SetupContinueButton.gameObject, Selected);
             Assert.IsTrue(App.SetupScreen.activeInHierarchy);

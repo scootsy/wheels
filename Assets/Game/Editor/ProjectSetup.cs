@@ -70,11 +70,13 @@ namespace Tabletop.EditorTools
         public static void BuildScene()
         {
             CreateContent();
+            IconImport.CreateIconSet();
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             // Load assets after NewScene: opening a scene unloads previously loaded, unreferenced assets.
             var content = AssetDatabase.LoadAssetAtPath<ContentCatalogAsset>(ContentPath);
             var input = AssetDatabase.LoadAssetAtPath<InputActionAsset>(InputPath);
-            if (input == null || content == null) { Debug.LogError("[Tabletop] Missing input or content asset"); return; }
+            var icons = AssetDatabase.LoadAssetAtPath<IconSet>(IconImport.IconSetPath);
+            if (input == null || content == null || icons == null) { Debug.LogError("[Tabletop] Missing input, content, or icon asset"); return; }
 
             var camGo = new GameObject("Main Camera");
             camGo.tag = "MainCamera";
@@ -109,6 +111,7 @@ namespace Tabletop.EditorTools
             so.FindProperty("content").objectReferenceValue = content;
             so.FindProperty("boardCamera").objectReferenceValue = cam;
             so.FindProperty("eventSystem").objectReferenceValue = es;
+            so.FindProperty("icons").objectReferenceValue = icons;
             so.ApplyModifiedPropertiesWithoutUndo();
 
             Directory.CreateDirectory(Path.GetDirectoryName(ScenePath));

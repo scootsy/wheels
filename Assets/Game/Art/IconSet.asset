@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b2e3fe9ac319bdb4f8231173d91dddf5, type: 3}
+  m_Name: IconSet
+  m_EditorClassIdentifier: Tabletop.Presentation::Tabletop.Presentation.IconSet
+  energyA: {fileID: 21300000, guid: f18f6a52fe52c95469e8d1e9ba05e189, type: 3}
+  energyB: {fileID: 21300000, guid: 88caea2a3f6513d4b913078054e95e79, type: 3}
+  hammer: {fileID: 21300000, guid: 06a8be0a5d2fd1b4dbbaa23b4d81dc33, type: 3}
+  xp: {fileID: 21300000, guid: c5d759caec891fd448e0d511ea7dc980, type: 3}
+  blank: {fileID: 21300000, guid: c7d6bfda7e49275489370a4ca2da71ae, type: 3}
+  padlock: {fileID: 21300000, guid: 4880778930d54fe4cad6ee616bea80b4, type: 3}
+  crown: {fileID: 21300000, guid: 28a959b1c580bee4ebdf28768ffa4b85, type: 3}
+  wall: {fileID: 21300000, guid: 50487baa10f9b9e48b9ed9cbb50141df, type: 3}
+  bomb: {fileID: 21300000, guid: ee8998268a5331544b2eba4b7d4d8f56, type: 3}
+  units:
+  - unitId: striker
+    sprite: {fileID: 21300000, guid: 19433959fabbae142abbac93f372548a, type: 3}
+  - unitId: caster
+    sprite: {fileID: 21300000, guid: 4ebe1a267c98d0745b9a7d07f88545ac, type: 3}
+  - unitId: ranger
+    sprite: {fileID: 21300000, guid: 6bacb340c490374479469453ff15b231, type: 3}
+  - unitId: mason
+    sprite: {fileID: 21300000, guid: 89aef1e4a8f041b488f675903696f5bf, type: 3}
+  - unitId: shade
+    sprite: {fileID: 21300000, guid: 4cb2a5ccf0985ae4d81c42fc95586190, type: 3}
+  - unitId: mender
+    sprite: {fileID: 21300000, guid: 0360167c3212bea4db23430f94ca416d, type: 3}
+  - unitId: hexer
+    sprite: {fileID: 21300000, guid: 9f93ca61dd1438c48addd79194bb2d09, type: 3}

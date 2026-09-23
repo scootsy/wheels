@@ -37,7 +37,7 @@ namespace Tabletop.Application
                 case MatchEventType.BombQueued:
                     return unit + " is Gold at 6 XP: a BOMB is armed (XP resets to 0).";
                 case MatchEventType.BarrierBuilt:
-                    return SideName(e.Side) + " Barrier +" + e.Amount + " (" + e.Before + " -> " + e.After + ")"
+                    return SideName(e.Side) + " Wall +" + e.Amount + " (" + e.Before + " -> " + e.After + ")"
                         + (e.Note == "unit build" ? " from " + unit : " from hammers") + (e.Wasted > 0 ? " [" + e.Wasted + " CAPPED]" : "") + ".";
                 case MatchEventType.EnergyGranted:
                     return unit + " energy +" + e.Amount + " (" + e.Before + " -> " + e.After + ")"
@@ -49,18 +49,18 @@ namespace Tabletop.Application
                     return unit + " ACTS" + (e.Source == EnergySource.Priest ? " (blessing energy)" : "") + ".";
                 case MatchEventType.ProjectileResolved:
                     return unit + " shot " + (e.ProjectileIndex + 1) + " at height " + e.Height
-                        + (e.TargetIsCrown ? " clears Barrier " + e.Before + " -> hits the Crown." : " is blocked by Barrier " + e.Before + ".");
+                        + (e.TargetIsCrown ? " clears Wall " + e.Before + " -> hits the Crown." : " is blocked by Wall " + e.Before + ".");
                 case MatchEventType.CrownDamaged:
                     if (e.Note == "self") return unit + " takes " + e.Amount + " self-damage (" + e.Before + " -> " + e.After + ").";
                     return SideName(e.TargetSide) + " Crown -" + e.Amount + " (" + e.Before + " -> " + e.After + ")"
-                        + (e.Note == "bomb" ? " from a BOMB (ignores Barrier)" : e.Note == "direct" ? " direct hit" : "") + ".";
+                        + (e.Note == "bomb" ? " from a BOMB (ignores Wall)" : e.Note == "direct" ? " direct hit" : "") + ".";
                 case MatchEventType.BarrierDamaged:
-                    return SideName(e.TargetSide) + " Barrier -" + e.Amount + " (" + e.Before + " -> " + e.After + ")"
+                    return SideName(e.TargetSide) + " Wall -" + e.Amount + " (" + e.Before + " -> " + e.After + ")"
                         + (e.Wasted > 0 ? " [" + e.Wasted + " absorbed, no spill]" : "") + ".";
                 case MatchEventType.CrownHealed:
                     return SideName(e.Side) + " Crown +" + e.Amount + " (" + e.Before + " -> " + e.After + ")" + waste + ".";
                 case MatchEventType.BombLaunched:
-                    return unit + " BOMB flies over the Barrier!";
+                    return unit + " BOMB flies over the Wall!";
                 case MatchEventType.RoundEnded:
                     return "Round " + e.Round + " resolved.";
                 case MatchEventType.MatchEnded:

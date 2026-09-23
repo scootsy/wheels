@@ -17,7 +17,7 @@ MonoBehaviour:
   - id: striker
     displayName: Striker
     role: Ground attacker
-    description: Fires one low shot at height 1. Heavy damage, but any Barrier stops
+    description: Fires one low shot at height 1. Heavy damage, but any Wall stops
       it.
     action: 0
     heights: 01000000
@@ -53,7 +53,7 @@ MonoBehaviour:
     displayName: Caster
     role: Twin-shot caster
     description: 'Fires two shots: one at height 1, then one at height 6 that always
-      clears the Barrier.'
+      clears the Wall.'
     action: 0
     heights: 0100000006000000
     bronze:
@@ -87,8 +87,7 @@ MonoBehaviour:
   - id: ranger
     displayName: Ranger
     role: Arcing shooter
-    description: Fires one shot at height 3. Clears Barrier 0-2; stopped by 3 or
-      more.
+    description: Fires one shot at height 3. Clears Wall 0-2; stopped by 3 or more.
     action: 0
     heights: 03000000
     bronze:
@@ -122,7 +121,7 @@ MonoBehaviour:
   - id: mason
     displayName: Mason
     role: Siege builder
-    description: Fires one low shot, then adds 2 to your own Barrier (max 5).
+    description: Fires one low shot, then adds 2 to your own Wall (max 5).
     action: 1
     heights: 01000000
     bronze:

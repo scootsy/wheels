@@ -6,67 +6,68 @@ using UnityEngine.UI;
 namespace Tabletop.Presentation
 {
     /// <summary>
-    /// One reel tile. Encodes symbol family by shape, quantity by repeated marks, XP by a badge,
-    /// and lock state by padlock glyph + frame + "LOCKED" text (MATCH_UX_SPEC 5.4).
+    /// One reel tile. Symbol family by icon and shape, quantity by repeated icons, XP by a star badge,
+    /// who the face feeds by a caption, and lock state by padlock + frame + "LOCKED" text (MATCH_UX_SPEC 5.4).
     /// </summary>
     public sealed class ReelView
     {
         public readonly Button Button;
         public readonly int Index;
+        private readonly IconSet _icons;
         private readonly RectTransform _symbols;
         private readonly Text _caption;
-        private readonly Text _blank;
+        private readonly Text _count;
         private readonly GameObject _xpBadge;
-        private readonly Text _xpText;
         private readonly GameObject _lockGroup;
         private readonly GameObject _lockFrame;
-        private readonly Text _lockText;
         private readonly GameObject _cover;
         private readonly Image _bg;
         private readonly List<GameObject> _glyphs = new List<GameObject>();
-        private string _shownCode;
+        private readonly float _iconSize;
+        private string _shownKey;
 
-        public ReelView(Transform parent, int index, float x, float y, float w, float h, bool interactive)
+        public ReelView(Transform parent, int index, float x, float y, float w, float h, bool interactive, IconSet icons)
         {
             Index = index;
+            _icons = icons;
+            _iconSize = Mathf.Min(56f, (w - 24) / 3f);
             Button = Ui.Button("Reel" + (index + 1), parent, "", null, 20, Theme.PanelDark);
             Button.GetComponentInChildren<Text>().gameObject.SetActive(false);
             ((RectTransform)Button.transform).Place(x, y, w, h);
             Button.interactable = interactive;
             _bg = Button.GetComponent<Image>();
 
-            var number = Ui.Label("Number", Button.transform, "REEL " + (index + 1), 14, TextAnchor.UpperLeft, Theme.TextDim);
-            number.rectTransform.Place(6, 4, 90, 20);
+            var number = Ui.Label("Number", Button.transform, (index + 1).ToString(), 16, TextAnchor.UpperLeft, Theme.TextDim, FontStyle.Bold);
+            number.rectTransform.Place(8, 4, 30, 22);
 
             _symbols = Ui.Rect("Symbols", Button.transform);
             _symbols.anchorMin = _symbols.anchorMax = new Vector2(0.5f, 0.5f);
             _symbols.pivot = new Vector2(0.5f, 0.5f);
-            _symbols.sizeDelta = new Vector2(w - 20, h * 0.42f);
-            _symbols.anchoredPosition = new Vector2(0, h * 0.06f);
+            _symbols.sizeDelta = new Vector2(w - 12, _iconSize);
+            _symbols.anchoredPosition = new Vector2(0, h * 0.08f);
             var layout = _symbols.gameObject.AddComponent<HorizontalLayoutGroup>();
             layout.childAlignment = TextAnchor.MiddleCenter;
-            layout.spacing = 4;
+            layout.spacing = 2;
             layout.childControlWidth = false;
             layout.childControlHeight = false;
             layout.childForceExpandWidth = false;
 
-            _blank = Ui.Label("Blank", Button.transform, "BLANK", 18, TextAnchor.MiddleCenter, Theme.TextDim);
-            _blank.rectTransform.Fill();
+            _count = Ui.Label("Count", Button.transform, "", 15, TextAnchor.UpperRight, Theme.Text, FontStyle.Bold);
+            _count.rectTransform.Place(w - 44, 4, 38, 22);
 
-            _caption = Ui.Label("Caption", Button.transform, "", 15, TextAnchor.LowerCenter, Theme.Text);
+            _caption = Ui.Label("Caption", Button.transform, "", 15, TextAnchor.LowerCenter, Theme.Text, FontStyle.Bold);
             _caption.rectTransform.anchorMin = new Vector2(0, 0);
             _caption.rectTransform.anchorMax = new Vector2(1, 0);
             _caption.rectTransform.pivot = new Vector2(0.5f, 0);
             _caption.rectTransform.anchoredPosition = new Vector2(0, 4);
-            _caption.rectTransform.sizeDelta = new Vector2(-8, 22);
+            _caption.rectTransform.sizeDelta = new Vector2(-6, 40);
 
-            var badge = Ui.Panel("XpBadge", Button.transform, Theme.Xp);
-            badge.rectTransform.anchorMin = badge.rectTransform.anchorMax = new Vector2(1, 1);
-            badge.rectTransform.pivot = new Vector2(1, 1);
-            badge.rectTransform.anchoredPosition = new Vector2(-4, -4);
-            badge.rectTransform.sizeDelta = new Vector2(46, 24);
-            _xpText = Ui.Label("Text", badge.transform, "XP*", 15, TextAnchor.MiddleCenter, Color.white, FontStyle.Bold);
-            _xpText.rectTransform.Fill();
+            var badge = Ui.Rect("XpBadge", Button.transform);
+            badge.anchorMin = badge.anchorMax = new Vector2(1, 1);
+            badge.pivot = new Vector2(1, 1);
+            badge.anchoredPosition = new Vector2(-2, -22);
+            badge.sizeDelta = new Vector2(34, 34);
+            Ui.Icon("Star", badge, icons != null ? icons.xp : null, 34, Theme.Xp).rectTransform.Fill();
             _xpBadge = badge.gameObject;
 
             // Lock cue 1: thick red frame.
@@ -84,23 +85,19 @@ namespace Tabletop.Presentation
             }
             _lockFrame = frame.gameObject;
 
-            // Lock cue 2: padlock glyph + text.
+            // Lock cue 2: padlock icon + text.
             var lockGroup = Ui.Rect("Padlock", Button.transform);
-            lockGroup.anchorMin = lockGroup.anchorMax = new Vector2(0, 1);
-            lockGroup.pivot = new Vector2(0, 1);
-            lockGroup.anchoredPosition = new Vector2(6, -24);
-            lockGroup.sizeDelta = new Vector2(28, 30);
-            var body = Ui.Panel("Body", lockGroup, Theme.Locked).rectTransform;
-            body.Place(0, 12, 28, 18);
-            var shL = Ui.Panel("ShackleL", lockGroup, Theme.Locked).rectTransform;
-            shL.Place(4, 0, 5, 14);
-            var shR = Ui.Panel("ShackleR", lockGroup, Theme.Locked).rectTransform;
-            shR.Place(19, 0, 5, 14);
-            var shT = Ui.Panel("ShackleT", lockGroup, Theme.Locked).rectTransform;
-            shT.Place(4, 0, 20, 5);
+            lockGroup.anchorMin = lockGroup.anchorMax = new Vector2(0.5f, 1);
+            lockGroup.pivot = new Vector2(0.5f, 0.5f);
+            lockGroup.anchoredPosition = new Vector2(4, -16);
+            lockGroup.sizeDelta = new Vector2(100, 30);
+            var pad = Ui.Icon("Icon", lockGroup, icons != null ? icons.padlock : null, 30, Theme.Locked);
+            pad.rectTransform.Place(0, 0, 30, 30);
+            var lockText = Ui.Label("LockText", lockGroup, "LOCKED", 16, TextAnchor.MiddleLeft, Theme.Locked, FontStyle.Bold);
+            lockText.rectTransform.Place(32, 0, 70, 30);
+            var outline = lockText.gameObject.AddComponent<Outline>();
+            outline.effectColor = Color.black;
             _lockGroup = lockGroup.gameObject;
-            _lockText = Ui.Label("LockText", Button.transform, "LOCKED", 15, TextAnchor.UpperLeft, Theme.Locked, FontStyle.Bold);
-            _lockText.rectTransform.Place(38, 30, 90, 20);
 
             var cover = Ui.Panel("Cover", Button.transform, new Color(0.25f, 0.22f, 0.2f, 1f));
             cover.rectTransform.Fill(3);
@@ -122,51 +119,70 @@ namespace Tabletop.Presentation
         {
             _lockFrame.SetActive(locked);
             _lockGroup.SetActive(locked);
-            _lockText.gameObject.SetActive(locked);
+            _count.enabled = !locked; // the LOCKED tab takes the top row
             _bg.color = locked ? new Color(0.30f, 0.14f, 0.14f, 1f) : Theme.PanelDark;
         }
 
-        /// <summary>Shows a face (null = no face yet).</summary>
+        private void AddIcons(Sprite sprite, Color fallback, int count, GlyphShape shape)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                GameObject g = sprite != null
+                    ? Ui.Icon("Icon", _symbols, sprite, _iconSize, fallback).gameObject
+                    : Ui.Glyph("Glyph", _symbols, shape, _iconSize).transform.parent.gameObject;
+                _glyphs.Add(g);
+            }
+        }
+
+        /// <summary>Shows a face (null = no face yet). Unit names say who each channel feeds.</summary>
         public void SetFace(ReelFace face, string unitAName = "left unit", string unitBName = "right unit")
         {
-            string code = face == null ? "" : face.Code;
-            if (code == _shownCode) return;
-            _shownCode = code;
+            string key = (face == null ? "" : face.Code) + "|" + unitAName + "|" + unitBName;
+            if (key == _shownKey) return;
+            _shownKey = key;
             foreach (var g in _glyphs)
             {
                 g.SetActive(false); // hide immediately; Destroy is deferred to end of frame
                 Object.Destroy(g);
             }
             _glyphs.Clear();
+            _count.text = "";
             if (face == null)
             {
-                _blank.text = "--";
-                _blank.gameObject.SetActive(true);
                 _caption.text = "";
                 _xpBadge.SetActive(false);
                 Description = "Reel " + (Index + 1) + ", not spun";
                 return;
             }
-            _blank.text = "BLANK";
-            _blank.gameObject.SetActive(face.IsBlank);
-            for (int i = 0; i < face.ChannelA; i++) _glyphs.Add(Ui.Glyph("A", _symbols, GlyphShape.Square, 34).transform.parent.gameObject);
-            for (int i = 0; i < face.ChannelB; i++) _glyphs.Add(Ui.Glyph("B", _symbols, GlyphShape.Diamond, 34).transform.parent.gameObject);
-            for (int i = 0; i < face.Hammer; i++) _glyphs.Add(Ui.Glyph("H", _symbols, GlyphShape.Hammer, 34).transform.parent.gameObject);
 
             string caption;
-            if (face.ChannelA > 0) caption = "A x" + face.ChannelA;
-            else if (face.ChannelB > 0) caption = "B x" + face.ChannelB;
-            else if (face.Hammer > 0) caption = "HAMMER x" + face.Hammer;
-            else caption = "blank";
-            _xpBadge.SetActive(face.XpChannel.HasValue);
-            if (face.XpChannel.HasValue)
+            if (face.ChannelA > 0)
             {
-                _xpText.text = "XP " + (face.XpChannel == Channel.A ? "A" : "B");
-                caption += " +XP";
+                AddIcons(_icons != null ? _icons.energyA : null, Theme.ChannelA, face.ChannelA, GlyphShape.Square);
+                caption = "A  -> " + unitAName.ToUpperInvariant();
+                _count.text = "x" + face.ChannelA;
             }
+            else if (face.ChannelB > 0)
+            {
+                AddIcons(_icons != null ? _icons.energyB : null, Theme.ChannelB, face.ChannelB, GlyphShape.Diamond);
+                caption = "B  -> " + unitBName.ToUpperInvariant();
+                _count.text = "x" + face.ChannelB;
+            }
+            else if (face.Hammer > 0)
+            {
+                AddIcons(_icons != null ? _icons.hammer : null, Theme.Hammer, face.Hammer, GlyphShape.Hammer);
+                caption = "HAMMER -> WALL";
+                _count.text = "x" + face.Hammer;
+            }
+            else
+            {
+                AddIcons(_icons != null ? _icons.blank : null, Theme.TextDim, 1, GlyphShape.Square);
+                caption = "BLANK";
+            }
+            _xpBadge.SetActive(face.XpChannel.HasValue);
+            if (face.XpChannel.HasValue) caption += "\n+1 XP";
             _caption.text = caption;
-            Description = "Reel " + (Index + 1) + ", " + caption.Replace("x", "times ")
-                + (face.XpChannel.HasValue ? ", grants XP to " + (face.XpChannel == Channel.A ? unitAName : unitBName) : "");
+            Description = "Reel " + (Index + 1) + ", " + caption.Replace("\n", ", ").Replace("->", "feeds") + (_count.text.Length > 0 ? " (" + _count.text + ")" : "");
         }
     }
 }
