@@ -35,11 +35,18 @@ namespace Tabletop.Presentation
         private Renderer _projectileRenderer;
         private Transform _root;
         private Camera _camera;
+        private Material _material;
         private Vector3 _shake;
         private string[,] _shapeFor = new string[2, 2];
 
         public const float SegmentHeight = 0.36f;
         public Camera Camera { get => _camera; set => _camera = value; }
+
+        /// <summary>
+        /// Material asset for every piece. Required in players: runtime CreatePrimitive falls back to the
+        /// built-in Standard material there, which URP cannot draw (renders magenta).
+        /// </summary>
+        public Material Material { get => _material; set => _material = value; }
 
         public static Vector3 UnitPos(int side, int slot) => new Vector3(slot == 0 ? -3.3f : 3.3f, 0f, side == 0 ? -1.9f : 1.9f);
         public static Vector3 CrownPos(int side) => new Vector3(0, 0, side == 0 ? -2.7f : 2.7f);
@@ -360,7 +367,9 @@ namespace Tabletop.Presentation
             go.transform.SetParent(parent, false);
             go.transform.localPosition = pos;
             go.transform.localScale = scale;
-            SetColor(go.GetComponent<Renderer>(), color);
+            var renderer = go.GetComponent<Renderer>();
+            if (_material != null) renderer.sharedMaterial = _material;
+            SetColor(renderer, color);
             return go;
         }
 

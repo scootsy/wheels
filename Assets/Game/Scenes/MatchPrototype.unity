@@ -488,6 +488,7 @@ MonoBehaviour:
   boardCamera: {fileID: 324685996}
   eventSystem: {fileID: 311056561}
   icons: {fileID: 11400000, guid: 8c00e37dd6da8664cab1207ac0ae2a79, type: 2}
+  boardMaterial: {fileID: 2100000, guid: c74689faf1978274a98dfec9b5ba898c, type: 2}
 --- !u!4 &2045253965
 Transform:
   m_ObjectHideFlags: 0

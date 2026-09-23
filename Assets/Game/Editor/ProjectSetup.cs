@@ -71,6 +71,7 @@ namespace Tabletop.EditorTools
         {
             CreateContent();
             IconImport.CreateIconSet();
+            BoardMaterialSetup.CreateMaterial();
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             // Load assets after NewScene: opening a scene unloads previously loaded, unreferenced assets.
             var content = AssetDatabase.LoadAssetAtPath<ContentCatalogAsset>(ContentPath);
@@ -112,6 +113,7 @@ namespace Tabletop.EditorTools
             so.FindProperty("boardCamera").objectReferenceValue = cam;
             so.FindProperty("eventSystem").objectReferenceValue = es;
             so.FindProperty("icons").objectReferenceValue = icons;
+            so.FindProperty("boardMaterial").objectReferenceValue = AssetDatabase.LoadAssetAtPath<Material>(BoardMaterialSetup.MaterialPath);
             so.ApplyModifiedPropertiesWithoutUndo();
 
             Directory.CreateDirectory(Path.GetDirectoryName(ScenePath));

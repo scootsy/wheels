@@ -23,6 +23,8 @@ namespace Tabletop.Presentation
         [SerializeField] private Camera boardCamera;
         [SerializeField] private EventSystem eventSystem;
         [SerializeField] private IconSet icons;
+        [Tooltip("URP material used by every placeholder 3D piece (must be an asset so builds include its shader).")]
+        [SerializeField] private Material boardMaterial;
 
         public MatchSession Session { get; private set; }
         public MatchPresenter Presenter { get; private set; }
@@ -48,6 +50,7 @@ namespace Tabletop.Presentation
 
         public ContentCatalog Catalog { get; private set; }
         public IconSet Icons => icons;
+        public Material BoardMaterial => boardMaterial;
 
         private void Awake()
         {
@@ -88,6 +91,8 @@ namespace Tabletop.Presentation
             _diorama = new GameObject("Board").AddComponent<BoardDiorama>();
             _diorama.transform.SetParent(transform, false);
             _diorama.Camera = boardCamera;
+            _diorama.Material = boardMaterial;
+            if (boardMaterial == null) Debug.LogError("[Tabletop] No board material assigned; 3D pieces will not render in builds.");
             _diorama.Build();
             Presenter.EventImpact += e => _diorama.ShowDelta(e);
 

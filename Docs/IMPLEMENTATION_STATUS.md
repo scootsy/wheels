@@ -99,6 +99,23 @@ Next authorized work: playtest fixes only
 Gate status: HUMAN PLAYTEST GATE ACTIVE — awaiting creative-director approval.
 ```
 
+## Update 2026-09-23 — magenta board in the Windows build (D-024)
+
+```text
+Date/time: 2026-09-23 12:35 (local)
+Milestone: M1 (defect fix; gate still active)
+Completed: reproduced in the real player (116 of 116 board renderers had an unsupported shader);
+  all board pieces now use the URP material asset BoardPlaceholder.mat; added build self-check mode
+  (-tabletopSelfCheck) and Tools/selfcheck_build.sh; regression PlayMode test
+Tests: EditMode 92/92, PlayMode 22/22
+Console/build: Windows build succeeded (0 errors, 0 warnings); build self-check: renderers=116,
+  unsupportedShader=0, notBoardMaterial=0; screenshots inspected and correct
+Screenshots/build path: Logs/BuildSelfCheck/*.png (local); Builds/Windows/TabletopReels.exe
+Known defects: none new
+Blockers: none
+Gate status: HUMAN PLAYTEST GATE ACTIVE — awaiting creative-director approval.
+```
+
 ## Active blockers
 
 None.

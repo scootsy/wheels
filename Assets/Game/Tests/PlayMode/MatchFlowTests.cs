@@ -31,6 +31,26 @@ namespace Tabletop.Tests.PlayMode
             Assert.AreEqual(App.Input.Asset, module.actionsAsset);
         }
 
+        /// <summary>
+        /// Regression (magenta board in the Windows build): runtime primitives must use the referenced URP
+        /// material asset, because players fall back to the built-in Standard material that URP cannot draw.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator BoardPieces_UseTheReferencedUrpMaterial()
+        {
+            yield return KeyboardStartMatch();
+            Assert.IsNotNull(App.BoardMaterial, "board material assigned in the scene");
+            StringAssert.StartsWith("Universal Render Pipeline/", App.BoardMaterial.shader.name);
+            Assert.IsTrue(App.BoardMaterial.shader.isSupported);
+            int count = 0;
+            foreach (var r in App.GetComponentsInChildren<MeshRenderer>(true))
+            {
+                count++;
+                Assert.AreSame(App.BoardMaterial, r.sharedMaterial, r.name + " must use the board material");
+            }
+            Assert.Greater(count, 50, "the table has its pieces");
+        }
+
         [UnityTest]
         public IEnumerator InputAsset_HasRequiredActionsAndSchemes_AndSchemeSwitchKeepsFocus()
         {

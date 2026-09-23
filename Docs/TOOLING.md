@@ -50,6 +50,14 @@ Use non-destructive inspection for the initial check where possible.
 
 The primary agent remains responsible for validating work performed through every tool. A successful tool call is not evidence that Unity compiled or the match worked.
 
+## Build verification (D-024)
+
+Editor Play Mode is not proof that a player build renders correctly. After every Windows build:
+
+1. **Tabletop → Build → Windows x64 Development Build** (or `TestAndBuildTools.BuildWindows()` via MCP).
+2. From the repo root run `bash Tools/selfcheck_build.sh`. The player opens windowed for about 15 seconds, plays into a match by itself, writes `Logs/BuildSelfCheck/selfcheck_*.png` plus `player.log`, and quits.
+3. Inspect the screenshots and confirm the log line `unsupportedShader=0 notBoardMaterial=0`.
+
 ## Source control workflow
 
 - `origin` is `https://github.com/scootsy/wheels`; `main` is the working branch.

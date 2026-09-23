@@ -168,6 +168,15 @@ This log records decisions that affect rules, player experience, architecture, s
 - **Not done (still post-gate):** production models, textures, VFX, audio, Blender work.
 - **Files updated:** `Docs/IMPLEMENTATION_STATUS.md`, presentation code, `Tools/Art/make_icons.py`
 
+### D-024: Board material asset and visual build verification
+
+- **Date:** 2026-09-23
+- **Status:** Accepted (defect fix)
+- **Problem:** The Windows build showed the whole 3D table as magenta. Pieces are created at runtime with `GameObject.CreatePrimitive`; in the editor they receive URP's default material, but in a player they fall back to the built-in Standard material, which URP cannot draw. Editor Play Mode tests and the headless (`-batchmode`) build launch could not see this.
+- **Decision:** Every placeholder piece uses `Assets/Game/Art/Materials/BoardPlaceholder.mat` (URP/Lit), referenced by `MatchApp.boardMaterial` so builds include its shader. A PlayMode regression test asserts every board renderer uses it.
+- **Verification rule:** after every build, run `bash Tools/selfcheck_build.sh`. It launches the real player windowed with `-tabletopSelfCheck`, which starts a match automatically, saves screenshots of what the player actually renders, logs renderer/shader diagnostics, and quits. A build is not reported as working until those screenshots are inspected.
+- **Files updated:** `Docs/TOOLING.md`, `Docs/IMPLEMENTATION_STATUS.md`
+
 ## Open decisions
 
 The rules-level open questions and temporary prototype behaviors are maintained in `RULES_SPEC.md` Section 15. They do not block M0 or M1.
