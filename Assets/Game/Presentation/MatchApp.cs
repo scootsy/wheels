@@ -104,7 +104,38 @@ namespace Tabletop.Presentation
             ApplyUiScale(1f);
             RefreshPrompts();
             ShowScreenFor(Session.State);
-            Focus(_setupContinue);
+            // Arriving from the world: the opponent is fixed, so skip setup and go straight to unit selection.
+            var encounter = GameFlow.PendingEncounter;
+            if (encounter != null)
+            {
+                Session.Options.Encounter = encounter;
+                Session.ContinueFromSetup();
+                ShowScreenFor(Session.State);
+                _lastRenderedState = Session.State;
+            }
+            else Focus(_setupContinue);
+        }
+
+        public const string WorldSceneName = "World";
+
+        /// <summary>True when this match is a challenge started from the world.</summary>
+        public bool InEncounter => Session.Options.Encounter != null;
+
+        /// <summary>Leave the table and go back to the village, reporting the result (none if unfinished).</summary>
+        public void ReturnToWorld()
+        {
+            var winner = Session.State == UxState.MatchResult ? Session.Winner : Winner.None;
+            GameFlow.CompleteEncounter(winner);
+            UnityEngine.SceneManagement.SceneManager.LoadScene(WorldSceneName);
+        }
+
+        /// <summary>Opponent units and AI actually used for the next match (encounter, developer choice, or default).</summary>
+        private (string a, string b, string ai) EffectiveOpponent()
+        {
+            var o = Session.Options;
+            if (o.Encounter != null) return (o.Encounter.UnitA, o.Encounter.UnitB, o.Encounter.AiProfile);
+            if (o.DeveloperMode) return (o.OpponentA, o.OpponentB, o.AiProfile);
+            return (ReferenceContent.Striker, ReferenceContent.Caster, ControllerIds.AiStandard);
         }
 
         private void OnEnable() => Input?.Enable();

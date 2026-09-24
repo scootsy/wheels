@@ -6,7 +6,9 @@
         "Tabletop.Application",
         "Tabletop.Infrastructure.Unity",
         "UnityEngine.TestRunner",
-        "UnityEditor.TestRunner"
+        "UnityEditor.TestRunner",
+        "Tabletop.World",
+        "Tabletop.Presentation"
     ],
     "includePlatforms": [
         "Editor"

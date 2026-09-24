@@ -40,6 +40,8 @@ The current authorized scope ends when Milestone M1, the ugly but complete playa
 
 At that point, **STOP AND WAIT FOR THE CREATIVE DIRECTOR TO PLAY IT**.
 
+**Gate status (2026-09-24, D-025):** the creative director explicitly approved one world slice, W1, defined in `Docs/WORLD_SPEC.md`: two villages, the road north, opponents to talk to and challenge, and the champion's hall. W1 work is authorized. Everything else in the list below remains gated. When W1 is verified, stop again and wait for the creative director to play it.
+
 Do not begin any of the following without an explicit instruction approving continuation past the human playtest gate:
 
 - collection or meta-progression;
@@ -76,7 +78,7 @@ The versioned input-actions asset must provide:
 - Match: `Spin`, `LockSlot1`, `LockSlot2`, `LockSlot3`, `LockSlot4`, `LockSlot5`, `FocusNext`, `FocusPrevious`, `Inspect`, `Help`, `AcceleratePresentation`, `Pause`;
 - Reserved for the later world milestone: `Move`, `Interact`.
 
-`Move` and `Interact` may exist unconsumed before the gate. Do not build world gameplay merely because the actions exist.
+`Move` and `Interact` are consumed by the approved W1 world slice (D-025). Do not extend world gameplay beyond `Docs/WORLD_SPEC.md` merely because the actions exist.
 
 Input code must consume abstract actions. Device-specific bindings belong in the input-actions asset, not rules or presentation code. Automated input tests should use Input System test facilities rather than faking legacy key state.
 

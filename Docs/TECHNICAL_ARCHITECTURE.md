@@ -96,7 +96,8 @@ Tabletop.Tests.PlayMode
 | `Tabletop.Infrastructure.Unity` | `Assets/Game/Infrastructure` | Unity | `ContentCatalogAsset` ScriptableObject mapped to domain definitions |
 | `Tabletop.Input` | `Assets/Game/Input/Adapters` | Unity, Input System | `GameInputRouter`: actions -> abstract intents, active control scheme |
 | `Tabletop.Presentation` | `Assets/Game/Presentation` | Unity, uGUI, Input System | `MatchApp` composition root, presenter, views, primitive diorama |
-| `Tabletop.Editor` | `Assets/Game/Editor` | Editor only | Menu: content/URP/scene setup, test runner summary, Windows build |
+| `Tabletop.World` | `Assets/Game/World` | Unity, uGUI, Input System | W1 (D-025): `WorldApp` composition root, procedural `WorldBuilder`, interactables, player controller, world UI |
+| `Tabletop.Editor` | `Assets/Game/Editor` | Editor only | Menu: content/URP/scene setup, world scene setup, test runner summary, Windows build |
 | `Tabletop.Tests.EditMode` | `Assets/Game/Tests/EditMode` | Editor only | Rules, AI, replay, content, application tests |
 | `Tabletop.Tests.PlayMode` | `Assets/Game/Tests/PlayMode` | Input System test framework | Scene, input, flow, presentation, screenshots |
 
@@ -197,7 +198,11 @@ AI implements the same controller interface and dispatches the same commands as 
 
 ## 9. Scenes and lifecycle
 
-The pre-gate project needs one scene: `MatchPrototype.unity`.
+The pre-gate project needed one scene: `MatchPrototype.unity`. W1 (D-025) adds `World.unity`, which is first in the build.
+
+- `World.unity` holds a camera, sun, EventSystem, and `WorldApp`; everything else is built by code at load (like the match diorama), using referenced material assets.
+- The world and the table exchange only a static, engine-free `GameFlow` (in `Tabletop.Application/World`): the pending `EncounterDefinition`, the outcome, the player's return point, and defeated opponents. It lives in memory only (no save data).
+- `MatchApp` reads `GameFlow.PendingEncounter` in `Awake`; the encounter only changes the opponent's units, AI profile, and tier, through the same `MatchSession` boundary.
 
 It contains composition roots and Unity adapters, not authoritative rule state spread across unrelated objects. Scene reload, rematch, and test setup must dispose old controllers and input subscriptions cleanly.
 

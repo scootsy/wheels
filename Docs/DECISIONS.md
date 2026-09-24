@@ -177,6 +177,25 @@ This log records decisions that affect rules, player experience, architecture, s
 - **Verification rule:** after every build, run `bash Tools/selfcheck_build.sh`. It launches the real player windowed with `-tabletopSelfCheck`, which starts a match automatically, saves screenshots of what the player actually renders, logs renderer/shader diagnostics, and quits. A build is not reported as working until those screenshots are inspected.
 - **Files updated:** `Docs/TOOLING.md`, `Docs/IMPLEMENTATION_STATUS.md`
 
+### D-025: Creative director opens the world slice (W1) past the playtest gate
+
+- **Date:** 2026-09-24
+- **Status:** Accepted (explicit creative-director instruction)
+- **Instruction:** "remember, this is supposed to be a game with a 2.5D view where you explore the world, interact with people, challenge them, then sit down at a table to play. lets start to build that. make the starting village. then make a path north the player has to traverse. then a village he reaches there with people and buildings, several who he can challenge and interact with and then a building where the towns wheels champion lives and he goes in there and sits down and challenges him."
+- **Decision:** This is explicit approval to cross the human playtest gate **for this world slice only** (called W1, a focused form of the M3 "tiny world wrapper"). Scope is defined in `Docs/WORLD_SPEC.md`: Hearthmoor → North Road → Brindlecross → Champion's Hall, six opponents, talk/challenge/return flow, title and pause menu.
+- **Still gated (not approved):** saving, rewards, collection, currency, shops, quests, NPC schedules, additional player-facing units (the player still picks only Striker and Caster), production art, audio, Blender work.
+- **Implementation decisions (agent, overridable by the creative director):**
+  - Names, dialogue, and village layouts are original placeholders.
+  - Opponents use existing reference units and AI profiles (Learner, Standard, Expert); the champion is Expert with Shade + Caster.
+  - The champion is not locked behind the other opponents.
+  - Wins live in memory only (`GameFlow`), matching the no-save rule.
+  - Challenging skips the practice setup screen and opens unit selection directly; leaving the table early records no result.
+  - The original free match remains reachable as PRACTICE TABLE from the title and the pause menu.
+- **Architecture:** new `Tabletop.World` assembly (Unity) builds the world procedurally at load, like the match diorama. The world ↔ table handoff (`EncounterCatalog`, `GameFlow`) lives in `Tabletop.Application` with no engine references. `World.unity` is the first scene in the build; `MatchPrototype.unity` second. Movement uses the existing `WorldReserved/Move` and `Interact` actions.
+- **Input note:** the match router enables `InputSystem.settings.shortcutKeysConsumeInput` (so Shift+Tab does not also fire Tab). In the world that made the UI Navigate composite swallow WASD/arrows, so `Move` read zero. The world router passes `consumeShortcuts: false`; a PlayMode test walks with the real Input System.
+- **New stop point:** after W1 is verified, stop and wait for the creative director to play it before any further expansion.
+- **Files updated:** `AGENTS.md`, `Docs/WORLD_SPEC.md` (new), `Docs/README.md`, `Docs/MILESTONES.md`, `Docs/TECHNICAL_ARCHITECTURE.md`, `Docs/IMPLEMENTATION_STATUS.md`
+
 ## Open decisions
 
 The rules-level open questions and temporary prototype behaviors are maintained in `RULES_SPEC.md` Section 15. They do not block M0 or M1.

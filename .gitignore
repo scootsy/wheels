@@ -40,3 +40,9 @@ crashlytics-build.properties
 # OS
 .DS_Store
 Thumbs.db
+
+# Unity leftovers after an editor closes mid-test (scene recovery, test-runner temp scenes)
+/[Aa]ssets/_Recovery/
+/[Aa]ssets/_Recovery.meta
+/[Aa]ssets/InitTestScene*.unity
+/[Aa]ssets/InitTestScene*.unity.meta

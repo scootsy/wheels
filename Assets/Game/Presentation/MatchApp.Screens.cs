@@ -190,6 +190,12 @@ namespace Tabletop.Presentation
 
         private void QuitApp()
         {
+            // Came from the world (practice table): go back to the village instead of quitting.
+            if (GameFlow.TitleShown && UnityEngine.Application.CanStreamedLevelBeLoaded(WorldSceneName))
+            {
+                UnityEngine.SceneManagement.SceneManager.LoadScene(WorldSceneName);
+                return;
+            }
 #if UNITY_EDITOR
             UnityEditor.EditorApplication.isPlaying = false;
 #else
@@ -208,16 +214,15 @@ namespace Tabletop.Presentation
             if (_setupScreen.activeSelf)
             {
                 var o = Session.Options;
-                string oppA = o.DeveloperMode ? o.OpponentA : ReferenceContent.Striker;
-                string oppB = o.DeveloperMode ? o.OpponentB : ReferenceContent.Caster;
-                string ai = o.DeveloperMode ? o.AiProfile : ControllerIds.AiStandard;
-                _setupOpponent.text = "OPPONENT: The Tinkerer  (" + AiName(ai) + ")\n\n"
+                var (oppA, oppB, ai) = EffectiveOpponent();
+                _setupOpponent.text = "OPPONENT: " + Session.OpponentName + "  (" + AiName(ai) + ")\n\n"
                     + "Their units (visible before you choose yours):\n"
                     + "  A / LEFT:  " + UnitSummary(Catalog.Unit(oppA)) + "\n\n"
                     + "  B / RIGHT: " + UnitSummary(Catalog.Unit(oppB)) + "\n\n"
                     + "Goal: reduce the enemy Crown from 10 to 0. Three spins per round; lock reels to keep them.";
                 _setupStatus.text = ConfigError != null ? "CONTENT ERROR - match cannot start:\n" + ConfigError : Session.LastStatus;
                 _setupContinue.interactable = ConfigError == null;
+                _setupQuit.SetText(GameFlow.TitleShown ? "BACK TO THE VILLAGE" : "QUIT");
                 if (_devPanel.activeSelf)
                 {
                     _devTier.SetText("REEL TIER: " + o.Tier.ToString().ToUpperInvariant() + "  (both sides)");
@@ -232,9 +237,10 @@ namespace Tabletop.Presentation
             {
                 var sel = Session.Selection;
                 var o = Session.Options;
-                _selectOpponent.text = "OPPONENT (" + AiName(o.DeveloperMode ? o.AiProfile : ControllerIds.AiStandard) + "):   A / LEFT  "
-                    + Catalog.Unit(o.DeveloperMode ? o.OpponentA : ReferenceContent.Striker).DisplayName + "     B / RIGHT  "
-                    + Catalog.Unit(o.DeveloperMode ? o.OpponentB : ReferenceContent.Caster).DisplayName;
+                var opp = EffectiveOpponent();
+                _selectOpponent.text = "OPPONENT: " + Session.OpponentName.ToUpperInvariant() + " (" + AiName(opp.ai) + "):   A / LEFT  "
+                    + Catalog.Unit(opp.a).DisplayName + "     B / RIGHT  " + Catalog.Unit(opp.b).DisplayName;
+                _selectBack.SetText(InEncounter ? "LEAVE TABLE" : "BACK");
                 for (int i = 0; i < _cardButtons.Count; i++)
                 {
                     int slot = sel.SlotOf(_cardUnits[i]);
@@ -283,7 +289,7 @@ namespace Tabletop.Presentation
             ((RectTransform)_swap.transform).Place(560, 860, 260, 64);
             _confirm = Ui.Button("Confirm", _selectScreen.transform, "CONFIRM", () => Session.ConfirmUnits(), 26, Theme.ButtonPrimary);
             ((RectTransform)_confirm.transform).Place(840, 860, 420, 64);
-            _selectBack = Ui.Button("Back", _selectScreen.transform, "BACK", () => Session.BackToSetup(), 22);
+            _selectBack = Ui.Button("Back", _selectScreen.transform, "BACK", () => { if (InEncounter) ReturnToWorld(); else Session.BackToSetup(); }, 22);
             ((RectTransform)_selectBack.transform).Place(1280, 860, 200, 64);
         }
 
@@ -408,7 +414,8 @@ namespace Tabletop.Presentation
             _pauseRestart = BoxButton(pb, "Restart", "RESTART MATCH", 150, 584, 400, 60,
                 () => Confirm("Restart with the same setup and a NEW seed?\nThe current match will be discarded.", () => { ResumeFromPause(); Session.Rematch(); }));
             _pauseExit = BoxButton(pb, "Exit", "EXIT MATCH", 150, 656, 400, 60,
-                () => Confirm("Exit to setup? The current match will be discarded.", () => { ResumeFromPause(); Session.ExitMatch(); }));
+                () => Confirm(InEncounter ? "Leave the table and return to the village?\nThis match will not count." : "Exit to setup? The current match will be discarded.",
+                    () => { ResumeFromPause(); if (InEncounter) ReturnToWorld(); else Session.ExitMatch(); }));
             LinkVertical(_pauseResume, _pauseReduced, _pauseShake, _pauseScale, _pauseWrap, _pauseSkip, help, _pauseRestart, _pauseExit);
 
             _confirmOverlay = Overlay("ConfirmOverlay", 760, 320, out var cb);
@@ -427,7 +434,7 @@ namespace Tabletop.Presentation
             _resultRematch = BoxButton(rb, "Rematch", "REMATCH (new seed)", 60, 450, 480, 64, () => Session.Rematch(), Theme.ButtonPrimary);
             _resultChange = BoxButton(rb, "ChangeUnits", "CHANGE UNITS", 560, 450, 480, 64, () => { Session.ChangeUnits(); });
             _resultCopy = BoxButton(rb, "CopyReplay", "COPY REPLAY", 60, 530, 480, 64, CopyReplay);
-            _resultExit = BoxButton(rb, "Exit", "EXIT", 560, 530, 480, 64, () => Session.ExitMatch());
+            _resultExit = BoxButton(rb, "Exit", "EXIT", 560, 530, 480, 64, () => { if (InEncounter) ReturnToWorld(); else Session.ExitMatch(); });
             _resultSameSeed = BoxButton(rb, "SameSeed", "DEV: REPLAY SAME SEED", 60, 610, 480, 56, () => Session.ReplaySameSeed());
             _resultReplay = L("Replay", rb, "", 14, TextAnchor.UpperLeft, Theme.TextDim);
             _resultReplay.rectTransform.Place(560, 606, 500, 140);

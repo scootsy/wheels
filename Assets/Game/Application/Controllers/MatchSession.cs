@@ -29,6 +29,8 @@ namespace Tabletop.Application
         public string OpponentB = ReferenceContent.Caster;
         /// <summary>Name of a forced scenario from <see cref="ScenarioLibrary"/>, or null.</summary>
         public string ScenarioName;
+        /// <summary>World challenge being played (opponent, units, AI), or null for a free match.</summary>
+        public EncounterDefinition Encounter;
     }
 
     /// <summary>
@@ -70,6 +72,9 @@ namespace Tabletop.Application
 
         public SideSnapshot PlayerSide => Match?.Snapshot().Side(SideId.Player);
 
+        /// <summary>Who the player is facing (encounter name, or the default practice opponent).</summary>
+        public string OpponentName => Options.Encounter != null ? Options.Encounter.Name : "The Tinkerer";
+
         // ------------------------------------------------------------------ setup
 
         public IReadOnlyList<UnitDefinition> SelectableUnits(bool developer) => Selection.Available(developer);
@@ -98,6 +103,14 @@ namespace Tabletop.Application
             string oppB = Options.DeveloperMode ? Options.OpponentB : ReferenceContent.Caster;
             var tier = Options.DeveloperMode ? Options.Tier : ReelTier.Copper;
             var ai = Options.DeveloperMode ? Options.AiProfile : ControllerIds.AiStandard;
+            var enc = Options.Encounter;
+            if (enc != null)
+            {
+                oppA = enc.UnitA;
+                oppB = enc.UnitB;
+                tier = enc.Tier;
+                ai = enc.AiProfile;
+            }
             return new MatchConfig(RulesConstants.RulesVersion, seed,
                 new SideConfig(ControllerIds.Human, tier, Selection.Slots[0], Selection.Slots[1]),
                 new SideConfig(ai, tier, oppA, oppB), false, scenario);

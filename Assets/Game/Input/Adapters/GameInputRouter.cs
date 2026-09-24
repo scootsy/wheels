@@ -14,16 +14,27 @@ namespace Tabletop.Input
         private readonly InputActionAsset _asset;
         private readonly InputActionMap _ui;
         private readonly InputActionMap _match;
+        private readonly InputActionMap _world;
+        private readonly InputAction _move;
         private readonly InputAction _accelerate;
         private readonly InputAction[] _lockSlots = new InputAction[5];
         private double _accelerateStart = -1;
 
-        public GameInputRouter(InputActionAsset asset)
+        /// <param name="consumeShortcuts">
+        /// True for the match table (Shift+Tab must not also fire Tab). The world passes false: with consumption on,
+        /// the UI Navigate composite swallows WASD/arrows and the Move action reads zero.
+        /// </param>
+        public GameInputRouter(InputActionAsset asset, bool consumeShortcuts = true)
         {
             _asset = asset ?? throw new ArgumentNullException(nameof(asset));
             _ui = asset.FindActionMap("UI", true);
             _match = asset.FindActionMap("Match", true);
             _accelerate = _match.FindAction("AcceleratePresentation", true);
+            _world = asset.FindActionMap("WorldReserved", true);
+            _move = _world.FindAction("Move", true);
+            Hook(_world.FindAction("Interact", true), () => Interact?.Invoke());
+            _move.performed += OnDevice;
+            Hook(_ui.FindAction("Submit", true), () => Submit?.Invoke());
 
             Hook(_match.FindAction("Spin", true), () => Spin?.Invoke());
             for (int i = 0; i < 5; i++)
@@ -43,7 +54,7 @@ namespace Tabletop.Input
             foreach (var a in _ui.actions) a.performed += OnDevice;
 
             // Shift+Tab must not also trigger the plain Tab binding.
-            InputSystem.settings.shortcutKeysConsumeInput = true;
+            InputSystem.settings.shortcutKeysConsumeInput = consumeShortcuts;
         }
 
         public InputActionAsset Asset => _asset;
@@ -58,6 +69,14 @@ namespace Tabletop.Input
         public event Action Help;
         public event Action Pause;
         public event Action Cancel;
+        public event Action Interact;
+        public event Action Submit;
+
+        /// <summary>World movement input (x = east, y = north), zero when the world map is disabled.</summary>
+        public UnityEngine.Vector2 Move => _world.enabled ? _move.ReadValue<UnityEngine.Vector2>() : UnityEngine.Vector2.zero;
+
+        /// <summary>Enable walking/interacting (world scene only).</summary>
+        public void EnableWorld() => _world.Enable();
         public event Action<ControlScheme> SchemeChanged;
 
         /// <summary>Seconds the accelerate action has been continuously held (0 when released).</summary>
@@ -79,6 +98,7 @@ namespace Tabletop.Input
 
         public void Disable()
         {
+            _world.Disable();
             _match.Disable();
             _ui.Disable();
         }

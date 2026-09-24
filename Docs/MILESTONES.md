@@ -90,9 +90,15 @@ Candidate scope after approval:
 
 Define M2 from actual M1 playtest findings. Do not treat these bullets as approved requirements.
 
+## W1: World slice (approved 2026-09-24, D-025)
+
+**Status:** Authorized by explicit creative-director instruction. Scope is exactly `WORLD_SPEC.md`: starting village, road north, second village with opponents, champion's hall, talk/challenge/return. No saving, rewards, or extra player units.
+
+Exit: EditMode and PlayMode suites pass (including walking, talking, challenging, winning and returning, and sitting at the champion's table), the Windows build passes `Tools/selfcheck_build.sh` with inspected screenshots. Then **stop and wait for the creative director to play W1**.
+
 ## M3: Tiny world wrapper
 
-**Status:** Not authorized.
+**Status:** Not authorized beyond W1.
 
 Candidate vertical slice:
 

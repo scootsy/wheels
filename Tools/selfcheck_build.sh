@@ -8,7 +8,7 @@ abs="$(cd "$out" && pwd -W 2>/dev/null || pwd)"
 ./Builds/Windows/TabletopReels.exe -screen-fullscreen 0 -screen-width 1920 -screen-height 1080 \
   -logFile "$abs/player.log" -tabletopSelfCheck "$abs" &
 pid=$!
-for i in $(seq 1 60); do
+for i in $(seq 1 90); do
   grep -q "SelfCheck done" "$out/player.log" 2>/dev/null && break
   sleep 1
 done

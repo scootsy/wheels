@@ -1,25 +1,27 @@
 # Implementation Status
 
-**Current authorized target:** Complete technical bootstrap, M0, and M1; then stop at the human playtest gate.  
-**Last updated:** 2026-09-22  
+**Current authorized target:** W1 world slice (D-025, `WORLD_SPEC.md`), then stop for the creative director to play it.  
+**Last updated:** 2026-09-24  
 
-**HUMAN PLAYTEST GATE ACTIVE — awaiting creative-director approval.**
+**W1 COMPLETE — waiting for the creative director to play the world slice.** Nothing beyond `WORLD_SPEC.md` is authorized.
 
 | Stage | Status | Verification |
 |---|---|---|
 | Technical bootstrap | Complete | Unity 6000.5.9f1 (D-010), MCP bridge (D-011), URP, Input System only, assemblies, Git/LFS |
 | M0 deterministic engine | Complete | 92/92 EditMode tests, passed on 3 consecutive runs; replay reproduction verified |
 | M1 ugly playable match | Complete | 21/21 PlayMode tests; keyboard, gamepad, and mouse paths; screenshots; Windows build |
-| Human playtest gate | **ACTIVE** | Waiting for the creative director to play and explicitly approve continuation |
+| Human playtest gate | Opened for W1 only (D-025) | Creative director asked for the explorable world on 2026-09-24 |
+| W1 world slice | Complete | 97/97 EditMode, 27/27 PlayMode; Windows build self-check with world screenshots |
+| W1 playtest stop | **ACTIVE** | Waiting for the creative director to play W1 |
 | M2 progression | Not authorized | Untouched |
-| M3 tiny world | Not authorized | Untouched |
+| M3 tiny world (beyond W1) | Not authorized | Untouched |
 | M4 production presentation | Not authorized | Untouched |
 
 ## How to play (creative director)
 
-**Fastest:** double-click `Builds/Windows/TabletopReels.exe` (Windows development build; not committed to Git, rebuild with **Tabletop → Build → Windows x64 Development Build**).
+**Fastest:** double-click `Builds/Windows/TabletopReels.exe` (Windows development build; not committed to Git, rebuild with **Tabletop → Build → Windows x64 Development Build**). It opens in the world: see `WORLD_SPEC.md` for places, opponents, and world controls (walk WASD/arrows/left stick, talk E/A, menu Esc/Start). The table below is for the match itself.
 
-**In Unity:** open `Assets/Game/Scenes/MatchPrototype.unity` and press Play.
+**In Unity:** open `Assets/Game/Scenes/World.unity` (the journey) or `Assets/Game/Scenes/MatchPrototype.unity` (practice table) and press Play.
 
 Flow: setup (see the opponent) → choose two units (Striker, Caster) for slots A/left and B/right → each round spin up to three times, locking reels you want to keep → the opponent spins → both sides are revealed → the round resolves step by step → repeat until a Crown breaks → Victory / Defeat / Tie → Rematch, Change Units, Copy Replay, or Exit.
 
@@ -116,13 +118,35 @@ Blockers: none
 Gate status: HUMAN PLAYTEST GATE ACTIVE — awaiting creative-director approval.
 ```
 
+## Update 2026-09-24 — W1 world slice (D-025)
+
+```text
+Date/time: 2026-09-24 14:45 MDT
+Milestone: W1 world slice (approved past the gate by the creative director)
+Completed: World.unity (first scene): title; Hearthmoor, North Road with Wren's camp and bridge, Brindlecross,
+  Champion's Hall with interior table; 6 opponents (Gran, Wren, Mira, Tobin, Halvey, champion Corvin) plus 4 villagers;
+  talk / CHALLENGE / NOT NOW; sit at the champion's table; match opens on unit select vs the encounter's units and AI;
+  RETURN TO THE VILLAGE puts you back where you stood and the opponent reacts; wins counted in the HUD (memory only).
+Fixes found by the new tests: WASD/arrows did not move the player (the match's Shift+Tab shortcut-consumption setting
+  let UI Navigate swallow the keys; the world router now turns it off); the title screen reappeared after every match.
+Tests: EditMode 97/97 (5 new WorldDataTests); PlayMode 27/27 (5 new WorldTests: title + keyboard/gamepad walking + pause,
+  walkable bounds, villager talk with gamepad, challenge Gran -> win at the table -> return, hall door + champion chair).
+Console/build: 0 compile errors; Windows build 0 errors / 0 warnings; self-check 1312 world renderers, 0 unsupported shaders.
+Screenshots/build path: Docs/Screenshots/World/ (from the real player); Builds/Windows/TabletopReels.exe
+Known defects: placeholder art; champion portrait is his unit icon; area title briefly overlaps the scene when entering an area;
+  one self-check launch immediately after a build stalled at startup and a rerun passed (not reproduced).
+Blockers: none
+Next authorized work: fixes only, until the creative director plays W1.
+Gate status: W1 PLAYTEST STOP ACTIVE.
+```
+
 ## Active blockers
 
 None.
 
 ## Next authorized work
 
-Only fixes that prevent or distort the playtest (crashes, broken controls, rule defects, unreadable UI, build/test failures). Everything in M2-M5 waits for explicit creative-director approval.
+Only fixes that prevent or distort the W1 playtest (crashes, broken controls, rule defects, unreadable UI, build/test failures). Everything beyond `WORLD_SPEC.md` (saving, rewards, more player units, production art, M2-M5) waits for explicit creative-director approval.
 
 ## Update format
 

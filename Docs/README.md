@@ -15,7 +15,8 @@ This directory is the persistent source of truth for the Unity tabletop project.
 | 7 | `MILESTONES.md` | Authorized implementation sequence and playtest gate |
 | 8 | `DECISIONS.md` | Accepted decisions and unresolved choices |
 | 9 | `IMPLEMENTATION_STATUS.md` | Current progress, verification, and blockers |
-| 10 | `VISUAL_REFERENCE.md` | Research screenshots and spatial interpretation only |
+| 10 | `WORLD_SPEC.md` | Approved W1 world slice: places, opponents, flow, controls (D-025) |
+| 11 | `VISUAL_REFERENCE.md` | Research screenshots and spatial interpretation only |
 
 ## Change rules
 

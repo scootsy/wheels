@@ -11,7 +11,8 @@
         "UnityEngine.UI",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
-        "Tabletop.Input"
+        "Tabletop.Input",
+        "Tabletop.World"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

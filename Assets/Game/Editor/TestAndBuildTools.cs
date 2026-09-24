@@ -87,7 +87,7 @@ namespace Tabletop.EditorTools
             Directory.CreateDirectory(Path.GetDirectoryName(BuildPath));
             var options = new BuildPlayerOptions
             {
-                scenes = new[] { ProjectSetup.ScenePath },
+                scenes = new[] { WorldSceneSetup.WorldScenePath, ProjectSetup.ScenePath },
                 locationPathName = BuildPath,
                 target = BuildTarget.StandaloneWindows64,
                 options = BuildOptions.Development,

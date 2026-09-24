@@ -32,8 +32,9 @@ namespace Tabletop.Tests.PlayMode
         /// </summary>
         public override void Setup() { }
 
-        private void SetupInput()
+        protected void SetupInput()
         {
+            GameFlow.Reset();
             base.Setup();
             // Virtual devices must reach the game even when the editor Game view is not focused.
             InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
@@ -47,8 +48,11 @@ namespace Tabletop.Tests.PlayMode
         public IEnumerator LoadScene()
         {
             SetupInput();
-            yield return LoadMatchScene();
+            yield return LoadInitialScene();
         }
+
+        /// <summary>The scene each test starts in; world tests override this.</summary>
+        protected virtual IEnumerator LoadInitialScene() => LoadMatchScene();
 
         protected IEnumerator LoadMatchScene()
         {
@@ -86,8 +90,9 @@ namespace Tabletop.Tests.PlayMode
             float end = Time.realtimeSinceStartup + timeoutSeconds;
             while (!condition())
             {
-                if (Time.realtimeSinceStartup > end) Assert.Fail("Timed out waiting for " + what + " (state " + Session.State + ", status '" + Session.LastStatus + "')");
-                if (Session.FatalError != null) Assert.Fail("Fatal error: " + Session.FatalError);
+                if (Time.realtimeSinceStartup > end)
+                    Assert.Fail("Timed out waiting for " + what + (App != null ? " (state " + Session.State + ", status '" + Session.LastStatus + "')" : ""));
+                if (App != null && Session.FatalError != null) Assert.Fail("Fatal error: " + Session.FatalError);
                 yield return null;
             }
         }
@@ -110,6 +115,12 @@ namespace Tabletop.Tests.PlayMode
             }
             Assert.AreEqual(App.SetupContinueButton.gameObject, Selected, "Continue focused on setup");
             yield return Tap(Kb.enterKey);
+            yield return KeyboardSelectUnits();
+        }
+
+        /// <summary>Keyboard, from unit select: pick Striker (A) and Caster (B), confirm.</summary>
+        protected IEnumerator KeyboardSelectUnits()
+        {
             yield return WaitForState(UxState.UnitSelect);
             Assert.AreEqual(App.UnitCardButtons[0].gameObject, Selected, "first unit card focused");
             yield return Tap(Kb.enterKey); // Striker -> A

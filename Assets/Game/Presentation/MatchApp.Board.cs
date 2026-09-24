@@ -211,9 +211,11 @@ namespace Tabletop.Presentation
                 default: title = "TIE  (=)"; _resultTitle.color = Theme.Crown; break;
             }
             _resultTitle.text = title;
+            _resultExit.SetText(InEncounter ? "RETURN TO THE VILLAGE" : "EXIT");
             var p = m.Config.Sides[0];
             var o = m.Config.Sides[1];
             _resultBody.text =
+                "Opponent: " + Session.OpponentName + "\n" +
                 "Final Crown:  You " + snap.Sides[0].CrownHp + "   -   Enemy " + snap.Sides[1].CrownHp + "\n" +
                 "Rounds played: " + snap.Round + "\n" +
                 "Your units:  A " + Catalog.Unit(p.UnitIds[0]).DisplayName + ",  B " + Catalog.Unit(p.UnitIds[1]).DisplayName + "\n" +
