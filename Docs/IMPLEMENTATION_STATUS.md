@@ -140,6 +140,29 @@ Next authorized work: fixes only, until the creative director plays W1.
 Gate status: W1 PLAYTEST STOP ACTIVE.
 ```
 
+## Update 2026-09-25 — imported models (D-026)
+
+```text
+Date/time: 2026-09-25 11:10 MDT
+Milestone: W1 world slice + creative-director models
+Completed: Art pipeline (Tabletop > Art menu, WorldArt.asset slots, automatic fit/grounding, runtime posing).
+  In the world: Wren and Mira Tallow use supplied character models; the Brindlecross Inn and Chandlery use the
+  steampunk house; the Hearthmoor Cottage is the mushroom house. Trees no longer hide Wren's camp.
+  Workflow written up in Docs/ART_WORKFLOW.md.
+Not placed: 4 supplied character models excluded (nudity / existing franchise character / youthful + sexualized);
+  3 swimwear models held back pending the creative director's confirmation (see D-026). All stay local, git-ignored.
+Tests: EditMode 100/100 (WorldArtTests: fit/grounding, rigged-model scale, art-set names + URP materials);
+  PlayMode 28/28 (imported models in place, grounded, URP, posed via the runtime path).
+Console/build: Windows build 0 errors / 0 warnings; self-check modelBuildings=3 modelPeople=2, 0 unsupported shaders,
+  PLAYER PROBLEMS: none. (The first model build logged an editor-only animation error; fixed and now checked.)
+Screenshots/build path: Docs/Screenshots/World/ (refreshed from the real player); Builds/Windows/TabletopReels.exe
+Known defects: supplied characters are 180k-300k triangles (build grew ~55 MB); Mira's model stands on a figurine base;
+  rigged models hold one frame of an attack clip (no idle animation supplied); name tags overlap model heads slightly.
+Blockers: none
+Next authorized work: fixes only, until the creative director plays W1 with the new models.
+Gate status: W1 PLAYTEST STOP ACTIVE.
+```
+
 ## Active blockers
 
 None.

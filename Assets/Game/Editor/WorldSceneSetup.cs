@@ -22,11 +22,13 @@ namespace Tabletop.EditorTools
         {
             BoardMaterialSetup.CreateMaterial();
             IconImport.CreateIconSet();
+            ModelImportTools.UpdateArtSet();
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             // Load assets after NewScene (opening a scene unloads unreferenced assets).
             var input = AssetDatabase.LoadAssetAtPath<InputActionAsset>(ProjectSetup.InputPath);
             var material = AssetDatabase.LoadAssetAtPath<Material>(BoardMaterialSetup.MaterialPath);
             var icons = AssetDatabase.LoadAssetAtPath<IconSet>(IconImport.IconSetPath);
+            var art = AssetDatabase.LoadAssetAtPath<WorldArtSet>(ModelImportTools.ArtSetPath);
             if (input == null || material == null || icons == null) { Debug.LogError("[Tabletop] Missing input, material, or icon asset"); return; }
 
             RenderSettings.ambientMode = AmbientMode.Flat;
@@ -63,6 +65,7 @@ namespace Tabletop.EditorTools
             so.FindProperty("icons").objectReferenceValue = icons;
             so.FindProperty("worldCamera").objectReferenceValue = cam;
             so.FindProperty("eventSystem").objectReferenceValue = es;
+            so.FindProperty("art").objectReferenceValue = art;
             so.ApplyModifiedPropertiesWithoutUndo();
 
             Directory.CreateDirectory(Path.GetDirectoryName(WorldScenePath));

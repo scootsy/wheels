@@ -28,6 +28,8 @@ namespace Tabletop.World
         [SerializeField] private IconSet icons;
         [SerializeField] private Camera worldCamera;
         [SerializeField] private EventSystem eventSystem;
+        [Tooltip("Imported models that replace placeholder people and buildings (D-026). Optional.")]
+        [SerializeField] private WorldArtSet art;
 
         public static readonly Vector3 CameraOffset = new Vector3(0, 17f, -17f);
         public static readonly Vector3 SeatedOffset = new Vector3(0, 4.6f, -4.8f);
@@ -42,6 +44,7 @@ namespace Tabletop.World
         public string CurrentArea { get; private set; }
         public bool Seated => _seatedAt != null;
         public Material WorldMaterial => worldMaterial;
+        public WorldArtSet Art => art;
 
         private InputActionAsset _actions;
         private WorldKit _kit;
@@ -63,7 +66,7 @@ namespace Tabletop.World
         {
             if (worldMaterial == null) Debug.LogError("[Tabletop] World material not assigned; the world will render magenta in builds.");
             _kit = new WorldKit(worldMaterial);
-            Layout = new WorldBuilder(_kit, icons).Build(transform);
+            Layout = new WorldBuilder(_kit, icons, art).Build(transform);
             StaticBatchingUtility.Combine(Layout.StaticRoot.gameObject);
 
             BuildPlayer();
@@ -111,11 +114,26 @@ namespace Tabletop.World
                 Cloth = new Color(0.25f, 0.42f, 0.78f), Accent = new Color(0.55f, 0.35f, 0.2f),
                 Hair = new Color(0.25f, 0.16f, 0.1f), Hat = HatKind.None,
             };
-            var person = WorldPieces.Person(_kit, go.transform, "Figure", Vector3.zero, 0, look);
-            _kit.Box("Satchel", person.Find("Body"), new Vector3(0.3f, 0.85f, -0.15f), new Vector3(0.2f, 0.3f, 0.3f), new Color(0.5f, 0.32f, 0.18f));
-            _kit.Box("Cape", person.Find("Body"), new Vector3(0, 1.0f, -0.24f), new Vector3(0.5f, 0.8f, 0.06f), new Color(0.75f, 0.2f, 0.22f));
+            var slot = art != null ? art.Person(WorldBuilder.PlayerKey) : null;
+            Transform person;
+            float height = 1.8f;
+            if (slot != null)
+            {
+                person = new GameObject("Figure").transform;
+                person.SetParent(go.transform, false);
+                var body = new GameObject("Body").transform;
+                body.SetParent(person, false);
+                height = slot.size > 0 ? slot.size : WorldBuilder.DefaultPersonHeight;
+                _kit.PlaceModel(slot, body, height, Vector2.zero, out _);
+            }
+            else
+            {
+                person = WorldPieces.Person(_kit, go.transform, "Figure", Vector3.zero, 0, look);
+                _kit.Box("Satchel", person.Find("Body"), new Vector3(0.3f, 0.85f, -0.15f), new Vector3(0.2f, 0.3f, 0.3f), new Color(0.5f, 0.32f, 0.18f));
+                _kit.Box("Cape", person.Find("Body"), new Vector3(0, 1.0f, -0.24f), new Vector3(0.5f, 0.8f, 0.06f), new Color(0.75f, 0.2f, 0.22f));
+            }
             Player.Figure = person;
-            _playerTag = _kit.Label("PlayerTag", go.transform, new Vector3(0, 2.3f, 0), "YOU", 30, Theme.Player);
+            _playerTag = _kit.Label("PlayerTag", go.transform, new Vector3(0, Mathf.Max(2.3f, height + 0.5f), 0), "YOU", 30, Theme.Player);
         }
 
         private void ConfigureEventSystem()
@@ -552,7 +570,8 @@ namespace Tabletop.World
             yield return new WaitForSeconds(1f);
             LogWorldDiagnostics();
             yield return Capture(folder, "world_1_hearthmoor");
-            foreach (var (name, pos) in new[] { ("world_2_bridge", new Vector3(-5.5f, 0, 57f)), ("world_3_brindlecross", new Vector3(0, 0, 124f)), ("world_4_hall_outside", new Vector3(0, 0, 152f)) })
+            foreach (var (name, pos) in new[] { ("world_2_bridge", new Vector3(-5.5f, 0, 57f)), ("world_2b_camp", new Vector3(-10.5f, 0, 39.5f)), ("world_3_brindlecross", new Vector3(0, 0, 124f)),
+                                                  ("world_3b_inn", new Vector3(10f, 0, 136f)), ("world_4_hall_outside", new Vector3(0, 0, 152f)) })
             {
                 Player.Teleport(pos, 0);
                 SnapCamera();
@@ -583,13 +602,17 @@ namespace Tabletop.World
         private void LogWorldDiagnostics()
         {
             int total = 0, unsupported = 0;
-            foreach (var r in GetComponentsInChildren<MeshRenderer>(true))
+            foreach (var r in GetComponentsInChildren<Renderer>(true))
             {
                 total++;
                 var m = r.sharedMaterial;
                 if (m == null || m.shader == null || !m.shader.isSupported || !m.shader.name.StartsWith("Universal Render Pipeline")) unsupported++;
             }
-            Debug.Log("[Tabletop] SelfCheck world renderers=" + total + " unsupportedShader=" + unsupported);
+            int models = Layout.Root.Find("Models") != null ? Layout.Root.Find("Models").childCount : 0;
+            int modelPeople = 0;
+            foreach (var n in Layout.Npcs) if (n.Figure != null && n.Figure.Find("Model") != null) modelPeople++;
+            Debug.Log("[Tabletop] SelfCheck world renderers=" + total + " unsupportedShader=" + unsupported
+                      + " modelBuildings=" + models + " modelPeople=" + modelPeople);
         }
     }
 }

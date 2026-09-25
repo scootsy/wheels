@@ -16,5 +16,7 @@ sleep 2
 kill $pid 2>/dev/null
 taskkill //IM TabletopReels.exe //F >/dev/null 2>&1
 grep "\[Tabletop\]" "$out/player.log"
-grep -iE "exception|shader.*(not supported|error)" "$out/player.log" | head -5
+# Anything the player itself reports as a problem (editor-only APIs, missing shaders, exceptions).
+problems="$(grep -iE "exception|error|cannot be|not supported" "$out/player.log" | sort -u | head -10)"
+if [ -n "$problems" ]; then echo "PLAYER PROBLEMS:"; echo "$problems"; else echo "PLAYER PROBLEMS: none"; fi
 ls "$out"

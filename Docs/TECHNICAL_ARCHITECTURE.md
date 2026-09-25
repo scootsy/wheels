@@ -96,7 +96,7 @@ Tabletop.Tests.PlayMode
 | `Tabletop.Infrastructure.Unity` | `Assets/Game/Infrastructure` | Unity | `ContentCatalogAsset` ScriptableObject mapped to domain definitions |
 | `Tabletop.Input` | `Assets/Game/Input/Adapters` | Unity, Input System | `GameInputRouter`: actions -> abstract intents, active control scheme |
 | `Tabletop.Presentation` | `Assets/Game/Presentation` | Unity, uGUI, Input System | `MatchApp` composition root, presenter, views, primitive diorama |
-| `Tabletop.World` | `Assets/Game/World` | Unity, uGUI, Input System | W1 (D-025): `WorldApp` composition root, procedural `WorldBuilder`, interactables, player controller, world UI |
+| `Tabletop.World` | `Assets/Game/World` | Unity, uGUI, Input System | W1 (D-025): `WorldApp` composition root, procedural `WorldBuilder`, interactables, player controller, world UI; `WorldArtSet` + `WorldKit.PlaceModel` + `ModelPose` place imported models (D-026) |
 | `Tabletop.Editor` | `Assets/Game/Editor` | Editor only | Menu: content/URP/scene setup, world scene setup, test runner summary, Windows build |
 | `Tabletop.Tests.EditMode` | `Assets/Game/Tests/EditMode` | Editor only | Rules, AI, replay, content, application tests |
 | `Tabletop.Tests.PlayMode` | `Assets/Game/Tests/PlayMode` | Input System test framework | Scene, input, flow, presentation, screenshots |

@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Linq;
 using NUnit.Framework;
 using Tabletop.Application;
 using Tabletop.Domain;
@@ -164,6 +165,34 @@ namespace Tabletop.Tests.PlayMode
             Assert.AreEqual(gran.DisplayName, World.Ui.DialogueSpeaker);
             Assert.AreEqual(EncounterCatalog.Get(EncounterCatalog.Gran).WinLine, World.Ui.DialogueLine);
             Assert.Less(Vector3.Distance(returnSpot, World.Player.transform.position), 0.5f, "back where we stood");
+        }
+
+        [UnityTest]
+        public IEnumerator ImportedModels_ReplacePlaceholders_StandOnTheGround_AndUseUrp()
+        {
+            yield return Begin();
+            Assert.IsNotNull(World.Art, "World Art Set assigned in the scene");
+            int people = 0;
+            foreach (var npc in World.Layout.Npcs)
+            {
+                var slot = World.Art.Person(npc.DisplayName);
+                var model = npc.Figure.Find("Model");
+                Assert.AreEqual(slot != null, model != null, npc.DisplayName + ": model only where the art set assigns one");
+                if (model == null) continue;
+                people++;
+                var b = WorldKit.LocalBounds(model, npc.transform);
+                float expected = slot.size > 0 ? slot.size : WorldBuilder.DefaultPersonHeight;
+                Assert.AreEqual(expected, b.size.y, 0.05f, npc.DisplayName + " height");
+                Assert.AreEqual(npc.BaseOffset.y, b.min.y, 0.06f, npc.DisplayName + " stands on the ground");
+                // Posed through Playables: AnimationClip.SampleAnimation works in the editor but not in players.
+                if (slot.pose != null) Assert.IsNotNull(model.GetComponentInChildren<ModelPose>(), npc.DisplayName + " pose must work in builds");
+            }
+            int buildings = World.Art.buildings.Count(s => s.model != null);
+            Assert.AreEqual(buildings, World.Layout.Root.Find("Models").childCount, "one placed model per assigned building");
+            Assert.Greater(people + buildings, 0, "at least one imported model is in use");
+            foreach (var r in World.GetComponentsInChildren<Renderer>(true))
+                foreach (var m in r.sharedMaterials)
+                    if (m != null) StringAssert.StartsWith("Universal Render Pipeline/", m.shader.name, r.name + " would render magenta in the build");
         }
 
         [UnityTest]

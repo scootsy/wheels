@@ -46,3 +46,20 @@ Thumbs.db
 /[Aa]ssets/_Recovery.meta
 /[Aa]ssets/InitTestScene*.unity
 /[Aa]ssets/InitTestScene*.unity.meta
+
+# Imported models kept out of the game and out of Git (D-026): explicit nudity, a recognizable existing
+# character, or unclear provenance. The files stay on this machine; nothing in the game references them.
+/Assets/Game/Characters/2743832-20260713072207563.fbx*
+/Assets/Game/Characters/2765322-20260707030453531.animated.fbx*
+/Assets/Game/Characters/6219676-20260702190807102.fbx*
+/Assets/Game/Characters/6350718-20260811071543533.fbx*
+# Held back pending the creative director's call (D-026):
+/Assets/Game/Characters/2765322-20260707031935038.animated.fbx*
+/Assets/Game/Characters/2765322-20260707033207830.animated.fbx*
+/Assets/Game/Characters/5332524-20260822163940301.fbx*
+/Assets/Game/Characters/Textures/2765322-20260707031935038*
+/Assets/Game/Characters/Textures/2765322-20260707033207830*
+/Assets/Game/Characters/Textures/5332524-20260822163940301*
+/Assets/Game/Characters/Materials/2765322-20260707031935038.mat*
+/Assets/Game/Characters/Materials/2765322-20260707033207830.mat*
+/Assets/Game/Characters/Materials/5332524-20260822163940301.mat*

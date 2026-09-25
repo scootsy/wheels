@@ -196,6 +196,29 @@ This log records decisions that affect rules, player experience, architecture, s
 - **New stop point:** after W1 is verified, stop and wait for the creative director to play it before any further expansion.
 - **Files updated:** `AGENTS.md`, `Docs/WORLD_SPEC.md` (new), `Docs/README.md`, `Docs/MILESTONES.md`, `Docs/TECHNICAL_ARCHITECTURE.md`, `Docs/IMPLEMENTATION_STATUS.md`
 
+### D-026: Creative director's imported models in the world, and the art workflow
+
+- **Date:** 2026-09-25
+- **Status:** Accepted (explicit creative-director instruction)
+- **Instruction:** "I created a folder in Assets > Game called Characters and I put several fbx models in there. could you swap out some of the characters in the game currently for these models? i did the same in a directory called Buildings and it has two building models. Could you try to incorporate these into the game and then tell me what a good workflow for this actually should be?"
+- **Decision:** Imported, creative-director-supplied models may replace W1 placeholders. This is a scoped exception to the gate's "production models" line, limited to models the creative director provides. No Blender production work, VFX, or audio is started.
+- **Pipeline (agent decision):**
+  - `Tabletop → Art → 1. Prepare Imported Models` unpacks embedded textures, creates one URP/Lit material per model, and remaps the FBX's materials to it. It also turns off rig/animation import for static models and camera/light import for all.
+  - `Assets/Game/Art/WorldArt.asset` (`WorldArtSet`) maps people (by display name, plus `Player`) and buildings (`Area/Name`) to models, with optional pose clip, loop, turn and size. Empty slots keep placeholders.
+  - `WorldKit.PlaceModel` scales a model to a height (people) or footprint (buildings), grounds it, and centres it. Rigged models are posed through Playables (`ModelPose`).
+  - The full workflow is in `Docs/ART_WORKFLOW.md`.
+- **Defect found by the build self-check:** `AnimationClip.SampleAnimation` on non-legacy clips only works in the editor, so the player build left rigged models in their rest pose and logged an error that the editor never showed. Fixed with Playables. A PlayMode test requires the runtime path, and `Tools/selfcheck_build.sh` now prints any player-reported problem.
+- **Placed:**
+  - Wren = the clothed wolf-eared character, holding the first frame of its only clip.
+  - Mira Tallow = the clothed figure on a round base, 2.0 m including the base.
+  - Brindlecross Inn and Chandlery = the steampunk house, 6 m wide.
+  - Hearthmoor Cottage = the mushroom house.
+- **Not placed:** these stay on the creative director's machine and are ignored by Git.
+  - Four character models are excluded outright: one fully nude, one apparently unclothed, one that recreates a well-known existing franchise character (a child in the source material), and one youthful-looking character in a sexualized state. The project is original work, and these are not suitable content.
+  - Three swimwear/bikini-style models are **held back pending the creative director's confirmation** that they are original characters and that this is the intended tone. Their prepared materials exist locally, so they can be dropped into slots if confirmed.
+- **Performance note:** the supplied characters are 180k-300k triangles each. The workflow asks for 10k-30k and an idle animation.
+- **Files updated:** `AGENTS.md`, `Docs/ART_WORKFLOW.md` (new), `Docs/README.md`, `Docs/WORLD_SPEC.md`, `Docs/TECHNICAL_ARCHITECTURE.md`, `Docs/TOOLING.md`, `Docs/IMPLEMENTATION_STATUS.md`, `.gitattributes`, `.gitignore`
+
 ## Open decisions
 
 The rules-level open questions and temporary prototype behaviors are maintained in `RULES_SPEC.md` Section 15. They do not block M0 or M1.

@@ -19,6 +19,9 @@ namespace Tabletop.World
         public Vector3 TableFocus;
         public Door HallDoor;
         public Door HallExit;
+        /// <summary>Names that <see cref="WorldArtSet"/> slots can use: people, and buildings as "Area/Name".</summary>
+        public readonly List<string> PersonKeys = new List<string> { WorldBuilder.PlayerKey };
+        public readonly List<string> BuildingKeys = new List<string>();
 
         public Npc Find(string encounterId)
         {
@@ -43,18 +46,23 @@ namespace Tabletop.World
     public sealed class WorldBuilder
     {
         public const float InteriorX = 200f;
+        public const string PlayerKey = "Player";
+        public const float DefaultPersonHeight = 1.75f;
 
         private readonly WorldKit _kit;
         private readonly IconSet _icons;
+        private readonly WorldArtSet _art;
         private readonly WorldLayout _layout = new WorldLayout();
         private Transform _static;
         private Transform _dynamic;
+        private Transform _models;
         private int _seed = 12345;
 
-        public WorldBuilder(WorldKit kit, IconSet icons)
+        public WorldBuilder(WorldKit kit, IconSet icons, WorldArtSet art = null)
         {
             _kit = kit;
             _icons = icons;
+            _art = art;
         }
 
         private float Rand()
@@ -79,6 +87,9 @@ namespace Tabletop.World
             _static.SetParent(root, false);
             _dynamic = new GameObject("People").transform;
             _dynamic.SetParent(root, false);
+            // Imported models are not static-batched (their meshes are not CPU-readable).
+            _models = new GameObject("Models").transform;
+            _models.SetParent(root, false);
             _layout.StaticRoot = _static;
 
             // Ground (solid so the character controller has a floor), with darker grass patches for texture.
@@ -106,11 +117,11 @@ namespace Tabletop.World
             w.Rect(-21, 21, -15, 22);
             _kit.Prim(PrimitiveType.Cylinder, "Square", _static, new Vector3(0, 0.01f, 4), new Vector3(18, 0.02f, 18), Palette.Dirt);
             WorldPieces.Well(_kit, _static, new Vector3(0, 0, 4));
-            WorldPieces.House(_kit, _static, "Home", new Vector3(0, 0, -13), 0, 7, 5, 3.4f, Palette.PlasterWarm, Palette.RoofRed);
-            WorldPieces.House(_kit, _static, "Bakery", new Vector3(-14, 0, 8), 90, 6, 5, 3.2f, Palette.Plaster, Palette.RoofBrown);
-            WorldPieces.House(_kit, _static, "Mill", new Vector3(14, 0, 10), -90, 6, 6, 4f, Palette.Plaster, Palette.RoofBlue);
-            WorldPieces.House(_kit, _static, "Cottage", new Vector3(-14, 0, -6), 90, 5, 5, 3f, Palette.PlasterWarm, Palette.RoofGreen);
-            WorldPieces.House(_kit, _static, "Barn", new Vector3(14, 0, -7), -90, 7, 5, 3.6f, new Color(0.7f, 0.35f, 0.28f), Palette.RoofBrown);
+            House("Hearthmoor", "Home", new Vector3(0, 0, -13), 0, 7, 5, 3.4f, Palette.PlasterWarm, Palette.RoofRed);
+            House("Hearthmoor", "Bakery", new Vector3(-14, 0, 8), 90, 6, 5, 3.2f, Palette.Plaster, Palette.RoofBrown);
+            House("Hearthmoor", "Mill", new Vector3(14, 0, 10), -90, 6, 6, 4f, Palette.Plaster, Palette.RoofBlue);
+            House("Hearthmoor", "Cottage", new Vector3(-14, 0, -6), 90, 5, 5, 3f, Palette.PlasterWarm, Palette.RoofGreen);
+            House("Hearthmoor", "Barn", new Vector3(14, 0, -7), -90, 7, 5, 3.6f, new Color(0.7f, 0.35f, 0.28f), Palette.RoofBrown);
             WorldPieces.Bench(_kit, _static, new Vector3(-6, 0, 9), 0);
             WorldPieces.Lamp(_kit, _static, new Vector3(-4, 0, 14));
             WorldPieces.Lamp(_kit, _static, new Vector3(4, 0, 14));
@@ -181,11 +192,11 @@ namespace Tabletop.World
                     {
                         float off = 6.2f + Rand() * 5f;
                         var q = p + n * side * off;
-                        if (w.Contains(q.x, q.y) || InStream(q.y)) continue;
+                        if (w.Contains(q.x, q.y) || InStream(q.y) || HidesCamp(q)) continue;
                         if (Rand() < 0.8f) WorldPieces.Tree(_kit, _static, new Vector3(q.x, 0, q.y), 0.9f + Rand() * 0.6f, (int)(t * 7 + side));
                         else WorldPieces.Rock(_kit, _static, new Vector3(q.x, 0, q.y), 0.8f + Rand());
                         var q2 = p + n * side * (off + 5f + Rand() * 4f);
-                        if (!InStream(q2.y)) WorldPieces.Tree(_kit, _static, new Vector3(q2.x, 0, q2.y), 1.1f + Rand() * 0.6f, (int)(t * 3) + side);
+                        if (!InStream(q2.y) && !w.Contains(q2.x, q2.y) && !HidesCamp(q2)) WorldPieces.Tree(_kit, _static, new Vector3(q2.x, 0, q2.y), 1.1f + Rand() * 0.6f, (int)(t * 3) + side);
                     }
                     if (Rand() < 0.35f)
                     {
@@ -223,6 +234,9 @@ namespace Tabletop.World
 
         private static bool InStream(float z) => z > 58.5f && z < 65.5f;
 
+        /// <summary>The camera looks north from the south: keep trees off the strip in front of Wren's camp.</summary>
+        private static bool HidesCamp(Vector2 q) => q.x > -19f && q.x < -1f && q.y > 33f && q.y < 44f;
+
         // ------------------------------------------------------------------ Brindlecross
 
         private void BuildBrindlecross()
@@ -232,12 +246,12 @@ namespace Tabletop.World
             _kit.Prim(PrimitiveType.Cylinder, "Plaza", _static, new Vector3(0, 0.01f, 134), new Vector3(24, 0.02f, 24), Palette.Stone);
             _kit.Box("Avenue", _static, new Vector3(0, 0.015f, 150), new Vector3(5, 0.03f, 16), Palette.Stone);
             WorldPieces.Fountain(_kit, _static, new Vector3(0, 0, 134));
-            WorldPieces.House(_kit, _static, "Chandlery", new Vector3(-19, 0, 124), 90, 7, 6, 3.6f, Palette.PlasterWarm, Palette.RoofRed);
-            WorldPieces.House(_kit, _static, "FisherHut", new Vector3(19, 0, 122), -90, 6, 5, 3.2f, Palette.Plaster, Palette.RoofBlue);
-            WorldPieces.House(_kit, _static, "Infirmary", new Vector3(-19, 0, 141), 90, 7, 6, 3.8f, Color.white, Palette.RoofGreen);
-            WorldPieces.House(_kit, _static, "Inn", new Vector3(19, 0, 142), -90, 8, 7, 4.4f, Palette.PlasterWarm, Palette.RoofBrown);
-            WorldPieces.House(_kit, _static, "Cottage", new Vector3(-12, 0, 153), 180, 6, 5, 3.2f, Palette.Plaster, Palette.RoofRed);
-            WorldPieces.House(_kit, _static, "Cottage2", new Vector3(12, 0, 153), 180, 6, 5, 3.2f, Palette.Plaster, Palette.RoofBlue);
+            House("Brindlecross", "Chandlery", new Vector3(-19, 0, 124), 90, 7, 6, 3.6f, Palette.PlasterWarm, Palette.RoofRed);
+            House("Brindlecross", "FisherHut", new Vector3(19, 0, 122), -90, 6, 5, 3.2f, Palette.Plaster, Palette.RoofBlue);
+            House("Brindlecross", "Infirmary", new Vector3(-19, 0, 141), 90, 7, 6, 3.8f, Color.white, Palette.RoofGreen);
+            House("Brindlecross", "Inn", new Vector3(19, 0, 142), -90, 8, 7, 4.4f, Palette.PlasterWarm, Palette.RoofBrown);
+            House("Brindlecross", "Cottage", new Vector3(-12, 0, 153), 180, 6, 5, 3.2f, Palette.Plaster, Palette.RoofRed);
+            House("Brindlecross", "Cottage2", new Vector3(12, 0, 153), 180, 6, 5, 3.2f, Palette.Plaster, Palette.RoofBlue);
             WorldPieces.Stall(_kit, _static, new Vector3(-8, 0, 119), 30, new Color(0.8f, 0.25f, 0.25f));
             WorldPieces.Stall(_kit, _static, new Vector3(8, 0, 119), -30, new Color(0.25f, 0.45f, 0.8f));
             foreach (var p in new[] { new Vector3(-6, 0, 128), new Vector3(6, 0, 128), new Vector3(-6, 0, 141), new Vector3(6, 0, 141) })
@@ -385,9 +399,47 @@ namespace Tabletop.World
 
         // ------------------------------------------------------------------ helpers
 
+        /// <summary>A house, or the imported model assigned to "Area/Name" in the art set (door faces local +z either way).</summary>
+        private Transform House(string area, string name, Vector3 pos, float yaw, float width, float depth, float height, Color wall, Color roof)
+        {
+            var key = area + "/" + name;
+            _layout.BuildingKeys.Add(key);
+            var slot = _art != null ? _art.Building(key) : null;
+            if (slot == null) return WorldPieces.House(_kit, _static, name, pos, yaw, width, depth, height, wall, roof);
+            var root = new GameObject(name).transform;
+            root.SetParent(_models, false);
+            root.localPosition = pos;
+            root.localRotation = Quaternion.Euler(0, yaw, 0);
+            var footprint = slot.size > 0 ? new Vector2(slot.size, slot.size * depth / width) : new Vector2(width, depth);
+            var model = _kit.PlaceModel(slot, root, 0, footprint, out var size);
+            var col = model.gameObject.AddComponent<BoxCollider>(); // solid, like the placeholder walls
+            var s = model.localScale.x;
+            col.size = size / s;
+            col.center = new Vector3(0, size.y / 2f, 0) / s;
+            return root;
+        }
+
+        /// <summary>A person: the imported model assigned to them in the art set, or the primitive figure.</summary>
+        private Transform Person(string name, Vector3 pos, float yaw, PersonLook look, out float height)
+        {
+            if (!_layout.PersonKeys.Contains(name)) _layout.PersonKeys.Add(name);
+            var slot = _art != null ? _art.Person(name) : null;
+            height = 1.8f;
+            if (slot == null) return WorldPieces.Person(_kit, _dynamic, name, pos, yaw, look);
+            var root = new GameObject(name).transform;
+            root.SetParent(_dynamic, false);
+            root.localPosition = pos;
+            root.localRotation = Quaternion.Euler(0, yaw, 0);
+            var body = new GameObject("Body").transform;
+            body.SetParent(root, false);
+            height = slot.size > 0 ? slot.size : DefaultPersonHeight;
+            _kit.PlaceModel(slot, body, height, Vector2.zero, out _);
+            return root;
+        }
+
         private Npc AddNpc(string name, string title, Vector3 pos, float yaw, PersonLook look, EncounterDefinition encounter, string[] lines)
         {
-            var person = WorldPieces.Person(_kit, _dynamic, name, pos, yaw, look);
+            var person = Person(name, pos, yaw, look, out float height);
             var npc = person.gameObject.AddComponent<Npc>();
             npc.DisplayName = name;
             npc.Title = title;
@@ -400,9 +452,10 @@ namespace Tabletop.World
             col.center = new Vector3(0, 0.9f, 0);
             col.height = 1.8f;
             col.radius = 0.4f;
-            npc.Tag = _kit.Label("NameTag", person, new Vector3(0, 2.25f, 0), "", 34, encounter != null ? Palette.Gold : Color.white);
+            float tagY = Mathf.Max(2.25f, height + 0.45f);
+            npc.Tag = _kit.Label("NameTag", person, new Vector3(0, tagY, 0), "", 34, encounter != null ? Palette.Gold : Color.white);
             if (encounter != null && _icons != null)
-                npc.Marker = _kit.IconLabel("ChallengeMarker", person, new Vector3(0, 3.35f, 0), _icons.energyA, 0.55f);
+                npc.Marker = _kit.IconLabel("ChallengeMarker", person, new Vector3(0, tagY + 1.1f, 0), _icons.energyA, 0.55f);
             npc.RefreshTag();
             _layout.Npcs.Add(npc);
             _layout.Interactables.Add(npc);

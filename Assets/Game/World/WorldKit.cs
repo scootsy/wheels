@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using Tabletop.Presentation;
 using UnityEngine;
+using UnityEngine.Animations;
+using UnityEngine.Playables;
 using UnityEngine.UI;
 
 namespace Tabletop.World
@@ -70,6 +72,65 @@ namespace Tabletop.World
             return go;
         }
 
+        /// <summary>
+        /// Places an imported model (D-026) under <paramref name="parent"/>: holds its pose, turns it, scales it to
+        /// <paramref name="height"/> (or to fit <paramref name="footprint"/> when that is non-zero), stands it on
+        /// local y = 0 and centres it. Returns the container, whose local space is the fitted model's.
+        /// </summary>
+        public Transform PlaceModel(WorldArtSet.Slot slot, Transform parent, float height, Vector2 footprint, out Vector3 fittedSize)
+        {
+            var container = new GameObject("Model").transform;
+            container.SetParent(parent, false);
+            container.localRotation = Quaternion.Euler(0, slot.turn, 0);
+            var go = Object.Instantiate(slot.model, container, false); // keeps the FBX root's own axis/scale fix-ups
+            go.name = slot.model.name;
+            foreach (var c in go.GetComponentsInChildren<Camera>(true)) c.enabled = false;
+            foreach (var l in go.GetComponentsInChildren<Light>(true)) l.enabled = false;
+            if (slot.pose != null) ModelPose.Apply(go, slot.pose, slot.poseTime, slot.loop);
+            else foreach (var a in go.GetComponentsInChildren<Animator>(true)) a.enabled = false; // hold the rest pose
+            foreach (var smr in go.GetComponentsInChildren<SkinnedMeshRenderer>(true)) smr.updateWhenOffscreen = true;
+
+            var b = LocalBounds(go.transform, container);
+            float s = footprint != Vector2.zero
+                ? Mathf.Min(footprint.x / Mathf.Max(b.size.x, 0.001f), footprint.y / Mathf.Max(b.size.z, 0.001f))
+                : height / Mathf.Max(b.size.y, 0.001f);
+            go.transform.localPosition -= new Vector3(b.center.x, b.min.y, b.center.z);
+            container.localScale = Vector3.one * s;
+            fittedSize = b.size * s;
+            return container;
+        }
+
+        /// <summary>Tight bounds of every mesh under <paramref name="root"/> in <paramref name="space"/>'s local space (skinned meshes as posed).</summary>
+        public static Bounds LocalBounds(Transform root, Transform space)
+        {
+            var b = new Bounds();
+            bool any = false;
+            var toSpace = space.worldToLocalMatrix;
+            foreach (var mf in root.GetComponentsInChildren<MeshFilter>(true))
+                if (mf.sharedMesh != null) Encapsulate(ref b, ref any, toSpace * mf.transform.localToWorldMatrix, mf.sharedMesh.bounds);
+            foreach (var smr in root.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+            {
+                var baked = new Mesh();
+                // BakeMesh(useScale: true) yields the renderer's local space; useScale: false bakes in the lossy scale
+                // (measured, not assumed: see WorldArtTests). Local space + the full transform handles every parent's scale.
+                smr.BakeMesh(baked, true);
+                Encapsulate(ref b, ref any, toSpace * smr.transform.localToWorldMatrix, baked.bounds);
+                if (UnityEngine.Application.isPlaying) Object.Destroy(baked); else Object.DestroyImmediate(baked);
+            }
+            return b;
+        }
+
+        private static void Encapsulate(ref Bounds b, ref bool any, Matrix4x4 m, Bounds local)
+        {
+            for (int i = 0; i < 8; i++)
+            {
+                var corner = local.center + Vector3.Scale(local.extents, new Vector3((i & 1) == 0 ? -1 : 1, (i & 2) == 0 ? -1 : 1, (i & 4) == 0 ? -1 : 1));
+                var p = m.MultiplyPoint3x4(corner);
+                if (!any) { b = new Bounds(p, Vector3.zero); any = true; }
+                else b.Encapsulate(p);
+            }
+        }
+
         /// <summary>Camera-facing world text (name tags, signs).</summary>
         public Text Label(string name, Transform parent, Vector3 localPos, string text, int size, Color color, float scale = 0.01f)
         {
@@ -118,6 +179,41 @@ namespace Tabletop.World
                 if (_billboards[i] == null) { _billboards.RemoveAt(i); continue; }
                 _billboards[i].rotation = rot;
             }
+        }
+    }
+
+    /// <summary>
+    /// Drives an imported rig with one clip through the Playables API: held on a single frame (a standing pose) or
+    /// looped (an idle). AnimationClip.SampleAnimation only works in the editor for non-legacy clips, so it would
+    /// leave players' builds in the rest pose (found by the build self-check, D-026).
+    /// </summary>
+    public sealed class ModelPose : MonoBehaviour
+    {
+        private PlayableGraph _graph;
+
+        public static ModelPose Apply(GameObject model, AnimationClip clip, float time, bool loop)
+        {
+            var animator = model.GetComponent<Animator>();
+            if (animator == null) animator = model.AddComponent<Animator>();
+            animator.enabled = true;
+            animator.applyRootMotion = false;
+            var pose = model.AddComponent<ModelPose>();
+            pose._graph = PlayableGraph.Create(model.name + " pose");
+            pose._graph.SetTimeUpdateMode(DirectorUpdateMode.GameTime);
+            var output = AnimationPlayableOutput.Create(pose._graph, "Pose", animator);
+            var playable = AnimationClipPlayable.Create(pose._graph, clip);
+            playable.SetTime(time);
+            playable.SetSpeed(loop ? 1 : 0);
+            playable.SetApplyFootIK(false);
+            output.SetSourcePlayable(playable);
+            pose._graph.Evaluate(); // pose the bones now so the model can be measured and fitted
+            pose._graph.Play();
+            return pose;
+        }
+
+        private void OnDestroy()
+        {
+            if (_graph.IsValid()) _graph.Destroy();
         }
     }
 

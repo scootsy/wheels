@@ -55,8 +55,18 @@ The primary agent remains responsible for validating work performed through ever
 Editor Play Mode is not proof that a player build renders correctly. After every Windows build:
 
 1. **Tabletop → Build → Windows x64 Development Build** (or `TestAndBuildTools.BuildWindows()` via MCP).
-2. From the repo root run `bash Tools/selfcheck_build.sh`. The player opens windowed for about 15 seconds, plays into a match by itself, writes `Logs/BuildSelfCheck/selfcheck_*.png` plus `player.log`, and quits.
-3. Inspect the screenshots and confirm the log line `unsupportedShader=0 notBoardMaterial=0`.
+2. From the repo root run `bash Tools/selfcheck_build.sh`. The player opens windowed for about 30 seconds. It tours the world (`world_*.png`), challenges the champion, and plays into a match by itself (`selfcheck_*.png`). It also writes `player.log`, then quits.
+3. Inspect the screenshots and check the log:
+   - `unsupportedShader=0` for both the world and the match, and `notBoardMaterial=0`;
+   - the expected `modelBuildings` / `modelPeople` counts;
+   - `PLAYER PROBLEMS: none`. Any line printed there is an error the player logged, such as an editor-only API that failed in the build (D-026).
+
+## Art import (D-026)
+
+Imported models follow `Docs/ART_WORKFLOW.md`:
+- **Tabletop → Art → 1. Prepare Imported Models**: embedded textures, a URP material per model, remapping.
+- **2. Render Model Previews**: `Logs/ModelPreviews/`.
+- **3. Update World Art Slots**: adds a slot for every person and building to `Assets/Game/Art/WorldArt.asset`.
 
 ## Source control workflow
 

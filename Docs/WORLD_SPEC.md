@@ -9,7 +9,8 @@ A 2.5D walk north: leave your home village, cross open country, arrive in a bigg
 ## Presentation
 
 - Fixed 3/4 top-down follow camera (offset 0, 17, -17; FOV 42) that eases after the player. No camera control.
-- Placeholder art only: primitive shapes on real URP material assets (never the built-in default material, see D-024). Camera-facing name tags.
+- Placeholder art: primitive shapes on real URP material assets (never the built-in default material, see D-024). Camera-facing name tags.
+- Imported models from the creative director replace placeholders slot by slot through `Assets/Game/Art/WorldArt.asset` (D-026, `ART_WORKFLOW.md`). Currently: Wren, Mira Tallow, the Brindlecross Inn and Chandlery, and the Hearthmoor Cottage (mushroom house).
 - A gem over a person's head means they will play Reels with you. After you beat them, their tag says **BEATEN**.
 - The area name fades in when you enter a new area.
 
