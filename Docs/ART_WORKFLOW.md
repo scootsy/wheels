@@ -39,7 +39,7 @@ The biggest single improvement is **an idle animation per character**. The game 
 ## Rules the project keeps
 
 - **Original characters only.** No recognizable characters from existing games, anime, or films (project mission in `AGENTS.md`).
-- **Nothing sexual, and nothing that reads as underage in a revealing outfit.** Models that fail this stay out of the game and out of Git.
+- **Nothing sexual, and nothing that reads as underage in a revealing outfit.** Models that fail this go in the `Excluded Models` folder next to the project, outside `Assets`. That folder is out of Git, and Unity never imports anything in it, so the Prepare step can't unpack it either.
 - **Know where it came from.** Keep the generator's terms or licence for anything that ships.
 - **Large files go through Git LFS** automatically (`.fbx`, and the unpacked textures under `Characters/Textures` and `Buildings/Textures`).
 - **Materials must be URP.** The Prepare step makes URP/Lit materials, and tests fail if a model would render magenta in the build (D-024).
