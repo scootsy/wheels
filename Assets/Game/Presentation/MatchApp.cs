@@ -104,7 +104,9 @@ namespace Tabletop.Presentation
             ApplyUiScale(1f);
             RefreshPrompts();
             ShowScreenFor(Session.State);
-            // Arriving from the world: the opponent is fixed, so skip setup and go straight to unit selection.
+            // Arriving from the world: only the pieces the player has won are selectable (D-027).
+            if (GameFlow.TitleShown) Session.Options.UnlockedUnits = GameFlow.UnlockedUnits;
+            // A challenge fixes the opponent, so skip setup and go straight to unit selection.
             var encounter = GameFlow.PendingEncounter;
             if (encounter != null)
             {

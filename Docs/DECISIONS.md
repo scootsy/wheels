@@ -219,6 +219,32 @@ This log records decisions that affect rules, player experience, architecture, s
 - **Performance note:** the supplied characters are 180k-300k triangles each. The workflow asks for 10k-30k and an idle animation.
 - **Files updated:** `AGENTS.md`, `Docs/ART_WORKFLOW.md` (new), `Docs/README.md`, `Docs/WORLD_SPEC.md`, `Docs/TECHNICAL_ARCHITECTURE.md`, `Docs/TOOLING.md`, `Docs/IMPLEMENTATION_STATUS.md`, `.gitattributes`, `.gitignore`
 
+### D-027: Journey features, piece progression, and the table overhaul (creative director, 2026-09-25)
+
+- **Date:** 2026-09-25
+- **Status:** Accepted (explicit creative-director instruction)
+- **Instruction:** "yes, build the table. and i actually want it to look identical to the art style of the source, just in 3d instead of pixelated. also, we need to add a way to save/resume progress. separately, names shouldn't always be above people, maybe they fade in as you get close? separately, i'd like to be able to switch between overhead pov and first person so that people have the choice. then i'd like to make it so all opponents have like the same wheels in a town, but then the boss adds one more, and our character wins it from them when he beats em. then i'd like movement to be a little more fun, so maybe add an option to sprint and jump, just so getting around isn't so tedious. then i'd like also a way to inspect your own "deck" look at your wheels and see their stats, etc."
+- **Clarification (asked and answered):** "wheels" here means the pieces. Everyone in a town plays the Striker and the Caster, practice for the player. The town champion adds one more piece (Brindlecross: the Ranger). Beating him wins it. The next town's champion will hold the Mason, and so on.
+- **Now authorized (overrides the gate items it names):** save data; the player collecting new pieces (Ranger first); the production table (M4 direction, including animated pieces); first-person view.
+- **Decisions:**
+  - **Save/resume:** one JSON file, `journey.json`, in the player's data folder, written atomically. It holds who you have beaten, losses, pieces owned, position, facing and view choice.
+    - Autosave: when a journey starts, on entering an area, every 30 s, before a challenge, when you get back from a table, and on quit.
+    - The title offers CONTINUE JOURNEY. NEW JOURNEY over an existing save needs a second press.
+    - A match in progress is not saved; resuming puts you back at the table's spot.
+    - Tests and the build self-check write to scratch folders only.
+  - **Name tags** fade in between 11 m and 7 m. The challenge gem stays visible from afar so challengers can still be found. The floating "YOU" label is gone.
+  - **First person:** toggled with V / gamepad Y, or from the menu; the choice is saved.
+    - Mouse or right-stick look. Walk where you look. Interaction targets what is in front of you.
+    - Your body casts a shadow but isn't drawn. The mouse is captured only while exploring.
+    - Sitting at the champion's table keeps the table camera.
+  - **Sprint and jump:** Shift / LT / L3 sprints at 1.8x. Space / A jumps (about 1.1 m); next to someone, A talks instead.
+  - **Deck:** I / gamepad X, or the menu. It shows every piece, owned or locked, with Bronze/Silver/Gold stats. Locked pieces say who holds them.
+  - **Opponent tuning (agent choice, easy to change):** Gran and Wren use the Learner AI; Mira, Tobin and Halvey use Standard; Corvin uses Expert with Ranger + Striker.
+  - **Unit selection** offers exactly the pieces you own, laid out as 3 cards once the Ranger is won.
+  - **Input note:** a test found that two key presses queued in the same frame by the Input System test fixture overwrite each other. Tests press keys on separate frames; real keyboards are unaffected. Test runs now reload the code-generated scenes first, so Unity's "save changes?" dialog can't stall an unattended run.
+  - **Table art style:** the creative director wants the table to match the source game's look, rendered in 3D. We match the style: warm carved bronze and stone, gold crown housings with red gems, a grey brick wall arc, framed reel tiles, clockwork. The shapes, ornaments and layout details are drawn fresh rather than traced or copied from the reference art (`RULES_SPEC.md` Section 2).
+- **Files updated:** `Docs/WORLD_SPEC.md`, `Docs/IMPLEMENTATION_STATUS.md`, `AGENTS.md`, `Docs/MILESTONES.md`
+
 ## Open decisions
 
 The rules-level open questions and temporary prototype behaviors are maintained in `RULES_SPEC.md` Section 15. They do not block M0 or M1.

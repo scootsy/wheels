@@ -301,7 +301,7 @@ namespace Tabletop.Presentation
             _cardUnits.Clear();
             _cardStatus.Clear();
             var units = Session.SelectableUnits(Session.Options.DeveloperMode);
-            float cardW = units.Count <= 2 ? 620 : 250, gap = 20;
+            float cardW = units.Count <= 2 ? 620 : units.Count == 3 ? 520 : 250, gap = 20;
             float total = units.Count * cardW + (units.Count - 1) * gap;
             float x0 = (1920 - total) / 2f;
             var putButtons = new List<Button>();
@@ -318,7 +318,7 @@ namespace Tabletop.Presentation
                 Ui.Icon("Portrait", card.transform, icons != null ? icons.Unit(def.Id) : null, portrait, Theme.TextDim)
                     .rectTransform.Place(cardW - portrait - 16, 14, portrait, portrait);
                 L("Name", card.transform, def.DisplayName.ToUpperInvariant(), 34, TextAnchor.UpperLeft, Theme.Text, FontStyle.Bold).rectTransform.Place(20, 16, cardW - 40, 44);
-                L("Role", card.transform, def.Role + (def.PlayerFacing ? "" : "  [DEV ONLY]"), 20, TextAnchor.UpperLeft, Theme.TextDim).rectTransform.Place(20, 62, cardW - 40, 28);
+                L("Role", card.transform, def.Role + (Session.Options.DeveloperMode && !def.PlayerFacing ? "  [DEV]" : ""), 20, TextAnchor.UpperLeft, Theme.TextDim).rectTransform.Place(20, 62, cardW - 40, 28);
                 L("Stats", card.transform,
                     "Starting rank: BRONZE [I]\nActivation cost: " + s.EnergyCost + " energy\n" + UnitPanelView.StatsLine(def, s)
                     + "\n\n" + def.Description, 21, TextAnchor.UpperLeft).rectTransform.Place(20, 100, cardW - 40, 300);

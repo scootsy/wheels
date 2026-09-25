@@ -96,6 +96,10 @@ Define M2 from actual M1 playtest findings. Do not treat these bullets as approv
 
 Exit: EditMode and PlayMode suites pass (including walking, talking, challenging, winning and returning, and sitting at the champion's table), the Windows build passes `Tools/selfcheck_build.sh` with inspected screenshots. Then **stop and wait for the creative director to play W1**.
 
+## W2: Journey features and the production table (approved 2026-09-25, D-027)
+
+**Status:** Authorized. Save/resume, name fade, first person, sprint/jump, piece progression with the deck screen, and the 3D table in the source's art style with animated pieces.
+
 ## M3: Tiny world wrapper
 
 **Status:** Not authorized beyond W1.

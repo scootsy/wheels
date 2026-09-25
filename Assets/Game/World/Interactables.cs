@@ -50,6 +50,23 @@ namespace Tabletop.World
 
         public void FaceHome() => transform.rotation = Quaternion.Euler(0, HomeYaw, 0);
 
+        private CanvasGroup _tagGroup;
+
+        /// <summary>Name tags fade in as the player gets close instead of floating over everyone (D-027).</summary>
+        public void SetTagAlpha(float alpha)
+        {
+            if (Tag == null) return;
+            if (_tagGroup == null)
+            {
+                _tagGroup = Tag.canvas.gameObject.GetComponent<CanvasGroup>();
+                if (_tagGroup == null) _tagGroup = Tag.canvas.gameObject.AddComponent<CanvasGroup>();
+                _tagGroup.blocksRaycasts = false;
+            }
+            _tagGroup.alpha = alpha;
+        }
+
+        public float TagAlpha => _tagGroup != null ? _tagGroup.alpha : 1f;
+
         private void Update()
         {
             // Gentle idle breathing so people read as alive.
@@ -121,11 +138,21 @@ namespace Tabletop.World
     public sealed class PlayerController : MonoBehaviour
     {
         public float Speed = 5.5f;
+        public float SprintMultiplier = 1.8f;
+        /// <summary>Take-off speed; with <see cref="Gravity"/> this gives about a 1.1 m hop.</summary>
+        public float JumpSpeed = 7.5f;
+        public float Gravity = 26f;
         public Transform Figure;
         [System.NonSerialized] public WalkableArea Walkable;
         private CharacterController _cc;
         private float _walkPhase;
         private float _yaw;
+        private float _height;
+        private float _vertical;
+
+        /// <summary>Height above the ground while jumping.</summary>
+        public float Height => _height;
+        public bool Grounded => _height <= 0f && _vertical <= 0f;
 
         public bool Seated { get; private set; }
         public float DistanceWalked { get; private set; }
@@ -143,8 +170,17 @@ namespace Tabletop.World
         {
             _cc.enabled = false;
             transform.position = new Vector3(pos.x, 0, pos.z);
+            _height = 0;
+            _vertical = 0;
             _yaw = yaw;
             transform.rotation = Quaternion.Euler(0, yaw, 0);
+            _cc.enabled = true;
+        }
+
+        private void SetPosition(Vector3 p)
+        {
+            _cc.enabled = false;
+            transform.position = p;
             _cc.enabled = true;
         }
 
@@ -159,15 +195,31 @@ namespace Tabletop.World
             else if (Figure != null) Figure.localPosition = Vector3.zero;
         }
 
-        /// <summary>Move by input (x = east, y = north) for this frame.</summary>
-        public void Step(Vector2 input, float dt)
+        /// <summary>
+        /// Move by input (x = east, y = north) for this frame. <paramref name="faceYaw"/> keeps the body facing the
+        /// camera (first person); otherwise it turns toward the direction of travel.
+        /// </summary>
+        public void Step(Vector2 input, float dt, bool sprint = false, bool jump = false, float? faceYaw = null)
         {
             if (Seated) return;
             if (input.sqrMagnitude > 1f) input.Normalize();
-            var delta = new Vector3(input.x, 0, input.y) * Speed * dt;
+            if (jump && Grounded) _vertical = JumpSpeed;
+            if (!Grounded)
+            {
+                _vertical -= Gravity * dt;
+                _height += _vertical * dt;
+                if (_height <= 0f) { _height = 0f; _vertical = 0f; }
+            }
+            if (faceYaw.HasValue)
+            {
+                _yaw = faceYaw.Value;
+                transform.rotation = Quaternion.Euler(0, _yaw, 0);
+            }
+            var delta = new Vector3(input.x, 0, input.y) * Speed * (sprint ? SprintMultiplier : 1f) * dt;
             if (delta.sqrMagnitude > 0.000001f)
             {
                 var before = transform.position;
+                before.y = 0;
                 _cc.Move(delta);
                 var p = transform.position;
                 p.y = 0;
@@ -180,17 +232,21 @@ namespace Tabletop.World
                     else if (Walkable.Contains(tryZ.x, tryZ.z)) p = tryZ;
                     else p = new Vector3(before.x, 0, before.z);
                 }
-                _cc.enabled = false;
-                transform.position = p;
-                _cc.enabled = true;
                 DistanceWalked += (p - before).magnitude;
-                _yaw = Mathf.MoveTowardsAngle(_yaw, Mathf.Atan2(input.x, input.y) * Mathf.Rad2Deg, 720f * dt);
-                transform.rotation = Quaternion.Euler(0, _yaw, 0);
-                _walkPhase += dt * 11f;
+                p.y = _height;
+                SetPosition(p);
+                if (!faceYaw.HasValue)
+                {
+                    _yaw = Mathf.MoveTowardsAngle(_yaw, Mathf.Atan2(input.x, input.y) * Mathf.Rad2Deg, 720f * dt);
+                    transform.rotation = Quaternion.Euler(0, _yaw, 0);
+                }
+                _walkPhase = Grounded ? _walkPhase + dt * (sprint ? 16f : 11f) : 0f;
             }
             else
             {
                 _walkPhase = 0;
+                if (!Mathf.Approximately(transform.position.y, _height))
+                    SetPosition(new Vector3(transform.position.x, _height, transform.position.z));
             }
             if (Figure != null && !Seated)
                 Figure.localPosition = new Vector3(0, Mathf.Abs(Mathf.Sin(_walkPhase)) * 0.12f, 0);

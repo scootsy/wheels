@@ -42,16 +42,16 @@ namespace Tabletop.Tests.EditMode
         public void Session_UsesTheEncounterOpponent()
         {
             var s = new MatchSession(TestKit.Catalog, () => 99);
-            s.Options.Encounter = EncounterCatalog.Get(EncounterCatalog.Halvey);
+            s.Options.Encounter = EncounterCatalog.Get(EncounterCatalog.Champion);
             s.ContinueFromSetup();
             s.Selection.Toggle(ReferenceContent.Striker);
             s.Selection.Toggle(ReferenceContent.Caster);
             Assert.IsTrue(s.ConfirmUnits());
             var opp = s.Match.Config.Sides[1];
-            Assert.AreEqual(ReferenceContent.Mender, opp.UnitIds[0]);
+            Assert.AreEqual(ReferenceContent.Ranger, opp.UnitIds[0]);
             Assert.AreEqual(ReferenceContent.Striker, opp.UnitIds[1]);
-            Assert.AreEqual(ControllerIds.AiStandard, opp.ControllerId);
-            Assert.AreEqual("Sister Halvey", s.OpponentName);
+            Assert.AreEqual(ControllerIds.AiExpert, opp.ControllerId);
+            Assert.AreEqual("Corvin Vale", s.OpponentName);
         }
 
         [Test]
@@ -78,6 +78,94 @@ namespace Tabletop.Tests.EditMode
             GameFlow.BeginEncounter(EncounterCatalog.Get(EncounterCatalog.Tobin), 0, 0);
             GameFlow.CompleteEncounter(Winner.None);
             Assert.IsNull(GameFlow.LastOutcome, "leaving the table early records nothing");
+        }
+
+        [Test]
+        public void TownVillagers_PlayTheStartingPair_AndOnlyTheChampionHoldsAPrize()
+        {
+            foreach (var e in EncounterCatalog.All)
+            {
+                if (e.IsChampion)
+                {
+                    Assert.AreEqual(ReferenceContent.Ranger, e.PrizeUnit, "Brindlecross's champion holds the Ranger");
+                    Assert.IsTrue(e.UnitA == e.PrizeUnit || e.UnitB == e.PrizeUnit, "the champion plays the piece you can win");
+                }
+                else
+                {
+                    Assert.IsNull(e.PrizeUnit, e.Id);
+                    CollectionAssert.AreEquivalent(EncounterCatalog.StartingUnits, new[] { e.UnitA, e.UnitB }, e.Id + " plays the town's practice pair");
+                }
+            }
+        }
+
+        [Test]
+        public void BeatingTheChampion_WinsTheRanger_Once()
+        {
+            CollectionAssert.AreEqual(EncounterCatalog.StartingUnits, GameFlow.UnlockedUnits);
+            var champ = EncounterCatalog.Get(EncounterCatalog.Champion);
+            GameFlow.BeginEncounter(champ, 0, 0);
+            GameFlow.CompleteEncounter(Winner.Opponent);
+            Assert.IsFalse(GameFlow.IsUnlocked(ReferenceContent.Ranger), "losing wins nothing");
+            GameFlow.BeginEncounter(champ, 0, 0);
+            GameFlow.CompleteEncounter(Winner.Player);
+            Assert.IsTrue(GameFlow.IsUnlocked(ReferenceContent.Ranger));
+            Assert.AreEqual(ReferenceContent.Ranger, GameFlow.ConsumeOutcome().UnlockedUnit);
+            GameFlow.BeginEncounter(champ, 0, 0);
+            GameFlow.CompleteEncounter(Winner.Player);
+            Assert.IsNull(GameFlow.ConsumeOutcome().UnlockedUnit, "a rematch win does not award it again");
+            Assert.AreEqual(3, GameFlow.UnlockedUnits.Count);
+        }
+
+        [Test]
+        public void UnitSelection_OffersOnlyThePiecesYouOwn()
+        {
+            var s = new MatchSession(TestKit.Catalog, () => 5);
+            s.Options.UnlockedUnits = new[] { ReferenceContent.Striker, ReferenceContent.Caster, ReferenceContent.Ranger };
+            s.ContinueFromSetup();
+            CollectionAssert.AreEquivalent(new[] { ReferenceContent.Striker, ReferenceContent.Caster, ReferenceContent.Ranger },
+                s.SelectableUnits(false).Select(u => u.Id).ToList());
+            Assert.IsNull(s.Selection.Toggle(ReferenceContent.Ranger), "a won piece can be picked");
+            Assert.IsNotNull(s.Selection.Toggle(ReferenceContent.Mason), "a piece you don't own cannot");
+        }
+
+        [Test]
+        public void SaveGame_RoundTripsTheJourney()
+        {
+            var dir = System.IO.Path.Combine(UnityEngine.Application.temporaryCachePath, "TabletopEditSaves");
+            if (System.IO.Directory.Exists(dir)) System.IO.Directory.Delete(dir, true);
+            SaveGame.DirectoryOverride = dir;
+            try
+            {
+                var champ = EncounterCatalog.Get(EncounterCatalog.Champion);
+                GameFlow.BeginEncounter(champ, 0, 0);
+                GameFlow.CompleteEncounter(Winner.Player);
+                GameFlow.BeginEncounter(EncounterCatalog.Get(EncounterCatalog.Tobin), 0, 0);
+                GameFlow.CompleteEncounter(Winner.Opponent);
+                GameFlow.FirstPersonView = true;
+                GameFlow.TitleShown = true;
+                Assert.IsTrue(SaveGame.Save(new Vector3(3.5f, 0, 125f), 90f));
+                Assert.IsTrue(SaveGame.Exists);
+
+                GameFlow.Reset();
+                Assert.IsTrue(SaveGame.TryLoad(out var data));
+                SaveGame.Apply(data);
+                Assert.IsTrue(GameFlow.HasDefeated(EncounterCatalog.Champion));
+                Assert.IsTrue(GameFlow.IsUnlocked(ReferenceContent.Ranger));
+                Assert.AreEqual(1, GameFlow.Losses[EncounterCatalog.Tobin]);
+                Assert.IsTrue(GameFlow.FirstPersonView);
+                Assert.IsTrue(GameFlow.TitleShown);
+                Assert.AreEqual(3.5f, data.x);
+                Assert.AreEqual(125f, data.z);
+                Assert.AreEqual(90f, data.yaw);
+
+                System.IO.File.WriteAllText(SaveGame.FilePath, "{ not json");
+                Assert.IsFalse(SaveGame.TryLoad(out _), "a damaged save reads as no save, not a crash");
+            }
+            finally
+            {
+                SaveGame.DirectoryOverride = null;
+                if (System.IO.Directory.Exists(dir)) System.IO.Directory.Delete(dir, true);
+            }
         }
 
         [Test]

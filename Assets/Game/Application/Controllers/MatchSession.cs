@@ -29,6 +29,8 @@ namespace Tabletop.Application
         public string OpponentB = ReferenceContent.Caster;
         /// <summary>Name of a forced scenario from <see cref="ScenarioLibrary"/>, or null.</summary>
         public string ScenarioName;
+        /// <summary>Pieces the player owns when arriving from the world (D-027); null = default player-facing units.</summary>
+        public System.Collections.Generic.IReadOnlyCollection<string> UnlockedUnits;
         /// <summary>World challenge being played (opponent, units, AI), or null for a free match.</summary>
         public EncounterDefinition Encounter;
     }
@@ -83,6 +85,7 @@ namespace Tabletop.Application
         {
             if (!RequireState(UxState.MatchSetup)) return;
             Selection.DeveloperMode = Options.DeveloperMode;
+            Selection.Unlocked = Options.UnlockedUnits;
             SetState(UxState.UnitSelect);
         }
 

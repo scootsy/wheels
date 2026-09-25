@@ -42,6 +42,8 @@ At that point, **STOP AND WAIT FOR THE CREATIVE DIRECTOR TO PLAY IT**.
 
 **Gate status (2026-09-24, D-025):** the creative director explicitly approved one world slice, W1, defined in `Docs/WORLD_SPEC.md`: two villages, the road north, opponents to talk to and challenge, and the champion's hall. W1 work is authorized. Everything else in the list below remains gated. When W1 is verified, stop again and wait for the creative director to play it.
 
+**Journey + table (2026-09-25, D-027):** save/resume, piece progression (each town's champion holds a new piece), first-person view, sprint/jump, the deck screen, and the production table with animated pieces are authorized. See `Docs/DECISIONS.md` D-027.
+
 **Imported art (2026-09-25, D-026):** creative-director-supplied models may replace W1 placeholders through `Docs/ART_WORKFLOW.md`. Keep the project original: no recognizable existing characters, nothing sexual, nothing that reads as underage in a revealing outfit. Producing new art (Blender, VFX, audio) remains gated.
 
 Do not begin any of the following without an explicit instruction approving continuation past the human playtest gate:

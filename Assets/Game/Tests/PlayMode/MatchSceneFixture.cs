@@ -35,6 +35,10 @@ namespace Tabletop.Tests.PlayMode
         protected void SetupInput()
         {
             GameFlow.Reset();
+            // Never read or overwrite the real journey on this machine (D-027).
+            var saves = System.IO.Path.Combine(UnityEngine.Application.temporaryCachePath, "TabletopTestSaves");
+            if (System.IO.Directory.Exists(saves)) System.IO.Directory.Delete(saves, true);
+            Tabletop.World.SaveGame.DirectoryOverride = saves;
             base.Setup();
             // Virtual devices must reach the game even when the editor Game view is not focused.
             InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;

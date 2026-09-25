@@ -12,8 +12,9 @@ namespace Tabletop.World
         public readonly GameObject Title;
         public readonly GameObject Pause;
         public readonly GameObject Dialogue;
-        public readonly Button TitleBegin, TitlePractice, TitleQuit;
-        public readonly Button PauseResume, PauseHelp, PausePractice, PauseQuit;
+        public readonly Button TitleContinue, TitleBegin, TitlePractice, TitleQuit;
+        public readonly Button PauseResume, PauseDeck, PauseView, PauseHelp, PausePractice, PauseQuit;
+        public readonly Transform Frame;
         public readonly Button Continue;
         public readonly List<Button> Choices = new List<Button>();
         private readonly Text _prompt;
@@ -59,6 +60,7 @@ namespace Tabletop.World
             var root = Ui.Rect("Frame", canvasGo.transform);
             root.anchorMin = root.anchorMax = new Vector2(0.5f, 0.5f);
             root.sizeDelta = new Vector2(1920, 1080);
+            Frame = root;
 
             // HUD
             var hudBg = Ui.Panel("HudBg", root, new Color(0, 0, 0, 0.55f));
@@ -67,7 +69,7 @@ namespace Tabletop.World
             _hud = Ui.Label("Hud", hudBg.transform, "", 24, TextAnchor.MiddleLeft, Theme.Text, FontStyle.Bold);
             _hud.rectTransform.Fill(14);
             var ctlBg = Ui.Panel("ControlsBg", root, new Color(0, 0, 0, 0.6f));
-            ctlBg.rectTransform.Place(1380, 20, 520, 86);
+            ctlBg.rectTransform.Place(1300, 20, 600, 112);
             ctlBg.raycastTarget = false;
             _controls = Ui.Label("Controls", ctlBg.transform, "", 21, TextAnchor.MiddleLeft, Theme.Text);
             _controls.rectTransform.Fill(12);
@@ -119,19 +121,19 @@ namespace Tabletop.World
             Pause = Ui.Panel("Pause", root, Theme.Overlay).gameObject;
             ((RectTransform)Pause.transform).Fill();
             var pbox = Ui.Panel("Box", Pause.transform, Theme.Panel);
-            pbox.rectTransform.Place(560, 170, 800, 740);
+            pbox.rectTransform.Place(560, 90, 800, 900);
             Ui.Label("Title", pbox.transform, "PAUSED", 48, TextAnchor.UpperCenter, Theme.Text, FontStyle.Bold).rectTransform.Place(0, 20, 800, 60);
             PauseResume = Ui.Button("Resume", pbox.transform, "RESUME", null, 26, Theme.ButtonPrimary);
-            ((RectTransform)PauseResume.transform).Place(200, 100, 400, 66);
+            PauseDeck = Ui.Button("Deck", pbox.transform, "YOUR DECK", null, 26);
+            PauseView = Ui.Button("View", pbox.transform, "VIEW: OVERHEAD", null, 26);
             PauseHelp = Ui.Button("Help", pbox.transform, "HOW TO PLAY", null, 26);
-            ((RectTransform)PauseHelp.transform).Place(200, 180, 400, 66);
             PausePractice = Ui.Button("Practice", pbox.transform, "PRACTICE TABLE", null, 26);
-            ((RectTransform)PausePractice.transform).Place(200, 260, 400, 66);
-            PauseQuit = Ui.Button("Quit", pbox.transform, "QUIT GAME", null, 26);
-            ((RectTransform)PauseQuit.transform).Place(200, 340, 400, 66);
+            PauseQuit = Ui.Button("Quit", pbox.transform, "SAVE AND QUIT", null, 26);
+            var pauseButtons = new[] { PauseResume, PauseDeck, PauseView, PauseHelp, PausePractice, PauseQuit };
+            for (int i = 0; i < pauseButtons.Length; i++) ((RectTransform)pauseButtons[i].transform).Place(200, 96 + i * 76, 400, 64);
             _pauseText = Ui.Label("HelpText", pbox.transform, "", 21, TextAnchor.UpperLeft, Theme.Text);
-            _pauseText.rectTransform.Place(40, 430, 720, 290);
-            Link(PauseResume, PauseHelp, PausePractice, PauseQuit);
+            _pauseText.rectTransform.Place(40, 560, 720, 320);
+            Link(pauseButtons);
             Pause.SetActive(false);
 
             // Title
@@ -139,23 +141,40 @@ namespace Tabletop.World
             ((RectTransform)Title.transform).Fill();
             Ui.Label("Name", Title.transform, "TABLETOP REELS", 110, TextAnchor.UpperCenter, Theme.Crown, FontStyle.Bold).rectTransform.Place(0, 150, 1920, 140);
             Ui.Label("Tagline", Title.transform, "A journey north, one table at a time.", 34, TextAnchor.UpperCenter, Theme.Text).rectTransform.Place(0, 300, 1920, 50);
-            TitleBegin = Ui.Button("Begin", Title.transform, "BEGIN YOUR JOURNEY", null, 32, Theme.ButtonPrimary);
-            ((RectTransform)TitleBegin.transform).Place(710, 440, 500, 84);
+            TitleContinue = Ui.Button("Continue", Title.transform, "CONTINUE JOURNEY", null, 32, Theme.ButtonPrimary);
+            ((RectTransform)TitleContinue.transform).Place(710, 410, 500, 84);
+            TitleBegin = Ui.Button("Begin", Title.transform, "BEGIN YOUR JOURNEY", null, 30, Theme.ButtonPrimary);
+            ((RectTransform)TitleBegin.transform).Place(710, 510, 500, 76);
             TitlePractice = Ui.Button("Practice", Title.transform, "PRACTICE TABLE", null, 26);
-            ((RectTransform)TitlePractice.transform).Place(760, 544, 400, 66);
+            ((RectTransform)TitlePractice.transform).Place(760, 602, 400, 66);
             TitleQuit = Ui.Button("Quit", Title.transform, "QUIT", null, 26);
-            ((RectTransform)TitleQuit.transform).Place(760, 626, 400, 66);
+            ((RectTransform)TitleQuit.transform).Place(760, 684, 400, 66);
             Ui.Label("How", Title.transform,
-                "Walk with WASD / arrows or the left stick. Talk and interact with E or (A). Menu with Esc or Start.\n"
-                + "Villagers with a gem above their heads will play Reels with you. The Champion waits in Brindlecross, far to the north.",
-                24, TextAnchor.UpperCenter, Theme.TextDim).rectTransform.Place(260, 760, 1400, 120);
-            Link(TitleBegin, TitlePractice, TitleQuit);
+                "Walk: WASD / arrows or left stick.  Sprint: Shift or LT.  Jump: Space or (A).  Talk: E or (A).  Switch view: V or (Y).  Deck: I or (X).  Menu: Esc or Start.\n"
+                + "Villagers with a gem above their heads will play Reels with you. The Champion waits in Brindlecross, far to the north. Your journey saves itself.",
+                23, TextAnchor.UpperCenter, Theme.TextDim).rectTransform.Place(160, 790, 1600, 120);
+            Link(TitleContinue, TitleBegin, TitlePractice, TitleQuit);
             Title.SetActive(false); // shown by WorldApp only on the first visit
 
             // Fade (top-most)
             _fade = Ui.Panel("Fade", root, new Color(0, 0, 0, 0));
             _fade.rectTransform.Fill();
             _fade.raycastTarget = false;
+        }
+
+        /// <summary>Re-links the title buttons when CONTINUE is shown or hidden (only active buttons are reachable).</summary>
+        public void LinkTitle(bool hasSave)
+        {
+            TitleContinue.gameObject.SetActive(hasSave);
+            if (hasSave) Link(TitleContinue, TitleBegin, TitlePractice, TitleQuit);
+            else Link(TitleBegin, TitlePractice, TitleQuit);
+        }
+
+        /// <summary>Adds a full-screen panel above the menus but below the fade.</summary>
+        public void AddOverlay(GameObject overlay)
+        {
+            overlay.transform.SetParent(Frame, false);
+            overlay.transform.SetSiblingIndex(_fade.transform.GetSiblingIndex());
         }
 
         private static void Link(params Selectable[] items)

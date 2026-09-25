@@ -16,6 +16,11 @@ namespace Tabletop.Input
         private readonly InputActionMap _match;
         private readonly InputActionMap _world;
         private readonly InputAction _move;
+        private readonly InputAction _interact;
+        private readonly InputAction _sprint;
+        private readonly InputAction _jump;
+        private readonly InputAction _lookDelta;
+        private readonly InputAction _lookStick;
         private readonly InputAction _accelerate;
         private readonly InputAction[] _lockSlots = new InputAction[5];
         private double _accelerateStart = -1;
@@ -32,8 +37,16 @@ namespace Tabletop.Input
             _accelerate = _match.FindAction("AcceleratePresentation", true);
             _world = asset.FindActionMap("WorldReserved", true);
             _move = _world.FindAction("Move", true);
-            Hook(_world.FindAction("Interact", true), () => Interact?.Invoke());
+            _interact = _world.FindAction("Interact", true);
+            Hook(_interact, () => Interact?.Invoke());
             _move.performed += OnDevice;
+            _sprint = _world.FindAction("Sprint", true);
+            _jump = _world.FindAction("Jump", true);
+            _lookDelta = _world.FindAction("LookDelta", true);
+            _lookStick = _world.FindAction("LookStick", true);
+            _jump.performed += OnDevice;
+            _lookStick.performed += OnDevice;
+            Hook(_world.FindAction("ToggleView", true), () => ToggleView?.Invoke());
             Hook(_ui.FindAction("Submit", true), () => Submit?.Invoke());
 
             Hook(_match.FindAction("Spin", true), () => Spin?.Invoke());
@@ -74,6 +87,14 @@ namespace Tabletop.Input
 
         /// <summary>World movement input (x = east, y = north), zero when the world map is disabled.</summary>
         public UnityEngine.Vector2 Move => _world.enabled ? _move.ReadValue<UnityEngine.Vector2>() : UnityEngine.Vector2.zero;
+        public bool SprintHeld => _world.enabled && _sprint.IsPressed();
+        public bool JumpPressedThisFrame => _world.enabled && _jump.WasPressedThisFrame();
+        public bool InteractPressedThisFrame => _world.enabled && _interact.WasPressedThisFrame();
+        /// <summary>Pointer look this frame, in pixels (first-person view).</summary>
+        public UnityEngine.Vector2 LookDelta => _world.enabled ? _lookDelta.ReadValue<UnityEngine.Vector2>() : UnityEngine.Vector2.zero;
+        /// <summary>Stick look, -1..1 (a rate: multiply by time).</summary>
+        public UnityEngine.Vector2 LookStick => _world.enabled ? _lookStick.ReadValue<UnityEngine.Vector2>() : UnityEngine.Vector2.zero;
+        public event Action ToggleView;
 
         /// <summary>Enable walking/interacting (world scene only).</summary>
         public void EnableWorld() => _world.Enable();

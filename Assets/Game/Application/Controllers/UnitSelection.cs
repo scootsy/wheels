@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Tabletop.Domain;
 
 namespace Tabletop.Application
@@ -18,6 +19,11 @@ namespace Tabletop.Application
         }
 
         public bool DeveloperMode { get; set; }
+        /// <summary>Pieces the player owns (world journey, D-027). Null = the catalog's player-facing units.</summary>
+        public IReadOnlyCollection<string> Unlocked { get; set; }
+
+        private bool Selectable(UnitDefinition u, bool developer) =>
+            developer || (Unlocked != null ? Unlocked.Contains(u.Id) : u.PlayerFacing);
         public bool AllowDuplicates { get; set; }
         public IReadOnlyList<string> Slots => _slots;
         public bool IsComplete => _slots[0] != null && _slots[1] != null;
@@ -27,7 +33,7 @@ namespace Tabletop.Application
         {
             var list = new List<UnitDefinition>();
             foreach (var u in _catalog.Units)
-                if (u.PlayerFacing || developer) list.Add(u);
+                if (Selectable(u, developer)) list.Add(u);
             return list;
         }
 
@@ -41,7 +47,7 @@ namespace Tabletop.Application
         /// <summary>Selecting a unit assigns it to the first empty slot; selecting an assigned unit removes it.</summary>
         public CommandRejection Toggle(string unitId)
         {
-            if (!_catalog.TryGetUnit(unitId, out var def) || (!def.PlayerFacing && !DeveloperMode))
+            if (!_catalog.TryGetUnit(unitId, out var def) || !Selectable(def, DeveloperMode))
                 return Fail(RejectionCode.ConfigInvalid, "That unit is not available.");
             int slot = SlotOf(unitId);
             if (slot >= 0 && !AllowDuplicates)
@@ -61,7 +67,7 @@ namespace Tabletop.Application
         public CommandRejection Assign(int slot, string unitId)
         {
             if (slot < 0 || slot > 1) return Fail(RejectionCode.InvalidReelIndex, "No such slot.");
-            if (!_catalog.TryGetUnit(unitId, out var def) || (!def.PlayerFacing && !DeveloperMode))
+            if (!_catalog.TryGetUnit(unitId, out var def) || !Selectable(def, DeveloperMode))
                 return Fail(RejectionCode.ConfigInvalid, "That unit is not available.");
             if (!AllowDuplicates && _slots[1 - slot] == unitId)
                 return Fail(RejectionCode.DuplicateUnitNotAllowed, "Choose two different units.");
