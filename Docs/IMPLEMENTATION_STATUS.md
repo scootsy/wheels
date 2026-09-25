@@ -163,6 +163,34 @@ Next authorized work: fixes only, until the creative director plays W1 with the 
 Gate status: W1 PLAYTEST STOP ACTIVE.
 ```
 
+## Update 2026-09-25 — journey features, piece progression, and the new table (D-027)
+
+```text
+Date/time: 2026-09-25 13:30 MDT
+Milestone: W2 (journey features + production table), authorized by the creative director
+Completed:
+  World: save/continue (journey.json; CONTINUE JOURNEY on the title), name tags fade in within 7-11 m,
+    overhead / first-person toggle (V / Y), sprint (Shift / LT / L3) and jump (Space / A), deck screen (I / X).
+  Progression: town villagers play Striker + Caster; Corvin plays Ranger + Striker and beating him wins the
+    Ranger, which then appears at unit selection and in the deck.
+  Table: full-screen 3D MechanicalTable in the source's style (carved stone, bronze, gold). Eight-sided reel
+    drums that spin and clamp when locked; flip-digit crown counters; brick walls that rise from slots and
+    shed bricks when hit; podium energy rings, gem pillars, stat plaques; pieces travel along grooves to attack.
+    Reel buttons overlay the drums; panels moved to the corners; SPIN bottom right.
+Fixes found on the way: excluded models' unpacked copies were committed by the Prepare step (moved the models
+  out of Assets and removed the copies); a Unity "save changes?" dialog could stall unattended test runs.
+Tests: EditMode 104/104; PlayMode 35/35 (new WorldFeatureTests; hidden-reel test now checks the drum shutters;
+  material test accepts Table_ variants of the board material).
+Console/build: Windows build 0 errors / 0 warnings; self-check world 1245 renderers, table 399 renderers,
+  0 unsupported shaders, attack captured, PLAYER PROBLEMS: none.
+Screenshots/build path: Docs/Screenshots/Table/, Docs/Screenshots/World/; Builds/Windows/TabletopReels.exe
+Known defects: table figures are still primitive miniatures (blobby from above); the earlier commit ff17d5c still
+  contains unpacked textures of the excluded models in Git history (removing them needs a history rewrite).
+Blockers: none
+Next authorized work: fixes only, until the creative director plays this build.
+Gate status: PLAYTEST STOP ACTIVE (waiting for the creative director).
+```
+
 ## Active blockers
 
 None.

@@ -563,7 +563,7 @@ namespace Tabletop.Presentation
                 "- A unit acts when its energy reaches its cost; extra energy is wasted. Acting gives +2 XP.\n" +
                 "- 6 XP ranks Bronze -> Silver -> Gold. At Gold, 6 XP launches a 2-damage BOMB that ignores Wall.\n" +
                 "- A shot hits the Crown only if its height is GREATER than the Wall; otherwise it damages the Wall (no spill-over).\n" +
-                "- Crowns start at 10. The match is checked only after the whole round: 0 HP = defeat, both 0 = tie.\n\n" +
+                "- Crowns start at 10, the normal cap (healing can push one to 12: its counter turns green). The match is checked only after the whole round: 0 HP = defeat, both 0 = tie.\n\n" +
                 "CONTROLS (" + (Input.ActiveScheme == Tabletop.Input.ControlScheme.Gamepad ? "gamepad" : "keyboard / mouse") + ")\n" +
                 "- Move focus: " + B("UI", "Navigate") + "     Confirm / toggle lock on focused reel: " + B("UI", "Submit") + "\n" +
                 "- Spin: " + B("Match", "Spin") + " (or focus SPIN and confirm)     Lock reels directly: " + B("Match", "LockSlot1") + "-" + B("Match", "LockSlot5") + "\n" +

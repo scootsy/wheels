@@ -51,6 +51,23 @@ namespace Tabletop.Presentation
             yield return new WaitForSeconds(1.2f);
             yield return SelfCheckCapture(folder, "selfcheck_3_resolving");
 
+            // Keep playing until a piece is caught mid-attack (pieces travel out along their groove to strike).
+            end = Time.realtimeSinceStartup + 70f;
+            bool captured = false;
+            while (!captured && Session.State != UxState.MatchResult && Time.realtimeSinceStartup < end)
+            {
+                var cur = Presenter.Current;
+                if (cur != null && cur.Type == MatchEventType.ProjectileResolved && Presenter.Progress > 0.3f && Presenter.Progress < 0.7f)
+                {
+                    yield return SelfCheckCapture(folder, "selfcheck_4_attack");
+                    captured = true;
+                    break;
+                }
+                if (Session.State == UxState.RoundReady || Session.State == UxState.SpinDecision) Session.RequestSpin();
+                yield return null;
+            }
+            Debug.Log("[Tabletop] SelfCheck attack captured=" + captured);
+
             Debug.Log("[Tabletop] SelfCheck done: state " + Session.State + ", fatal " + (Session.FatalError ?? "none"));
             UnityEngine.Application.Quit();
         }
@@ -68,12 +85,12 @@ namespace Tabletop.Presentation
         private void LogRenderDiagnostics()
         {
             int total = 0, unsupported = 0, wrongMaterial = 0;
-            foreach (var r in _diorama.GetComponentsInChildren<Renderer>(true))
+            foreach (var r in _table.GetComponentsInChildren<Renderer>(true))
             {
                 total++;
                 var m = r.sharedMaterial;
                 if (m == null || m.shader == null || !m.shader.isSupported) unsupported++;
-                if (m != boardMaterial) wrongMaterial++;
+                if (m != boardMaterial && (m == null || !m.name.StartsWith("Table_") || m.shader != boardMaterial.shader)) wrongMaterial++;
             }
             Debug.Log("[Tabletop] SelfCheck renderers=" + total + " unsupportedShader=" + unsupported + " notBoardMaterial=" + wrongMaterial
                       + " boardShader=" + (boardMaterial != null ? boardMaterial.shader.name + " supported=" + boardMaterial.shader.isSupported : "none"));

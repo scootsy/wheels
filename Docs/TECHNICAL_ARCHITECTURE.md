@@ -95,7 +95,7 @@ Tabletop.Tests.PlayMode
 | `Tabletop.Application` | `Assets/Game/Application` | none (`noEngineReferences`) | `MatchSession` UX state machine, unit selection, preview, narration, dev scenarios |
 | `Tabletop.Infrastructure.Unity` | `Assets/Game/Infrastructure` | Unity | `ContentCatalogAsset` ScriptableObject mapped to domain definitions |
 | `Tabletop.Input` | `Assets/Game/Input/Adapters` | Unity, Input System | `GameInputRouter`: actions -> abstract intents, active control scheme |
-| `Tabletop.Presentation` | `Assets/Game/Presentation` | Unity, uGUI, Input System | `MatchApp` composition root, presenter, views, primitive diorama |
+| `Tabletop.Presentation` | `Assets/Game/Presentation` | Unity, uGUI, Input System | `MatchApp` composition root, presenter, views, and `MechanicalTable`, the full-screen 3D table (D-027). It reads the presenter's visual state and current event only; its materials are the board material plus `Table_` metal variants with no extra shader keywords |
 | `Tabletop.World` | `Assets/Game/World` | Unity, uGUI, Input System | W1 (D-025): `WorldApp` composition root, procedural `WorldBuilder`, interactables, player controller, world UI; `WorldArtSet` + `WorldKit.PlaceModel` + `ModelPose` place imported models (D-026) |
 | `Tabletop.Editor` | `Assets/Game/Editor` | Editor only | Menu: content/URP/scene setup, world scene setup, test runner summary, Windows build |
 | `Tabletop.Tests.EditMode` | `Assets/Game/Tests/EditMode` | Editor only | Rules, AI, replay, content, application tests |

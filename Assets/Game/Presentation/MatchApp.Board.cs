@@ -34,31 +34,27 @@ namespace Tabletop.Presentation
         {
             _boardScreen = Screen("BoardScreen");
             var t = _boardScreen.transform;
-            // Background strips around the 3D action lane.
-            Ui.Panel("BgTop", t, Theme.Background).rectTransform.Place(0, 0, 1920, LaneY);
-            Ui.Panel("BgBottom", t, Theme.Background).rectTransform.Place(0, LaneY + LaneH, 1920, 1080 - LaneY - LaneH);
-            Ui.Panel("BgLeft", t, Theme.Background).rectTransform.Place(0, LaneY, LaneX, LaneH);
-            Ui.Panel("BgRight", t, Theme.Background).rectTransform.Place(LaneX + LaneW, LaneY, 1920 - LaneX - LaneW, LaneH);
-            foreach (var img in t.GetComponentsInChildren<Image>()) img.raycastTarget = false;
-
-            // Enemy reels (top center) and player reels (bottom center).
+            // The 3D table fills the screen (D-027). Reel buttons lie invisibly over its drums (placed every frame
+            // in PlaceReelOverlays), and the panels sit at the edges over the table's decorative border.
             for (int r = 0; r < 5; r++)
             {
-                _enemyReels[r] = new ReelView(t, r, 615 + r * 140, 8, 130, 124, false, icons);
+                _enemyReels[r] = new ReelView(t, r, 0, 0, 110, 110, false, icons);
                 _enemyReels[r].Button.GetComponent<Image>().raycastTarget = false;
+                _enemyReels[r].SetOverlay(true);
+                _enemyReels[r].SetCaptionOnTop(true);
                 int reel = r;
-                _playerReels[r] = new ReelView(t, r, 561 + r * 162, 800, 150, 150, true, icons);
+                _playerReels[r] = new ReelView(t, r, 0, 0, 110, 110, true, icons);
                 _playerReels[r].Button.onClick.AddListener(() => OnReelClicked(reel));
+                _playerReels[r].SetOverlay(true);
             }
-            L("EnemyReelsLabel", t, "ENEMY REELS", 16, TextAnchor.UpperRight, Theme.Enemy).rectTransform.Place(440, 10, 165, 24);
-            L("PlayerReelsLabel", t, "YOUR\nREELS", 16, TextAnchor.UpperRight, Theme.Player).rectTransform.Place(440, 800, 112, 44);
 
-            // Crown + Barrier readouts overlaid on the table view (top = enemy, bottom = you).
+            // Crown + Barrier readouts: the table's flip counters and brick walls show these now, so the text chips
+            // stay hidden (kept for the text they generate and for screen readers later).
             for (int side = 0; side < 2; side++)
             {
-                float y = side == 1 ? LaneY + 6 : LaneY + LaneH - 50;
                 var chip = Ui.Panel(side == 1 ? "EnemyChip" : "PlayerChip", t, new Color(0.08f, 0.07f, 0.07f, 0.82f));
-                chip.rectTransform.Place(LaneX + 6, y, 640, 44);
+                chip.rectTransform.Place(0, 0, 640, 44);
+                chip.gameObject.SetActive(false);
                 chip.raycastTarget = false;
                 Ui.Icon("CrownIcon", chip.transform, icons != null ? icons.crown : null, 38, Theme.Crown).rectTransform.Place(6, 3, 38, 38);
                 var crownText = L(side == 1 ? "EnemyCrown" : "PlayerCrown", chip.transform, "", 26, TextAnchor.MiddleLeft, Theme.Crown, FontStyle.Bold);
@@ -77,35 +73,42 @@ namespace Tabletop.Presentation
                 else { _playerCrown = crownText; _playerBarrier = wallText; }
             }
 
-            _banner = L("Banner", t, "", 26, TextAnchor.MiddleCenter, Theme.Text, FontStyle.Bold);
-            _banner.rectTransform.Place(440, 668, 1040, 52);
-            _preview = L("Preview", t, "", 18, TextAnchor.UpperLeft, Theme.Text);
-            _preview.rectTransform.Place(450, 722, 1030, 76);
+            // Banner and preview float over the sunken plaza in the middle of the table.
+            var plaza = Ui.Panel("PlazaText", t, new Color(0.06f, 0.02f, 0.015f, 0.72f));
+            plaza.rectTransform.Place(590, 452, 740, 150);
+            plaza.raycastTarget = false;
+            _banner = L("Banner", plaza.transform, "", 25, TextAnchor.MiddleCenter, Theme.Text, FontStyle.Bold);
+            _banner.rectTransform.Place(10, 4, 720, 44);
+            _preview = L("Preview", plaza.transform, "", 16, TextAnchor.UpperLeft, Theme.Text);
+            _preview.rectTransform.Place(16, 50, 710, 96);
 
-            // Controls.
-            _spinsText = L("Spins", t, "", 22, TextAnchor.MiddleRight, Theme.Text, FontStyle.Bold);
-            _spinsText.rectTransform.Place(440, 962, 330, 96);
+            // Controls: SPIN at the bottom right beside your reels, like the lever on a machine.
+            _spinsText = L("Spins", t, "", 20, TextAnchor.MiddleLeft, Theme.Text, FontStyle.Bold);
+            _spinsText.rectTransform.Place(318, 918, 280, 66);
             _spinButton = Ui.Button("Spin", t, "SPIN", OnSpinClicked, 30, Theme.ButtonPrimary);
-            ((RectTransform)_spinButton.transform).Place(780, 962, 360, 96);
-            _speedButton = Ui.Button("Speed", t, "HOLD TO SPEED UP", null, 22, Theme.Button);
-            ((RectTransform)_speedButton.transform).Place(780, 962, 360, 96);
+            ((RectTransform)_spinButton.transform).Place(1336, 928, 300, 124);
+            _speedButton = Ui.Button("Speed", t, "HOLD TO SPEED UP", null, 20, Theme.Button);
+            ((RectTransform)_speedButton.transform).Place(1336, 928, 300, 124);
             var trigger = _speedButton.gameObject.AddComponent<EventTrigger>();
             AddTrigger(trigger, EventTriggerType.PointerDown, () => SetPointerAccelerate(true));
             AddTrigger(trigger, EventTriggerType.PointerUp, () => SetPointerAccelerate(false));
             AddTrigger(trigger, EventTriggerType.PointerExit, () => SetPointerAccelerate(false));
-            _pauseButton = Ui.Button("Pause", t, "PAUSE", OnPause, 22);
-            ((RectTransform)_pauseButton.transform).Place(1160, 962, 150, 96);
-            _helpButton = Ui.Button("Help", t, "HELP", OnHelp, 22);
-            ((RectTransform)_helpButton.transform).Place(1325, 962, 150, 96);
+            _pauseButton = Ui.Button("Pause", t, "PAUSE", OnPause, 20);
+            ((RectTransform)_pauseButton.transform).Place(318, 990, 136, 62);
+            _helpButton = Ui.Button("Help", t, "HELP", OnHelp, 20);
+            ((RectTransform)_helpButton.transform).Place(462, 990, 136, 62);
 
-            // Unit plaques.
-            _unitPanels.Add(new UnitPanelView(t, 1, 0, 10, 10, 420, 262, icons));
-            _unitPanels.Add(new UnitPanelView(t, 1, 1, 1490, 10, 420, 262, icons));
-            _unitPanels.Add(new UnitPanelView(t, 0, 0, 10, 700, 420, 262, icons));
-            _unitPanels.Add(new UnitPanelView(t, 0, 1, 1490, 700, 420, 262, icons));
+            // Unit panels in the four corners, scaled down so the table shows between them.
+            const float panelScale = 0.62f;
+            float pw = 420 * panelScale, ph = 262 * panelScale;
+            _unitPanels.Add(new UnitPanelView(t, 1, 0, 8, 8, 420, 262, icons));
+            _unitPanels.Add(new UnitPanelView(t, 1, 1, 1912 - pw, 8, 420, 262, icons));
+            _unitPanels.Add(new UnitPanelView(t, 0, 0, 8, 1072 - ph, 420, 262, icons));
+            _unitPanels.Add(new UnitPanelView(t, 0, 1, 1912 - pw, 1072 - ph, 420, 262, icons));
             foreach (var p in _unitPanels)
             {
                 var panel = p;
+                panel.Button.transform.localScale = Vector3.one * panelScale;
                 panel.Button.onClick.AddListener(() => OpenInspect(panel.Side, panel.Slot, true));
                 var tr = panel.Button.gameObject.AddComponent<EventTrigger>();
                 AddTrigger(tr, EventTriggerType.PointerEnter, () => { if (!AnyModalOpen) Focus(panel.Button); });
@@ -113,22 +116,23 @@ namespace Tabletop.Presentation
             }
 
             // Info columns.
-            var info = Ui.Panel("RoundInfoBg", t, Theme.PanelDark);
-            info.rectTransform.Place(10, 296, 420, 190);
+            var panelBg = new Color(0.07f, 0.03f, 0.02f, 0.84f);
+            var info = Ui.Panel("RoundInfoBg", t, panelBg);
+            info.rectTransform.Place(8, 182, 262, 150);
             info.raycastTarget = false;
-            _roundInfo = L("RoundInfo", info.transform, "", 20, TextAnchor.UpperLeft);
-            _roundInfo.rectTransform.Fill(12);
+            _roundInfo = L("RoundInfo", info.transform, "", 16, TextAnchor.UpperLeft);
+            _roundInfo.rectTransform.Fill(10);
             BuildLegend(t);
-            var logBg = Ui.Panel("EventLogBg", t, Theme.PanelDark);
-            logBg.rectTransform.Place(1490, 296, 420, 396);
+            var logBg = Ui.Panel("EventLogBg", t, panelBg);
+            logBg.rectTransform.Place(1650, 182, 262, 420);
             logBg.raycastTarget = false;
-            _log = L("EventLog", logBg.transform, "", 16, TextAnchor.LowerLeft, Theme.TextDim);
-            _log.rectTransform.Fill(10);
+            _log = L("EventLog", logBg.transform, "", 14, TextAnchor.LowerLeft, Theme.TextDim);
+            _log.rectTransform.Fill(8);
             _log.verticalOverflow = VerticalWrapMode.Truncate;
-            _focusInfo = L("FocusInfo", t, "", 16, TextAnchor.UpperLeft, Theme.Focus);
-            _focusInfo.rectTransform.Place(10, 968, 420, 104);
-            _hints = L("Hints", t, "", 16, TextAnchor.UpperLeft, Theme.TextDim);
-            _hints.rectTransform.Place(1490, 968, 420, 104);
+            _focusInfo = L("FocusInfo", t, "", 14, TextAnchor.UpperLeft, Theme.Focus);
+            _focusInfo.rectTransform.Place(8, 540, 262, 90);
+            _hints = L("Hints", t, "", 13, TextAnchor.UpperLeft, Theme.TextDim);
+            _hints.rectTransform.Place(1650, 612, 262, 110);
 
             foreach (var r in _playerReels) foreach (var text in r.Button.GetComponentsInChildren<Text>(true)) { _scalableLabels.Add(text); _baseSizes.Add(text.fontSize); }
             RefreshPrompts();
@@ -139,8 +143,9 @@ namespace Tabletop.Presentation
         /// <summary>Symbol legend: what each reel symbol does for you (names follow your chosen units).</summary>
         private void BuildLegend(Transform t)
         {
-            var bg = Ui.Panel("LegendBg", t, Theme.PanelDark);
-            bg.rectTransform.Place(10, 492, 420, 200);
+            var bg = Ui.Panel("LegendBg", t, new Color(0.07f, 0.03f, 0.02f, 0.84f));
+            bg.rectTransform.Place(8, 338, 420, 200);
+            bg.rectTransform.localScale = Vector3.one * (262f / 420f);
             bg.raycastTarget = false;
             L("LegendTitle", bg.transform, "WHAT THE SYMBOLS DO", 17, TextAnchor.UpperLeft, Theme.Focus, FontStyle.Bold).rectTransform.Place(12, 6, 396, 22);
             var rows = new[]
@@ -177,7 +182,7 @@ namespace Tabletop.Presentation
             _selectScreen.SetActive(state == UxState.UnitSelect);
             _boardScreen.SetActive(board);
             if (boardCamera != null) boardCamera.enabled = board;
-            if (_diorama != null) _diorama.gameObject.SetActive(board);
+            if (_table != null) _table.gameObject.SetActive(board);
             if (state == UxState.UnitSelect) RebuildUnitCards();
             bool result = state == UxState.MatchResult;
             if (result && !_resultOverlay.activeSelf)
@@ -232,11 +237,14 @@ namespace Tabletop.Presentation
             if (m != _renderedMatch)
             {
                 _renderedMatch = m;
-                _diorama.ClearFloating();
+                _table.ClearFloating();
                 if (m != null)
                 {
                     for (int s = 0; s < 2; s++)
-                        for (int u = 0; u < 2; u++) _diorama.SetUnitShape(s, u, m.UnitDefinition((SideId)s, u));
+                    {
+                        _table.SetReels(s, m.ReelDefinitions((SideId)s));
+                        for (int u = 0; u < 2; u++) _table.SetUnitShape(s, u, m.UnitDefinition((SideId)s, u));
+                    }
                 }
             }
             if (!_boardScreen.activeSelf || m == null) return;
@@ -311,9 +319,39 @@ namespace Tabletop.Presentation
             _focusInfo.text = "FOCUS: " + DescribeFocus();
             UpdateNavigation(state);
 
-            _diorama.Render(v, m, cur, Presenter.Progress, Presenter.Applied, Settings.ReducedMotion);
-            if (Settings.ScreenShake && !Settings.ReducedMotion && cur != null && cur.Type == MatchEventType.CrownDamaged && Presenter.Applied) _diorama.Shake(0.05f);
-            else _diorama.StopShake();
+            _table.Render(v, m, cur, Presenter.Progress, Presenter.Applied, Settings.ReducedMotion, Presenter.OpponentRevealed);
+            PlaceReelOverlays();
+            if (Settings.ScreenShake && !Settings.ReducedMotion && cur != null && cur.Type == MatchEventType.CrownDamaged && Presenter.Applied) _table.Shake(0.05f);
+            else _table.StopShake();
+        }
+
+        private readonly Vector3[] _faceCorners = new Vector3[4];
+
+        /// <summary>
+        /// Lays each reel button over its drum's window on screen (plus a strip below it for the caption), so focus,
+        /// clicks and lock cues line up with the 3D reel the player is looking at.
+        /// </summary>
+        private void PlaceReelOverlays()
+        {
+            if (boardCamera == null) return;
+            for (int side = 0; side < 2; side++)
+                for (int r = 0; r < 5; r++)
+                {
+                    _table.ReelFaceCorners(side, r, _faceCorners);
+                    float minX = float.MaxValue, maxX = float.MinValue, minY = float.MaxValue, maxY = float.MinValue;
+                    foreach (var c in _faceCorners)
+                    {
+                        var sp = boardCamera.WorldToScreenPoint(c);
+                        RectTransformUtility.ScreenPointToLocalPointInRectangle(_root, sp, null, out var local);
+                        float fx = local.x + 960f, fy = 540f - local.y;
+                        minX = Mathf.Min(minX, fx); maxX = Mathf.Max(maxX, fx);
+                        minY = Mathf.Min(minY, fy); maxY = Mathf.Max(maxY, fy);
+                    }
+                    var view = side == 0 ? _playerReels[r] : _enemyReels[r];
+                    // Your captions go below your drums; the opponent's above theirs (clear of their crown).
+                    if (side == 0) view.Rect.Place(minX, minY, maxX - minX, maxY - minY + 40f);
+                    else view.Rect.Place(minX, minY - 44f, maxX - minX, maxY - minY + 44f);
+                }
         }
 
         private static void SetDim(Selectable s, bool dim)

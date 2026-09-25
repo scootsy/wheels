@@ -242,6 +242,19 @@ PLAYER REELS + LOCKS + SPIN ACTION
 
 The text diagram defines hierarchy, not final art. Use `VISUAL_REFERENCE.md` for representative spatial treatment.
 
+**As built (D-027):**
+- **The table:** a full-screen 3D table (`MechanicalTable`) in the source game's style, carved stone, bronze and gold, with original shapes. It follows the hierarchy above, with the reels built into the table.
+  - Each reel is an eight-sided drum that shows one face in its window.
+  - Each Crown has a gold housing with a two-digit flip counter.
+  - Each Barrier is a curved brick wall that rises out of a slot in the table.
+  - Each unit stands on a podium ringed by energy segments, with an energy-gem pillar and a stat plaque.
+  - Pieces travel out along a carved groove to act and return afterwards.
+- **The interface over it:**
+  - Reel buttons lie invisibly over the drums (focus frame, lock cues, caption).
+  - Unit panels sit in the four corners.
+  - Round info, the legend and focus text are on the left; the event log and controls are on the right.
+  - The banner and preview sit over the centre plaza; SPIN is at the bottom right, with spins used, Pause and Help at the bottom left.
+
 ### 5.1 Required regions
 
 | Region | Placement | Required contents |
@@ -274,14 +287,14 @@ Rank color or material is supplemental. Bronze, Silver, and Gold MUST also appea
 
 ### 5.3 Crown and Barrier contract
 
-Crown health MUST be shown numerically at all times. Display `current / normal cap`, and make temporary over-heal above 10 unmistakable if a healing unit is later exposed.
+Crown health MUST be shown numerically at all times. The table's flip counter shows the current value; values above the normal cap of 10 turn green, and a broken Crown's digits turn red and its crown greys out (D-027). The cap of 10 is stated in Help. *(Superseded: an always-visible `current / normal cap` readout. The creative director asked for the source's style, whose counter shows only the number.)*
 
 Barrier MUST show both:
 
 - a number from 0 to 5;
 - five discrete positions or segments.
 
-A Barrier hit removes visible segments at the impact moment. Excess damage MUST NOT visually continue into the Crown.
+A Barrier hit removes visible segments at the impact moment. Excess damage MUST NOT visually continue into the Crown. On the table the wall's layers sink back into their slot and knocked-out bricks tumble away; "WALL n" floats beside it.
 
 ### 5.4 Reel face contract
 
@@ -293,7 +306,7 @@ Each face MUST encode:
 
 Do not rely on color alone. Channel A and Channel B use different shapes. Quantity is represented by repeated marks, not only a number. XP faces include a star/XP badge in addition to their background treatment.
 
-Locked reels require three simultaneous cues:
+Locked reels require three simultaneous cues (as built: the padlock and "LOCKED" tag, a red frame on the reel button plus a red clamp that snaps up across the drum window, and the drum staying still):
 
 - padlock glyph;
 - changed frame treatment;

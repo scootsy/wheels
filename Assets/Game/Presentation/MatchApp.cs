@@ -35,7 +35,7 @@ namespace Tabletop.Presentation
         public bool WrapReelNavigation { get; set; }
 
         private InputActionAsset _actionsInstance;
-        private BoardDiorama _diorama;
+        private MechanicalTable _table;
         private Canvas _canvas;
         private readonly List<Text> _scalableLabels = new List<Text>();
         private readonly List<int> _baseSizes = new List<int>();
@@ -46,11 +46,11 @@ namespace Tabletop.Presentation
         private UxState _lastRenderedState = (UxState)(-1);
 
         // Lane rectangle in 1920x1080 reference pixels (the 3D diorama shows through here).
-        private const float LaneX = 440, LaneY = 140, LaneW = 1040, LaneH = 522;
 
         public ContentCatalog Catalog { get; private set; }
         public IconSet Icons => icons;
         public Material BoardMaterial => boardMaterial;
+        public MechanicalTable Table => _table;
 
         private void Awake()
         {
@@ -88,13 +88,14 @@ namespace Tabletop.Presentation
             ConfigureEventSystem();
 
             ConfigureCamera();
-            _diorama = new GameObject("Board").AddComponent<BoardDiorama>();
-            _diorama.transform.SetParent(transform, false);
-            _diorama.Camera = boardCamera;
-            _diorama.Material = boardMaterial;
+            _table = new GameObject("Board").AddComponent<MechanicalTable>();
+            _table.transform.SetParent(transform, false);
+            _table.Camera = boardCamera;
+            _table.Material = boardMaterial;
+            _table.Icons = icons;
             if (boardMaterial == null) Debug.LogError("[Tabletop] No board material assigned; 3D pieces will not render in builds.");
-            _diorama.Build();
-            Presenter.EventImpact += e => _diorama.ShowDelta(e);
+            _table.Build();
+            Presenter.EventImpact += e => _table.ShowDelta(e);
 
             BuildCanvas();
             BuildSetupScreen();
@@ -172,12 +173,8 @@ namespace Tabletop.Presentation
         {
             if (boardCamera == null) boardCamera = Camera.main;
             if (boardCamera == null) return;
-            boardCamera.rect = new Rect(LaneX / 1920f, 1f - (LaneY + LaneH) / 1080f, LaneW / 1920f, LaneH / 1080f);
-            boardCamera.clearFlags = CameraClearFlags.SolidColor;
-            boardCamera.backgroundColor = new Color(0.16f, 0.12f, 0.10f);
-            boardCamera.transform.position = new Vector3(0, 10.5f, -8.2f);
-            boardCamera.transform.LookAt(new Vector3(0, 0.2f, 0.4f));
-            boardCamera.fieldOfView = 36f;
+            // The table fills the screen (D-027); the interface sits around and over its edges.
+            MechanicalTable.ConfigureCamera(boardCamera);
         }
 
         // ------------------------------------------------------------------ frame loop

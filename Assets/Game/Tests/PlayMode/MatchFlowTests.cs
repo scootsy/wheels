@@ -46,9 +46,14 @@ namespace Tabletop.Tests.PlayMode
             foreach (var r in App.GetComponentsInChildren<MeshRenderer>(true))
             {
                 count++;
-                Assert.AreSame(App.BoardMaterial, r.sharedMaterial, r.name + " must use the board material");
+                // The board material itself, or a finish derived from it at runtime (bronze, gold...): same URP shader,
+                // no extra keywords, so the build always contains what it needs (D-024, D-027).
+                var m = r.sharedMaterial;
+                Assert.IsTrue(m == App.BoardMaterial || (m != null && m.name.StartsWith("Table_") && m.shader == App.BoardMaterial.shader),
+                    r.name + " must use the board material or a Table_ variant of it (uses " + (m != null ? m.name : "none") + ")");
+                if (m != App.BoardMaterial) CollectionAssert.AreEquivalent(App.BoardMaterial.shaderKeywords, m.shaderKeywords, r.name + " must not add shader keywords");
             }
-            Assert.Greater(count, 50, "the table has its pieces");
+            Assert.Greater(count, 200, "the table has its pieces");
         }
 
         [UnityTest]
@@ -182,7 +187,10 @@ namespace Tabletop.Tests.PlayMode
             yield return WaitForState(UxState.SpinDecision);
             Assert.AreEqual(0, Session.Match.Snapshot().Side(SideId.Opponent).SpinsUsed, "AI has not rolled while the player decides");
             Assert.IsFalse(App.Presenter.OpponentRevealed);
-            Assert.IsTrue(App.EnemyReels.All(r => r.Button.transform.Find("Cover").gameObject.activeSelf), "enemy reels covered");
+            yield return null; // let the table render this state
+            Assert.IsTrue(App.EnemyReels.All(r => r.IsHidden), "enemy reel buttons know the result is hidden");
+            for (int r = 0; r < 5; r++) Assert.IsTrue(App.Table.ReelShuttered(1, r), "enemy drum " + (r + 1) + " shuttered on the table");
+            for (int r = 0; r < 5; r++) Assert.IsFalse(App.Table.ReelShuttered(0, r), "your drums stay open");
             App.Settings.TimeScale = 0.2f;
             yield return Tap(Kb.rKey);
             yield return WaitForState(UxState.SpinDecision);
@@ -196,6 +204,8 @@ namespace Tabletop.Tests.PlayMode
             Assert.GreaterOrEqual(playerFinal, 0);
             Assert.Greater(firstAiSpin, playerFinal);
             yield return WaitFor(() => App.Presenter.OpponentRevealed, 10f, "reveal");
+            yield return null;
+            for (int r = 0; r < 5; r++) Assert.IsFalse(App.Table.ReelShuttered(1, r), "shutters open at the reveal");
         }
 
         [UnityTest]
