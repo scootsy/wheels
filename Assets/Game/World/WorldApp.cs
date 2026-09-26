@@ -75,6 +75,7 @@ namespace Tabletop.World
         private Action _onDialogueClosed;
         private int _page;
         private DeckView _deck;
+        private WorldTouchPad _touchPad;
         private float _fpYaw;
         private float _fpPitch;
         private readonly List<Renderer> _playerRenderers = new List<Renderer>();
@@ -106,6 +107,11 @@ namespace Tabletop.World
             Ui = new WorldUi(transform);
             _deck = new DeckView(Ui.Frame, ReferenceContent.Catalog, icons);
             Ui.AddOverlay(_deck.Root);
+            if (WorldTouchPad.Wanted)
+            {
+                _touchPad = new WorldTouchPad(Ui.Frame);
+                Ui.AddOverlay(_touchPad.Root);
+            }
             WireUi();
             RefreshControls();
 
@@ -320,6 +326,7 @@ namespace Tabletop.World
                             && !(Nearest != null && Input.InteractPressedThisFrame);
                 Player.Step(move, dt, Input.SprintHeld, jump, FirstPerson ? _fpYaw : (float?)null);
             }
+            _touchPad?.SetVisible(!Busy && _seatedAt == null);
             UpdateCamera(dt);
             _kit.FaceCamera(worldCamera);
             Ui.Tick(dt);
