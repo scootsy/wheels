@@ -24,6 +24,15 @@ namespace Tabletop.Presentation
         public Sprite crown;
         public Sprite wall;
         public Sprite bomb;
+        [Header("UI kit (Tools/Art/make_ui.py)")]
+        public Sprite uiPanel;
+        public Sprite uiFrame;
+        public Sprite uiKeycap;
+        public Sprite uiCircle;
+        public Sprite uiRing;
+        public Sprite uiGlow;
+        public Sprite uiDiamond;
+        public Sprite uiShadow;
         public List<UnitIcon> units = new List<UnitIcon>();
 
         public Sprite Unit(string unitId)

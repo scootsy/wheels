@@ -11,10 +11,34 @@ namespace Tabletop.EditorTools
     {
         public const string IconFolder = "Assets/Game/Art/Icons";
         public const string IconSetPath = "Assets/Game/Art/IconSet.asset";
+        public const string UiFolder = "Assets/Game/Art/UI";
+
+        /// <summary>Nine-slice borders (pixels) for the UI kit; shapes without an entry stretch whole.</summary>
+        private static readonly System.Collections.Generic.Dictionary<string, Vector4> UiBorders = new System.Collections.Generic.Dictionary<string, Vector4>
+        {
+            { "ui_panel", new Vector4(16, 16, 16, 16) },
+            { "ui_frame", new Vector4(16, 16, 16, 16) },
+            { "ui_keycap", new Vector4(16, 18, 16, 16) },
+            { "ui_shadow", new Vector4(34, 34, 34, 34) },
+        };
 
         private void OnPreprocessTexture()
         {
-            if (!assetPath.Replace('\\', '/').StartsWith(IconFolder + "/")) return;
+            var path = assetPath.Replace('\\', '/');
+            if (path.StartsWith(UiFolder + "/"))
+            {
+                var ui = (TextureImporter)assetImporter;
+                ui.textureType = TextureImporterType.Sprite;
+                ui.spriteImportMode = SpriteImportMode.Single;
+                ui.alphaIsTransparency = true;
+                ui.mipmapEnabled = false;
+                ui.textureCompression = TextureImporterCompression.Uncompressed;
+                ui.filterMode = FilterMode.Bilinear;
+                ui.wrapMode = TextureWrapMode.Clamp;
+                if (UiBorders.TryGetValue(Path.GetFileNameWithoutExtension(path), out var border)) ui.spriteBorder = border;
+                return;
+            }
+            if (!path.StartsWith(IconFolder + "/")) return;
             var importer = (TextureImporter)assetImporter;
             importer.textureType = TextureImporterType.Sprite;
             importer.spriteImportMode = SpriteImportMode.Single;
@@ -30,6 +54,9 @@ namespace Tabletop.EditorTools
             AssetDatabase.Refresh();
             foreach (var file in Directory.GetFiles(IconFolder, "*.png"))
                 AssetDatabase.ImportAsset(file.Replace('\\', '/'), ImportAssetOptions.ForceUpdate);
+            if (Directory.Exists(UiFolder))
+                foreach (var file in Directory.GetFiles(UiFolder, "*.png"))
+                    AssetDatabase.ImportAsset(file.Replace('\\', '/'), ImportAssetOptions.ForceUpdate);
             var set = AssetDatabase.LoadAssetAtPath<IconSet>(IconSetPath);
             if (set == null)
             {
@@ -46,6 +73,15 @@ namespace Tabletop.EditorTools
             set.crown = S("crown");
             set.wall = S("wall");
             set.bomb = S("bomb");
+            Sprite U(string name) => AssetDatabase.LoadAssetAtPath<Sprite>(UiFolder + "/" + name + ".png");
+            set.uiPanel = U("ui_panel");
+            set.uiFrame = U("ui_frame");
+            set.uiKeycap = U("ui_keycap");
+            set.uiCircle = U("ui_circle");
+            set.uiRing = U("ui_ring");
+            set.uiGlow = U("ui_glow");
+            set.uiDiamond = U("ui_diamond");
+            set.uiShadow = U("ui_shadow");
             set.units.Clear();
             foreach (var id in new[] { ReferenceContent.Striker, ReferenceContent.Caster, ReferenceContent.Ranger, ReferenceContent.Mason,
                          ReferenceContent.Shade, ReferenceContent.Mender, ReferenceContent.Hexer })

@@ -90,7 +90,7 @@ Only commands listed for the current state are legal. The presentation layer MUS
 | `UNIT_SELECT` | Opponent pair; available player units; empty or assigned A/left and B/right slots; unit descriptions | Navigate, inspect, assign, swap, remove, confirm, back | Two valid units are assigned and confirmed |
 | `ROUND_READY` | Full board, round number, both sides' public state, all player reels unlocked, primary `SPIN` prompt | Spin, inspect, pause | Accepted `Spin` command |
 | `SPINNING` | Reels in motion; already locked reels stationary; input-blocked board | Accelerate/skip animation, pause | `ReelsSpun` finishes presenting |
-| `SPIN_DECISION` | Current faces, locks, spins remaining, live outcome preview | Toggle any reel lock, inspect, spin unlocked reels, pause | Next spin, third-spin auto-finalize, or all five reels locked |
+| `SPIN_DECISION` | Current faces, locks, spins remaining, live outcome preview | Toggle any reel lock, inspect, spin unlocked reels, pause | Next spin, third-spin auto-finalize, or confirming with all five reels locked (D-028) |
 | `AI_COMMIT` | Player result held on screen; neutral “opponent choosing” indicator when needed | Inspect, pause | AI command sequence is complete |
 | `REVEAL` | Final faces for both sides; computed symbol totals | Accelerate/skip, pause | Reveal presentation completes |
 | `RESOLVING` | Full board, current effect focus, deltas, event log; final reel faces remain auditable | Accelerate/skip, inspect, pause | `RoundEnded` or `MatchEnded` finishes presenting |
@@ -165,7 +165,7 @@ After spin 1 or spin 2:
 
 After spin 2, previously locked reels can be unlocked and rerolled.
 
-The third spin automatically finalizes after its animation. Locking the fifth remaining unlocked reel after spin 1 or spin 2 also finalizes immediately, as required by the rules. The normal interface MUST NOT provide an early-finalize control while fewer than five reels are locked.
+The third spin automatically finalizes after its animation. With all five reels locked after spin 1 or spin 2, the interface asks for a confirm (D-028): the lever reads LOCK IN and pressing it finalizes early, as the rules allow. Unlocking any reel returns to spinning, so an accidental fifth lock never ends the turn. The normal interface MUST NOT provide an early-finalize control while fewer than five reels are locked.
 
 Lock state changes are commands. The interface MUST update the lock indicator only after `SetReelLock` is accepted.
 
@@ -179,6 +179,8 @@ During `SPIN_DECISION`, a non-authoritative preview MUST show:
 - XP faces assigned to each unit;
 - whether either unit would become ready if the current faces finalized;
 - capped or wasted energy/Barrier using a visible overflow marker.
+
+**As built (D-028):** the preview counts **locked reels only**. It shows what the player has committed to, because unlocked reels will spin again. It is drawn on each piece's nameplate as a gem tally (two priming cells, then +1 cells) plus the exact result ("+2 ENERGY", "1 MORE = +1", red "(1 WASTED)"). The podium ring pulses the segments that will fill and shows overflow in red. The wall label reads "WALL a > b (n WASTED)". Ready pieces wear a green READY tag.
 
 The preview MUST use the exact formulas and caps from `RULES_SPEC.md`. It MUST NOT mutate authoritative state, predict attacks beyond the current deterministic result, or imply that a unit will act when an earlier priority effect could delay it. Use wording such as `READY BEFORE RESOLUTION`, not `WILL ATTACK`, when priority interactions can change the outcome.
 
@@ -249,11 +251,13 @@ The text diagram defines hierarchy, not final art. Use `VISUAL_REFERENCE.md` for
   - Each Barrier is a curved brick wall that rises out of a slot in the table.
   - Each unit stands on a podium ringed by energy segments, with an energy-gem pillar and a stat plaque.
   - Pieces travel out along a carved groove to act and return afterwards.
-- **The interface over it:**
-  - Reel buttons lie invisibly over the drums (focus frame, lock cues, caption).
-  - Unit panels sit in the four corners.
-  - Round info, the legend and focus text are on the left; the event log and controls are on the right.
-  - The banner and preview sit over the centre plaza; SPIN is at the bottom right, with spins used, Pause and Help at the bottom left.
+- **The board is the interface (D-028).** Every piece of match information is a part on the table:
+  - **Nameplates** lie in front of each podium: rank badge, name, XP diamonds, crown and wall damage, and the locked-gem energy tally with its result. During actions, a numbered order token appears; before that, a READY tag.
+  - The **step sign** sits in the centre plaza. It flips to name the current step: LOCK OR SPIN, OPPONENT, REVEAL, XP, WALL, ENERGY, ACTIONS (action n of m), ROUND OVER. A strip beneath it lights 1 XP > 2 WALL > 3 ENERGY > 4 ACTIONS in turn.
+  - The **SPIN lever** is bottom right. Three lamps show spins left, and a plate says what the lever will do: SPIN, SPIN AGAIN, LOCK IN, or HOLD TO SPEED UP. The **round dial** is bottom left.
+  - Invisible hit areas over drums, podiums and lever carry focus and clicks. Focus on a piece is drawn as a gold ring on the table.
+  - The only screen-space UI: a bottom-left prompt bar of key caps for what can be done now, a short toast for rejections, and round Help (?) and Menu (II) buttons top right.
+- **Removed (D-028):** corner unit panels, event log, legend, banner, preview text, on-screen SPIN/speed buttons, and the curved arch inlay in front of each crown.
 
 ### 5.1 Required regions
 
@@ -407,6 +411,8 @@ Normal presentation SHOULD use:
 - 250–500 ms for round transition;
 - no more than 8 seconds for a typical full resolution sequence.
 
+**As built (D-028):** at the creative director's request, the round is paced as a readable sequence rather than fit into 8 seconds. Each resolution step (XP, wall, energy, actions) opens with a 0.8 s beat, and resolution events run 1.6x their base duration. The opponent "thinks" for 0.8 s and the reveal holds for 1.1 s. Tab / RB skips a step and holding accelerate fast-forwards, so a player who knows the game is never slowed down.
+
 These are timing bounds, not permission to merge or reorder events.
 
 ### 7.3 Acceleration, skip, and reduced motion
@@ -414,6 +420,7 @@ These are timing bounds, not permission to merge or reorder events.
 - Holding the accelerate action for 350 ms runs the current and remaining presentation at 4× speed.
 - Releasing it returns to normal speed at the next event boundary.
 - A developer-only `SKIP ALL` completes every remaining event immediately in order.
+- **Skip step (D-028):** during presentation, the next-element action (Tab / RB) presents every remaining event of the current step instantly, in order, then continues at normal pace with the next step.
 - Reduced Motion replaces large travel, shake, zoom, and flashes with short fades, highlights, and numeric deltas.
 - Skipping or reducing animation MUST produce the identical final visual state and event log.
 - Presentation acceleration MUST NOT alter AI think time used by deterministic tests.
@@ -726,7 +733,7 @@ These scenarios supplement, not replace, the rules-engine tests in `RULES_SPEC.m
 - First spin moves all five reels.
 - A locked reel remains visually and authoritatively unchanged on spin 2.
 - An unlocked former lock can change on spin 3.
-- Locking all five after spin 1 immediately commits.
+- Locking all five after spin 1 asks for a confirm; pressing the lever commits (D-028).
 - Spin 3 commits automatically.
 - Preview totals match final evaluation when no priority effect changes readiness.
 - Mouse, keyboard, and controller can each complete the entire spin phase.

@@ -21,6 +21,14 @@ MonoBehaviour:
   crown: {fileID: 21300000, guid: 28a959b1c580bee4ebdf28768ffa4b85, type: 3}
   wall: {fileID: 21300000, guid: 50487baa10f9b9e48b9ed9cbb50141df, type: 3}
   bomb: {fileID: 21300000, guid: ee8998268a5331544b2eba4b7d4d8f56, type: 3}
+  uiPanel: {fileID: 21300000, guid: 05146db5da76e854e978dbcbefcbf9a4, type: 3}
+  uiFrame: {fileID: 21300000, guid: fe597f35aa967c84788c0d298ffd15f3, type: 3}
+  uiKeycap: {fileID: 21300000, guid: 7433ca883fd245549b9bd808d262ba10, type: 3}
+  uiCircle: {fileID: 21300000, guid: f71bf57d44f629a44a85e8023603e852, type: 3}
+  uiRing: {fileID: 21300000, guid: 2b6dfcaa92fa9a54b9efe26aaa1417e4, type: 3}
+  uiGlow: {fileID: 21300000, guid: 4a88683d4a9601b42b066568e2bad523, type: 3}
+  uiDiamond: {fileID: 21300000, guid: 974a32e3cb8d6384e85e114a344bebba, type: 3}
+  uiShadow: {fileID: 21300000, guid: 11119092219b6e545bc456e036cd886c, type: 3}
   units:
   - unitId: striker
     sprite: {fileID: 21300000, guid: 19433959fabbae142abbac93f372548a, type: 3}

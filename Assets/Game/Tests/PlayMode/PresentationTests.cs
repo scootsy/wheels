@@ -13,7 +13,7 @@ namespace Tabletop.Tests.PlayMode
     {
         private bool _sawAccelerated;
 
-        /// <summary>Each round: spin once, lock all five (commits immediately).</summary>
+        /// <summary>Each round: spin once, lock all five, pull the lever to confirm.</summary>
         private IEnumerator LockAllEveryRound(bool holdAccelerate)
         {
             for (int round = 0; round < 80 && Session.State != UxState.MatchResult; round++)
@@ -29,6 +29,7 @@ namespace Tabletop.Tests.PlayMode
                     yield return Tap(Kb.digit3Key);
                     yield return Tap(Kb.digit4Key);
                     yield return Tap(Kb.digit5Key);
+                    yield return Tap(Kb.rKey); // locking all five waits for the lever to confirm (D-028)
                 }
                 if (holdAccelerate) Press(Kb.spaceKey);
                 yield return WaitFor(() =>
@@ -104,6 +105,7 @@ namespace Tabletop.Tests.PlayMode
             yield return Tap(Kb.rKey);
             yield return WaitForState(UxState.SpinDecision);
             for (int r = 0; r < 5; r++) yield return Tap(new[] { Kb.digit1Key, Kb.digit2Key, Kb.digit3Key, Kb.digit4Key, Kb.digit5Key }[r]);
+            yield return Tap(Kb.rKey); // confirm
             yield return WaitFor(() => App.Presenter.Current != null && App.Presenter.Current.Type == MatchEventType.CrownDamaged && App.Presenter.Current.TargetSide == 1, 20f, "crown hit");
             yield return Tap(Kb.escapeKey);
             Assert.IsTrue(Session.Paused);
@@ -124,6 +126,7 @@ namespace Tabletop.Tests.PlayMode
             yield return Tap(Kb.rKey);
             yield return WaitForState(UxState.SpinDecision);
             foreach (var key in new[] { Kb.digit1Key, Kb.digit2Key, Kb.digit3Key, Kb.digit4Key, Kb.digit5Key }) yield return Tap(key);
+            yield return Tap(Kb.rKey); // confirm
             bool resultBeforeFinalCheck = false;
             while (Session.State != UxState.MatchResult)
             {
@@ -211,6 +214,40 @@ namespace Tabletop.Tests.PlayMode
             Assert.IsTrue(Session.RequestSpin());
             yield return WaitForState(UxState.SpinDecision);
             Assert.IsNull(Session.FatalError);
+            Assert.IsNull(App.Presenter.Visual.Diff(Session.Match.Snapshot()));
+        }
+
+        [UnityTest]
+        public IEnumerator Resolution_PlaysAsAnOrderedSequence_AndTabSkipsOneStep()
+        {
+            yield return KeyboardStartMatch(developer: true, seed: 11, scenario: ScenarioLibrary.Victory);
+            App.Settings.TimeScale = 0.2f;
+            yield return Tap(Kb.rKey);
+            yield return WaitForState(UxState.SpinDecision);
+            foreach (var key in new[] { Kb.digit1Key, Kb.digit2Key, Kb.digit3Key, Kb.digit4Key, Kb.digit5Key }) yield return Tap(key);
+            yield return Tap(Kb.rKey);
+            var order = new[] { BoardPhase.Xp, BoardPhase.Wall, BoardPhase.Energy, BoardPhase.Actions };
+            yield return WaitFor(() => System.Array.IndexOf(order, App.Presenter.Phase) >= 0, 30f, "first resolution step");
+
+            // Skip the first step shown: the table moves on to a later step, not to the end of the round.
+            var skipped = App.Presenter.Phase;
+            int serial = App.Presenter.PhaseSerial;
+            yield return Tap(Kb.tabKey);
+            yield return WaitFor(() => App.Presenter.PhaseSerial > serial || Session.State != UxState.Resolving, 5f, "next step");
+            if (Session.State == UxState.Resolving && App.Presenter.Phase != BoardPhase.RoundEnd && App.Presenter.Phase != BoardPhase.MatchEnd)
+                Assert.Greater(System.Array.IndexOf(order, App.Presenter.Phase), System.Array.IndexOf(order, skipped), "steps only move forward");
+
+            // The rest of the round: steps never go backwards.
+            int last = System.Array.IndexOf(order, App.Presenter.Phase);
+            while (Session.State == UxState.Resolving)
+            {
+                int now = System.Array.IndexOf(order, App.Presenter.Phase);
+                if (now >= 0) { Assert.GreaterOrEqual(now, last, "resolution order XP > WALL > ENERGY > ACTIONS"); last = now; }
+                if (App.Presenter.Phase == BoardPhase.Actions)
+                    Assert.IsTrue(App.Presenter.ActionOrder.Count > 0, "the action order is known as soon as the step starts");
+                yield return null;
+            }
+            Assert.IsNull(Session.FatalError, "skipping stays in sync with the simulation");
             Assert.IsNull(App.Presenter.Visual.Diff(Session.Match.Snapshot()));
         }
 

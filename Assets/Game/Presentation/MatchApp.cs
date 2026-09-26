@@ -55,6 +55,7 @@ namespace Tabletop.Presentation
         private void Awake()
         {
             UnityEngine.Application.targetFrameRate = 60;
+            Ui.Kit = icons; // rounded panels, key caps and focus outlines
             IReadOnlyList<string> errors = new string[0];
             var catalog = content != null ? content.ToCatalog(out errors) : null;
             if (catalog == null)
@@ -78,7 +79,8 @@ namespace Tabletop.Presentation
             Input = new GameInputRouter(_actionsInstance);
             Input.Spin += OnSpin;
             Input.LockSlot += OnLockSlot;
-            Input.FocusNext += () => CycleFocus(1);
+            // During the resolution sequence the next-element key skips the current step instead (D-028).
+            Input.FocusNext += () => { if (Presenting && !AnyModalOpen) Presenter.SkipStep(); else CycleFocus(1); };
             Input.FocusPrevious += () => CycleFocus(-1);
             Input.Inspect += OnInspect;
             Input.Help += OnHelp;
@@ -224,10 +226,14 @@ namespace Tabletop.Presentation
             if (Session.State == UxState.RoundReady || Session.State == UxState.SpinDecision) Session.RequestSpin();
         }
 
+        private bool Presenting => Session.State == UxState.Spinning || Session.State == UxState.AiCommit
+                                   || Session.State == UxState.Reveal || Session.State == UxState.Resolving;
+
         private void OnLockSlot(int reel)
         {
             if (AnyModalOpen || Session.Match == null) return;
             if (Session.State == UxState.RoundReady || Session.State == UxState.SpinDecision) Session.RequestToggleLock(reel);
+            if (Session.CanFinalize) Focus(_spinButton); // all five locked: the lever is the next thing to press
         }
 
         private void OnSpinClicked()
@@ -238,8 +244,10 @@ namespace Tabletop.Presentation
         private void OnReelClicked(int reel)
         {
             Session.RequestToggleLock(reel);
-            // Focus stays on the attempted control (recoverable rejection or success).
-            if (Session.State == UxState.SpinDecision) Focus(_playerReels[reel].Button);
+            // Focus stays on the attempted control (recoverable rejection or success), except when all five are
+            // locked: then the lever is the next thing to press.
+            if (Session.CanFinalize) Focus(_spinButton);
+            else if (Session.State == UxState.SpinDecision) Focus(_playerReels[reel].Button);
         }
 
         private void OnInspect()

@@ -111,13 +111,23 @@ namespace Tabletop.Presentation
         }
     }
 
+    /// <summary>
+    /// What the table is doing right now, as the player should understand it (D-028). The resolution steps follow
+    /// RULES_SPEC 10: XP, then the wall, then energy, then the actions in priority order.
+    /// </summary>
+    public enum BoardPhase { Idle, RoundStart, Spin, Opponent, Reveal, Xp, Wall, Energy, Actions, RoundEnd, MatchEnd }
+
     public sealed class PresentationSettings
     {
         public bool ReducedMotion;
         public bool ScreenShake;
         /// <summary>Cosmetic "opponent choosing" wait. Tests and reduced-wait settings set 0.</summary>
-        public float AiThinkSeconds = 0.45f;
-        public float RevealSeconds = 0.6f;
+        public float AiThinkSeconds = 0.8f;
+        public float RevealSeconds = 1.1f;
+        /// <summary>Pause at the start of each resolution step so the player sees what comes next.</summary>
+        public float PhaseBeatSeconds = 0.8f;
+        /// <summary>Resolution events run slower than spin events so each one can be followed.</summary>
+        public float ResolutionPace = 1.6f;
         public float UiScale = 1f;
         /// <summary>Multiplier for every duration (tests use a small value).</summary>
         public float TimeScale = 1f;
@@ -141,6 +151,9 @@ namespace Tabletop.Presentation
         private float _speed = 1f;
         private readonly List<string> _log = new List<string>();
         private Match _match;
+        private float _beat;
+        private MatchEvent _pending;
+        private readonly List<(int side, int slot)> _actionOrder = new List<(int side, int slot)>();
 
         public MatchPresenter(MatchSession session, PresentationSettings settings)
         {
@@ -161,6 +174,59 @@ namespace Tabletop.Presentation
         public bool InjectDesyncForTest;
         public int EventsPresented { get; private set; }
 
+        public BoardPhase Phase { get; private set; }
+        /// <summary>Counts phase changes, so views can animate a change even to the same phase.</summary>
+        public int PhaseSerial { get; private set; }
+        /// <summary>True during the pause that introduces a resolution step.</summary>
+        public bool InPhaseBeat => _beat > 0f;
+        /// <summary>Who will act this round and in what order (known once the actions step begins).</summary>
+        public IReadOnlyList<(int side, int slot)> ActionOrder => _actionOrder;
+        /// <summary>How many of <see cref="ActionOrder"/> have started.</summary>
+        public int ActionsStarted { get; private set; }
+
+        /// <summary>The step an event belongs to (resolution stage numbers follow RULES_SPEC 10).</summary>
+        public static BoardPhase PhaseOf(MatchEvent e)
+        {
+            switch (e.Type)
+            {
+                case MatchEventType.MatchStarted:
+                case MatchEventType.RoundStarted: return BoardPhase.RoundStart;
+                case MatchEventType.ReelsSpun:
+                case MatchEventType.ReelLockChanged:
+                case MatchEventType.SpinFinalized: return e.Side == 0 ? BoardPhase.Spin : BoardPhase.Opponent;
+                case MatchEventType.RoundEnded: return BoardPhase.RoundEnd;
+                case MatchEventType.MatchEnded: return BoardPhase.MatchEnd;
+            }
+            if (e.Stage == 1) return BoardPhase.Xp;
+            if (e.Stage == 2) return BoardPhase.Wall;
+            if (e.Stage == 3) return BoardPhase.Energy;
+            return e.Stage >= 4 ? BoardPhase.Actions : BoardPhase.Idle;
+        }
+
+        private static bool IsResolutionPhase(BoardPhase p) => p == BoardPhase.Xp || p == BoardPhase.Wall || p == BoardPhase.Energy || p == BoardPhase.Actions;
+
+        private void SetPhase(BoardPhase p)
+        {
+            if (p == Phase) return;
+            Phase = p;
+            PhaseSerial++;
+            if (p == BoardPhase.Actions) CaptureActionOrder();
+            if (p == BoardPhase.RoundStart) { _actionOrder.Clear(); ActionsStarted = 0; }
+        }
+
+        /// <summary>Reads ahead in the queue: every activation (and bomb) left in this round, in the order it will happen.</summary>
+        private void CaptureActionOrder()
+        {
+            _actionOrder.Clear();
+            ActionsStarted = 0;
+            var queue = _session.PresentationQueue;
+            IEnumerable<MatchEvent> upcoming = _pending != null ? new[] { _pending } : Array.Empty<MatchEvent>();
+            foreach (var e in System.Linq.Enumerable.Concat(upcoming, queue))
+            {
+                if (e.Type == MatchEventType.RoundEnded || e.Type == MatchEventType.MatchEnded) break;
+                if (e.Type == MatchEventType.UnitActivated || e.Type == MatchEventType.BombLaunched) _actionOrder.Add((e.Side, e.Slot));
+            }
+        }
         public event Action<MatchEvent> EventStarted;
         public event Action<MatchEvent> EventImpact;
         public event Action<MatchEvent> EventCompleted;
@@ -169,11 +235,16 @@ namespace Tabletop.Presentation
         public void Reset()
         {
             _current = null;
+            _pending = null;
+            _beat = 0;
             _t = 0;
             _log.Clear();
             Banner = "";
             OpponentRevealed = false;
             _stateTimer = 0;
+            Phase = BoardPhase.Idle;
+            _actionOrder.Clear();
+            ActionsStarted = 0;
             _match = _session.Match;
             if (_match == null) return;
             // The visual mirror starts from the authoritative state just before the first event still
@@ -181,6 +252,13 @@ namespace Tabletop.Presentation
             var log = _match.EventLog;
             int index = Math.Max(0, log.Count - _session.PresentationQueue.Count - 1);
             Visual.CopyFrom(log[index].StateAfter);
+        }
+
+        /// <summary>How long an event plays, including the slower pace of the resolution steps.</summary>
+        public float Duration(MatchEvent e, bool opponentHidden)
+        {
+            float d = BaseDuration(e, opponentHidden);
+            return IsResolutionPhase(PhaseOf(e)) ? d * _settings.ResolutionPace : d;
         }
 
         public static float BaseDuration(MatchEvent e, bool opponentHidden)
@@ -231,12 +309,30 @@ namespace Tabletop.Presentation
                 if (_current == null)
                 {
                     if (accelerateHeldSeconds < 0.35f) _speed = 1f;
-                    var next = _session.DequeueEvent();
-                    if (next == null)
+                    if (_pending == null)
                     {
-                        HandleIdle(dt);
-                        return;
+                        _pending = _session.DequeueEvent();
+                        if (_pending == null)
+                        {
+                            HandleIdle(dt);
+                            return;
+                        }
+                        // A new resolution step opens with a short pause while the table shows its name.
+                        var phase = PhaseOf(_pending);
+                        if (IsResolutionPhase(phase) && phase != Phase)
+                        {
+                            SetPhase(phase);
+                            _beat = _settings.PhaseBeatSeconds;
+                        }
                     }
+                    if (_beat > 0f)
+                    {
+                        if (dt < _beat) { _beat -= dt; return; }
+                        dt -= _beat;
+                        _beat = 0f;
+                    }
+                    var next = _pending;
+                    _pending = null;
                     Begin(next);
                 }
                 float remaining = _duration - _t;
@@ -254,15 +350,47 @@ namespace Tabletop.Presentation
             }
         }
 
-        /// <summary>Developer SKIP ALL: present every queued event immediately, in order.</summary>
-        public void SkipAll()
+        /// <summary>
+        /// Skip the rest of the current step (D-028): everything left in this step happens at once, then the next step
+        /// plays normally. Only presentation is skipped; every event is still applied in order.
+        /// </summary>
+        public void SkipStep()
         {
+            _beat = 0f;
+            var phase = Phase;
             int guard = 0;
             while (guard++ < 100000)
             {
                 if (_current == null)
                 {
-                    var next = _session.DequeueEvent();
+                    if (_pending == null)
+                    {
+                        var queue = _session.PresentationQueue;
+                        if (queue.Count == 0 || PhaseOf(queue[0]) != phase) break;
+                        _pending = _session.DequeueEvent();
+                    }
+                    else if (PhaseOf(_pending) != phase) break;
+                    var next = _pending;
+                    _pending = null;
+                    Begin(next);
+                }
+                if (!_applied) Impact();
+                Complete();
+                if (_session.FatalError != null) return;
+            }
+        }
+
+        /// <summary>Developer SKIP ALL: present every queued event immediately, in order.</summary>
+        public void SkipAll()
+        {
+            _beat = 0f;
+            int guard = 0;
+            while (guard++ < 100000)
+            {
+                if (_current == null)
+                {
+                    var next = _pending ?? _session.DequeueEvent();
+                    _pending = null;
                     if (next == null) break;
                     Begin(next);
                 }
@@ -278,8 +406,11 @@ namespace Tabletop.Presentation
             _t = 0;
             _applied = false;
             bool hidden = !OpponentRevealed;
-            _duration = BaseDuration(e, hidden);
+            _duration = Duration(e, hidden);
             if (e.Type == MatchEventType.RoundStarted) OpponentRevealed = false;
+            var phase = PhaseOf(e);
+            if (!(phase == BoardPhase.Opponent && hidden)) SetPhase(phase);
+            if (e.Type == MatchEventType.UnitActivated || e.Type == MatchEventType.BombLaunched) ActionsStarted++;
             if (!(hidden && e.Side == 1 && e.Stage == 0 && e.Type != MatchEventType.RoundStarted))
             {
                 Banner = EventNarrator.Describe(e, _session.Match);
@@ -326,6 +457,7 @@ namespace Tabletop.Presentation
                     _session.NotifySpinPresented();
                     break;
                 case UxState.AiCommit:
+                    SetPhase(BoardPhase.Opponent);
                     _stateTimer += dt;
                     Banner = "Opponent choosing...";
                     if (_stateTimer >= _settings.AiThinkSeconds)
@@ -338,6 +470,7 @@ namespace Tabletop.Presentation
                 case UxState.Reveal:
                     if (!OpponentRevealed)
                     {
+                        SetPhase(BoardPhase.Reveal);
                         OpponentRevealed = true;
                         _stateTimer = 0;
                         Banner = "REVEAL: both sides' final reels.";

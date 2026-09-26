@@ -11,6 +11,43 @@ namespace Tabletop.World
     /// Building blocks for the placeholder world: primitives with real material assets (never the built-in
     /// default, which renders magenta in URP players), procedural cones/prisms, and billboard labels.
     /// </summary>
+    /// <summary>A person's floating nameplate; sizes itself to its text.</summary>
+    public sealed class NameTagView
+    {
+        public Canvas Canvas;
+        public Image Card;
+        public Image Emblem;
+        public Text Name;
+        public Text Sub;
+        public RectTransform Shadow;
+        private string _shown;
+
+        public void Set(string name, string caption, Sprite emblem, Color accent)
+        {
+            string key = name + "|" + caption + "|" + (emblem != null ? emblem.name : "") + "|" + accent;
+            if (key == _shown) return;
+            _shown = key;
+            Name.text = name;
+            Sub.text = caption;
+            Sub.color = accent;
+            Emblem.sprite = emblem;
+            Emblem.gameObject.SetActive(emblem != null);
+            Emblem.color = accent;
+            const float pad = 24f, h = 120f;
+            float icon = emblem != null ? 62f : 0f;
+            float textW = Mathf.Max(Name.preferredWidth, Sub.preferredWidth);
+            float w = pad * 2f + icon + textW;
+            var root = (RectTransform)Canvas.transform;
+            float x = (root.sizeDelta.x - w) / 2f, y = (root.sizeDelta.y - h) / 2f;
+            Card.rectTransform.Place(x, y, w, h);
+            Shadow.Place(x - 18, y - 12, w + 36, h + 36);
+            Emblem.rectTransform.Place(pad, (h - 48f) / 2f, 48, 48);
+            bool hasSub = !string.IsNullOrEmpty(caption);
+            Name.rectTransform.Place(pad + icon, hasSub ? 6 : 0, textW + 4, hasSub ? 70 : h);
+            Sub.rectTransform.Place(pad + icon, 78, textW + 4, 34);
+        }
+    }
+
     public sealed class WorldKit
     {
         private readonly Material _base;
@@ -151,6 +188,36 @@ namespace Tabletop.World
             outline.effectDistance = new Vector2(3, -3);
             _billboards.Add(go.transform);
             return t;
+        }
+
+        /// <summary>A camera-facing nameplate (D-028): dark rounded card, gilt hairline, name and a small caption.</summary>
+        public NameTagView NameTag(string name, Transform parent, Vector3 localPos)
+        {
+            var go = new GameObject(name, typeof(RectTransform));
+            go.transform.SetParent(parent, false);
+            go.transform.localPosition = localPos;
+            var canvas = go.AddComponent<Canvas>();
+            canvas.renderMode = RenderMode.WorldSpace;
+            var rt = (RectTransform)go.transform;
+            rt.sizeDelta = new Vector2(760, 150);
+            rt.localScale = Vector3.one * 0.0075f;
+            var tag = new NameTagView { Canvas = canvas };
+            var shadow = Ui.Panel("Shadow", go.transform, new Color(0, 0, 0, 0.45f));
+            if (Ui.Kit != null && Ui.Kit.uiShadow != null) { shadow.sprite = Ui.Kit.uiShadow; shadow.type = Image.Type.Sliced; }
+            shadow.raycastTarget = false;
+            tag.Shadow = shadow.rectTransform;
+            tag.Card = Ui.Card("Card", go.transform, new Color(0.09f, 0.05f, 0.035f, 0.9f), true);
+            tag.Emblem = Ui.Icon("Emblem", tag.Card.transform, null, 48, Theme.Gilt);
+            tag.Name = Ui.Label("Name", tag.Card.transform, "", 52, TextAnchor.MiddleLeft, Theme.Text, FontStyle.Bold);
+            tag.Sub = Ui.Label("Caption", tag.Card.transform, "", 26, TextAnchor.MiddleLeft, Theme.TextDim, FontStyle.Bold);
+            foreach (var t in new[] { tag.Name, tag.Sub })
+            {
+                // Never clip a line: uGUI drops a line entirely when it is taller than its box.
+                t.horizontalOverflow = HorizontalWrapMode.Overflow;
+                t.verticalOverflow = VerticalWrapMode.Overflow;
+            }
+            _billboards.Add(go.transform);
+            return tag;
         }
 
         /// <summary>Camera-facing icon (e.g. the "can challenge" marker over a person).</summary>

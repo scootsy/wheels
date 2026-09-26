@@ -162,7 +162,7 @@ namespace Tabletop.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator LockingAllFive_FinalizesEarly()
+        public IEnumerator LockingAllFive_WaitsForConfirm_ThenFinalizesEarly()
         {
             yield return KeyboardStartMatch();
             yield return Tap(Kb.rKey);
@@ -171,11 +171,21 @@ namespace Tabletop.Tests.PlayMode
             yield return Tap(Kb.digit2Key);
             yield return Tap(Kb.digit3Key);
             yield return Tap(Kb.digit4Key);
-            Assert.AreEqual(UxState.SpinDecision, Session.State);
             yield return Tap(Kb.digit5Key);
+            // D-028: a fifth lock no longer ends the turn by itself.
+            Assert.AreEqual(UxState.SpinDecision, Session.State, "still deciding after locking all five");
+            Assert.IsTrue(Session.CanFinalize);
+            Assert.IsFalse(Session.Match.AcceptedCommands.Any(c => c.Encode() == "F0"), "nothing finalized yet");
+            // Changing your mind is free: unlock one and the spin is available again.
+            yield return Tap(Kb.digit5Key);
+            Assert.IsFalse(Session.CanFinalize);
+            Assert.IsTrue(Session.CanSpin);
+            yield return Tap(Kb.digit5Key);
+            // Confirm with the spin control.
+            yield return Tap(Kb.rKey);
             Assert.AreNotEqual(UxState.SpinDecision, Session.State);
             var accepted = Session.Match.AcceptedCommands.Select(c => c.Encode()).ToList();
-            Assert.Contains("F0", accepted, "FinalizeSpin issued after the fifth lock");
+            Assert.Contains("F0", accepted, "FinalizeSpin issued on confirm");
             Assert.AreEqual(1, accepted.Count(c => c == "S0"), "only one player spin was used");
         }
 

@@ -26,6 +26,7 @@ namespace Tabletop.Presentation
         private readonly float _iconSize;
         private string _shownKey;
         private bool _overlay;
+        private Text _lockText;
         private readonly Text _number;
 
         public ReelView(Transform parent, int index, float x, float y, float w, float h, bool interactive, IconSet icons)
@@ -97,6 +98,7 @@ namespace Tabletop.Presentation
             var pad = Ui.Icon("Icon", lockGroup, icons != null ? icons.padlock : null, 30, Theme.Locked);
             pad.rectTransform.Place(0, 0, 30, 30);
             var lockText = Ui.Label("LockText", lockGroup, "LOCKED", 16, TextAnchor.MiddleLeft, Theme.Locked, FontStyle.Bold);
+            _lockText = lockText;
             lockText.rectTransform.Place(32, 0, 70, 30);
             var outline = lockText.gameObject.AddComponent<Outline>();
             outline.effectColor = Color.black;
@@ -128,6 +130,8 @@ namespace Tabletop.Presentation
             _symbols.gameObject.SetActive(!overlay);
             _xpBadge.SetActive(false);
             _count.gameObject.SetActive(!overlay);
+            _caption.gameObject.SetActive(!overlay); // the drum's symbol and its colour say who it feeds
+            _lockText.gameObject.SetActive(!overlay); // padlock + red frame + the drum's clamp are enough
             _number.color = overlay ? new Color(1f, 0.9f, 0.7f, 0.8f) : Theme.TextDim;
             var outline = _caption.GetComponent<Outline>();
             if (overlay && outline == null) { outline = _caption.gameObject.AddComponent<Outline>(); outline.effectColor = Color.black; outline.effectDistance = new Vector2(2, -2); }

@@ -63,15 +63,15 @@ namespace Tabletop.World
             Frame = root;
 
             // HUD
-            var hudBg = Ui.Panel("HudBg", root, new Color(0, 0, 0, 0.55f));
+            var hudBg = Ui.Card("HudBg", root, new Color(0.09f, 0.05f, 0.035f, 0.86f), true);
             hudBg.rectTransform.Place(20, 20, 520, 86);
             hudBg.raycastTarget = false;
             _hud = Ui.Label("Hud", hudBg.transform, "", 24, TextAnchor.MiddleLeft, Theme.Text, FontStyle.Bold);
             _hud.rectTransform.Fill(14);
-            var ctlBg = Ui.Panel("ControlsBg", root, new Color(0, 0, 0, 0.6f));
+            var ctlBg = Ui.Card("ControlsBg", root, new Color(0.09f, 0.05f, 0.035f, 0.86f), true);
             ctlBg.rectTransform.Place(1300, 20, 600, 112);
             ctlBg.raycastTarget = false;
-            _controls = Ui.Label("Controls", ctlBg.transform, "", 21, TextAnchor.MiddleLeft, Theme.Text);
+            _controls = Ui.Label("Controls", ctlBg.transform, "", 21, TextAnchor.MiddleLeft, Theme.TextDim);
             _controls.rectTransform.Fill(12);
 
             // Area title
@@ -79,31 +79,32 @@ namespace Tabletop.World
             area.Place(0, 150, 1920, 90);
             _areaGroup = area.gameObject.AddComponent<CanvasGroup>();
             _areaGroup.blocksRaycasts = false;
-            _area = Ui.Label("Text", area, "", 56, TextAnchor.MiddleCenter, Theme.Crown, FontStyle.Bold);
+            _area = Ui.Label("Text", area, "", 60, TextAnchor.MiddleCenter, Theme.Text, FontStyle.Bold);
             _area.rectTransform.Fill();
-            _area.gameObject.AddComponent<Outline>().effectColor = Color.black;
+            var areaShadow = _area.gameObject.AddComponent<Shadow>();
+            areaShadow.effectColor = new Color(0.05f, 0.02f, 0.01f, 0.85f);
+            areaShadow.effectDistance = new Vector2(0, -4);
             _areaGroup.alpha = 0;
 
             // Prompt
-            var promptBg = Ui.Panel("Prompt", root, new Color(0, 0, 0, 0.7f));
+            var promptBg = Ui.Card("Prompt", root, new Color(0.09f, 0.05f, 0.035f, 0.92f), true);
             promptBg.rectTransform.Place(610, 900, 700, 64);
             promptBg.raycastTarget = false;
             _promptBox = promptBg.gameObject;
-            _prompt = Ui.Label("Text", promptBg.transform, "", 28, TextAnchor.MiddleCenter, Color.white, FontStyle.Bold);
+            _prompt = Ui.Label("Text", promptBg.transform, "", 28, TextAnchor.MiddleCenter, Theme.Text, FontStyle.Bold);
             _prompt.rectTransform.Fill(8);
             _promptBox.SetActive(false);
 
             // Dialogue
-            var dlg = Ui.Panel("Dialogue", root, new Color(0.1f, 0.08f, 0.08f, 0.95f));
+            var dlg = Ui.Card("Dialogue", root, new Color(0.09f, 0.05f, 0.035f, 0.96f), true);
+            dlg.raycastTarget = true;
             dlg.rectTransform.Place(260, 740, 1400, 300);
             Dialogue = dlg.gameObject;
-            var border = Ui.Panel("Border", dlg.transform, Theme.Crown);
-            border.rectTransform.Place(0, 0, 1400, 6);
-            var portraitBg = Ui.Panel("PortraitBg", dlg.transform, new Color(0.2f, 0.17f, 0.16f, 1f));
+            var portraitBg = Ui.Card("PortraitBg", dlg.transform, new Color(0.18f, 0.11f, 0.07f, 1f), true);
             portraitBg.rectTransform.Place(24, 30, 150, 150);
             _portrait = Ui.Icon("Portrait", portraitBg.transform, null, 130, Theme.TextDim);
             _portrait.rectTransform.Place(10, 10, 130, 130);
-            _speaker = Ui.Label("Speaker", dlg.transform, "", 34, TextAnchor.UpperLeft, Theme.Crown, FontStyle.Bold);
+            _speaker = Ui.Label("Speaker", dlg.transform, "", 34, TextAnchor.UpperLeft, Theme.Gilt, FontStyle.Bold);
             _speaker.rectTransform.Place(200, 22, 800, 44);
             _line = Ui.Label("Line", dlg.transform, "", 30, TextAnchor.UpperLeft, Theme.Text);
             _line.rectTransform.Place(200, 76, 860, 200);

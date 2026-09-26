@@ -25,7 +25,10 @@ namespace Tabletop.Presentation
         private Text _selectOpponent, _selectStatus;
 
         private GameObject _inspectOverlay, _helpOverlay, _pauseOverlay, _confirmOverlay, _resultOverlay, _errorOverlay;
-        private Text _inspectText, _helpText, _confirmText, _resultTitle, _resultBody, _resultReplay, _errorText;
+        private Text _inspectText, _helpText, _confirmText, _resultTitle, _resultBody, _resultReplay, _errorText, _resultSub;
+        private readonly Image[] _resultCards = new Image[2];
+        private readonly Text[] _resultScore = new Text[2];
+        private readonly Text[] _resultTeam = new Text[2];
         private Button _inspectClose, _helpClose, _pauseResume, _pauseReduced, _pauseShake, _pauseScale, _pauseWrap, _pauseSkip, _pauseRestart, _pauseExit;
         private Button _confirmYes, _confirmNo, _resultRematch, _resultChange, _resultCopy, _resultExit, _resultSameSeed, _errorCopy, _errorExit;
         private Action _confirmAction;
@@ -426,18 +429,35 @@ namespace Tabletop.Presentation
             SetNav(_confirmYes, right: _confirmNo);
             SetNav(_confirmNo, left: _confirmYes);
 
-            _resultOverlay = Overlay("ResultOverlay", 1100, 760, out var rb);
-            _resultTitle = L("Title", rb, "", 72, TextAnchor.UpperCenter, Theme.Crown, FontStyle.Bold);
-            _resultTitle.rectTransform.Place(0, 20, 1100, 100);
-            _resultBody = L("Body", rb, "", 24, TextAnchor.UpperLeft);
-            _resultBody.rectTransform.Place(40, 130, 1020, 300);
-            _resultRematch = BoxButton(rb, "Rematch", "REMATCH (new seed)", 60, 450, 480, 64, () => Session.Rematch(), Theme.ButtonPrimary);
-            _resultChange = BoxButton(rb, "ChangeUnits", "CHANGE UNITS", 560, 450, 480, 64, () => { Session.ChangeUnits(); });
-            _resultCopy = BoxButton(rb, "CopyReplay", "COPY REPLAY", 60, 530, 480, 64, CopyReplay);
-            _resultExit = BoxButton(rb, "Exit", "EXIT", 560, 530, 480, 64, () => { if (InEncounter) ReturnToWorld(); else Session.ExitMatch(); });
-            _resultSameSeed = BoxButton(rb, "SameSeed", "DEV: REPLAY SAME SEED", 60, 610, 480, 56, () => Session.ReplaySameSeed());
+            _resultOverlay = Overlay("ResultOverlay", 1100, 700, out var rb);
+            // Result: the outcome word, who and how long, then the two final crowns as a scoreboard (D-028).
+            _resultTitle = L("Title", rb, "", 84, TextAnchor.UpperCenter, Theme.Crown, FontStyle.Bold);
+            _resultTitle.rectTransform.Place(0, 26, 1100, 104);
+            _resultSub = L("Sub", rb, "", 24, TextAnchor.UpperCenter, Theme.TextDim, FontStyle.Bold);
+            _resultSub.rectTransform.Place(0, 130, 1100, 36);
+            for (int side = 0; side < 2; side++)
+            {
+                var card = Ui.Card(side == 0 ? "YouCard" : "EnemyCard", rb, new Color(0.09f, 0.05f, 0.035f, 0.95f), true);
+                card.rectTransform.Place(side == 0 ? 90 : 590, 186, 420, 196);
+                _resultCards[side] = card;
+                L("Who", card.transform, side == 0 ? "YOU" : "OPPONENT", 22, TextAnchor.UpperCenter, Theme.TextDim, FontStyle.Bold).rectTransform.Place(0, 14, 420, 30);
+                var crown = Ui.Icon("Crown", card.transform, icons != null ? icons.crown : null, 60, Theme.Crown);
+                crown.rectTransform.Place(96, 62, 60, 60);
+                _resultScore[side] = L("Crown", card.transform, "", 88, TextAnchor.MiddleLeft, Theme.Text, FontStyle.Bold);
+                _resultScore[side].rectTransform.Place(172, 44, 200, 96);
+                _resultTeam[side] = L("Team", card.transform, "", 20, TextAnchor.UpperCenter, Theme.TextDim);
+                _resultTeam[side].rectTransform.Place(10, 150, 400, 30);
+            }
+            L("Versus", rb, "-", 60, TextAnchor.MiddleCenter, Theme.TextDim, FontStyle.Bold).rectTransform.Place(510, 230, 80, 90);
+            _resultBody = L("Body", rb, "", 18, TextAnchor.UpperCenter, Theme.TextDim);
+            _resultBody.rectTransform.Place(40, 652, 1020, 30);
+            _resultRematch = BoxButton(rb, "Rematch", "REMATCH", 90, 420, 420, 64, () => Session.Rematch(), Theme.ButtonPrimary);
+            _resultChange = BoxButton(rb, "ChangeUnits", "CHANGE UNITS", 590, 420, 420, 64, () => { Session.ChangeUnits(); });
+            _resultCopy = BoxButton(rb, "CopyReplay", "COPY REPLAY", 90, 500, 420, 64, CopyReplay);
+            _resultExit = BoxButton(rb, "Exit", "EXIT", 590, 500, 420, 64, () => { if (InEncounter) ReturnToWorld(); else Session.ExitMatch(); });
+            _resultSameSeed = BoxButton(rb, "SameSeed", "DEV: REPLAY SAME SEED", 90, 584, 420, 56, () => Session.ReplaySameSeed());
             _resultReplay = L("Replay", rb, "", 14, TextAnchor.UpperLeft, Theme.TextDim);
-            _resultReplay.rectTransform.Place(560, 606, 500, 140);
+            _resultReplay.rectTransform.Place(590, 580, 420, 64);
             SetNav(_resultRematch, right: _resultChange, down: _resultCopy);
             SetNav(_resultChange, left: _resultRematch, down: _resultExit);
             SetNav(_resultCopy, up: _resultRematch, right: _resultExit, down: _resultSameSeed);
@@ -567,7 +587,8 @@ namespace Tabletop.Presentation
                 "CONTROLS (" + (Input.ActiveScheme == Tabletop.Input.ControlScheme.Gamepad ? "gamepad" : "keyboard / mouse") + ")\n" +
                 "- Move focus: " + B("UI", "Navigate") + "     Confirm / toggle lock on focused reel: " + B("UI", "Submit") + "\n" +
                 "- Spin: " + B("Match", "Spin") + " (or focus SPIN and confirm)     Lock reels directly: " + B("Match", "LockSlot1") + "-" + B("Match", "LockSlot5") + "\n" +
-                "- Next / previous element: " + B("Match", "FocusNext") + " / " + B("Match", "FocusPrevious") + "     Inspect focused unit: " + B("Match", "Inspect") + "\n" +
+                "- Next / previous element: " + B("Match", "FocusNext") + " / " + B("Match", "FocusPrevious") + " (while the round plays out, " + B("Match", "FocusNext") + " skips to the next step)     Inspect focused unit: " + B("Match", "Inspect") + "\n" +
+                "- Locking all five reels does not end your turn: pull the lever (" + B("Match", "Spin") + ") to lock in.\n" +
                 "- Hold to speed up animations: " + B("Match", "AcceleratePresentation") + "     Help: " + B("Match", "Help") + "     Pause / close: " + B("Match", "Pause") + "\n" +
                 "- Mouse: click reels to lock, click buttons, hover a unit for details. There is no timer.";
         }

@@ -171,10 +171,29 @@ namespace Tabletop.Application
 
         public bool CanToggleLocks => !Paused && Match != null && State == UxState.SpinDecision;
 
+        /// <summary>
+        /// All five reels are locked and waiting for the player to confirm (D-028). Locking the fifth reel no longer
+        /// ends the turn on its own, so a slip of the finger can't throw away the spins left.
+        /// </summary>
+        public bool CanFinalize => !Paused && Match != null && State == UxState.SpinDecision && PlayerSide.LockedCount == ReelSetDefinition.ReelCount;
+
+        /// <summary>The spin control does something: spin the unlocked reels, or confirm a fully locked result.</summary>
+        public bool CanSpinOrConfirm => CanSpin || CanFinalize;
+
         public bool RequestSpin()
         {
             if (Paused) { Reject(RejectionCode.WrongPhase, "Resume the game first."); return false; }
             if (State != UxState.RoundReady && State != UxState.SpinDecision) { Reject(RejectionCode.WrongPhase, "You cannot spin now."); return false; }
+            if (CanFinalize)
+            {
+                // Everything is locked: the spin control confirms the result (RULES_SPEC 4.3 early finalize).
+                var fin = Dispatch(MatchCommand.FinalizeSpin(SideId.Player));
+                if (!fin.Accepted) return false;
+                Enqueue(fin.Events);
+                LastStatus = "Result locked in.";
+                SetState(UxState.AiCommit);
+                return true;
+            }
             var result = Dispatch(MatchCommand.Spin(SideId.Player));
             if (!result.Accepted) return false;
             Enqueue(result.Events);
@@ -193,16 +212,9 @@ namespace Tabletop.Application
             var result = Dispatch(MatchCommand.SetReelLock(SideId.Player, reelIndex, !locked));
             if (!result.Accepted) return false;
             Enqueue(result.Events);
-            LastStatus = "Reel " + (reelIndex + 1) + (locked ? " unlocked." : " locked.");
-            if (PlayerSide.LockedCount == ReelSetDefinition.ReelCount)
-            {
-                // Locking the fifth reel after spin 1 or 2 finalizes immediately (RULES_SPEC 4.3).
-                var fin = Dispatch(MatchCommand.FinalizeSpin(SideId.Player));
-                if (!fin.Accepted) return false;
-                Enqueue(fin.Events);
-                LastStatus = "All five reels locked: result is final.";
-                SetState(UxState.AiCommit);
-            }
+            LastStatus = PlayerSide.LockedCount == ReelSetDefinition.ReelCount
+                ? "All five reels locked: confirm to lock in the result, or unlock one to keep spinning."
+                : "Reel " + (reelIndex + 1) + (locked ? " unlocked." : " locked.");
             return true;
         }
 

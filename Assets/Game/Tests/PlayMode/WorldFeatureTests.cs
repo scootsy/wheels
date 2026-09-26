@@ -101,6 +101,27 @@ namespace Tabletop.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator NameTags_ShowTheWholeName_AndFloatClearOfTheHead()
+        {
+            yield return Begin();
+            yield return null;
+            foreach (var npc in World.Layout.Npcs)
+            {
+                var tag = npc.Tag;
+                Assert.AreEqual(npc.DisplayName, tag.Name.text, npc.DisplayName);
+                // Regression (D-028): uGUI drops a line taller than its box, which hid every name.
+                Assert.GreaterOrEqual(tag.Name.rectTransform.rect.height + 0.5f, tag.Name.preferredHeight, npc.DisplayName + ": name line clipped");
+                Assert.AreEqual(VerticalWrapMode.Overflow, tag.Name.verticalOverflow);
+                float top = float.MinValue;
+                foreach (var r in npc.GetComponentsInChildren<Renderer>()) top = Mathf.Max(top, r.bounds.max.y);
+                var corners = new Vector3[4];
+                tag.Card.rectTransform.GetWorldCorners(corners);
+                float plateBottom = Mathf.Min(corners[0].y, corners[1].y, corners[2].y, corners[3].y);
+                Assert.Greater(plateBottom, top + 0.2f, npc.DisplayName + ": the nameplate must not cover the person");
+            }
+        }
+
+        [UnityTest]
         public IEnumerator FirstPerson_TogglesWithV_AndWalksWhereYouLook()
         {
             yield return Begin();

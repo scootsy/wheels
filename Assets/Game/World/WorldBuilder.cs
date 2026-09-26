@@ -452,10 +452,11 @@ namespace Tabletop.World
             col.center = new Vector3(0, 0.9f, 0);
             col.height = 1.8f;
             col.radius = 0.4f;
-            float tagY = Mathf.Max(2.25f, height + 0.45f);
-            npc.Tag = _kit.Label("NameTag", person, new Vector3(0, tagY, 0), "", 34, encounter != null ? Palette.Gold : Color.white);
+            // Well clear of the head so the plate never covers the person (D-028).
+            float tagY = Mathf.Max(2.7f, height + 0.85f);
+            npc.Tag = _kit.NameTag("NameTag", person, new Vector3(0, tagY, 0));
             if (encounter != null && _icons != null)
-                npc.Marker = _kit.IconLabel("ChallengeMarker", person, new Vector3(0, tagY + 1.1f, 0), _icons.energyA, 0.55f);
+                npc.Marker = _kit.IconLabel("ChallengeMarker", person, new Vector3(0, tagY + 0.72f, 0), _icons.energyA, 0.42f);
             npc.RefreshTag();
             _layout.Npcs.Add(npc);
             _layout.Interactables.Add(npc);

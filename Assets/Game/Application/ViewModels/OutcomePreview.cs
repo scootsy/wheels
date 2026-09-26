@@ -31,14 +31,25 @@ namespace Tabletop.Application
         public int BarrierAfter;
         public int BarrierWasted;
         public bool HasFaces;
+        public bool LockedOnly;
 
-        public static OutcomePreview Compute(SideSnapshot side, IReadOnlyList<ReelDefinition> reels, ContentCatalog catalog)
+        /// <summary>
+        /// How many more matching symbols would add the next point (3 symbols give the first point, each one after
+        /// that gives another; RULES_SPEC 5.2).
+        /// </summary>
+        public static int SymbolsToNextPoint(int symbols) => symbols < 3 ? 3 - symbols : 1;
+
+        /// <param name="lockedOnly">
+        /// Count only locked reels (D-028): what the player has already committed to, which is what tells them
+        /// whether a unit is about to overfill. Unlocked reels will be spun again.
+        /// </param>
+        public static OutcomePreview Compute(SideSnapshot side, IReadOnlyList<ReelDefinition> reels, ContentCatalog catalog, bool lockedOnly = false)
         {
-            var p = new OutcomePreview();
+            var p = new OutcomePreview { LockedOnly = lockedOnly };
             var faces = new List<ReelFace>();
             for (int r = 0; r < side.Reels.Count; r++)
-                if (side.Reels[r].FaceIndex >= 0) faces.Add(reels[r].Faces[side.Reels[r].FaceIndex]);
-            p.HasFaces = faces.Count == side.Reels.Count;
+                if (side.Reels[r].FaceIndex >= 0 && (!lockedOnly || side.Reels[r].Locked)) faces.Add(reels[r].Faces[side.Reels[r].FaceIndex]);
+            p.HasFaces = lockedOnly ? faces.Count > 0 : faces.Count == side.Reels.Count;
             var t = SymbolEvaluator.Evaluate(faces);
 
             for (int u = 0; u < 2; u++)

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Tabletop.Application;
 using Tabletop.Domain;
 using UnityEngine;
 using UnityEngine.UI;
@@ -12,7 +13,7 @@ namespace Tabletop.Presentation
     /// travel out along their groove to attack and slide home again.
     /// Purely visual: it reads the presenter's visual state and the current event, and never changes rules state.
     /// </summary>
-    public sealed class MechanicalTable : MonoBehaviour
+    public sealed partial class MechanicalTable : MonoBehaviour
     {
         // ------------------------------------------------------------------ palette (warm carved stone, bronze, gold)
         public static readonly Color StoneDeep = new Color(0.10f, 0.035f, 0.025f);
@@ -88,7 +89,6 @@ namespace Tabletop.Presentation
         private readonly int[,] _meterCount = new int[2, 2];
         private readonly Renderer[,] _pillarGems = new Renderer[2, 2];
         private readonly Renderer[,] _podiumRims = new Renderer[2, 2];
-        private readonly Text[,] _plaques = new Text[2, 2];
         private readonly string[,] _shapeFor = new string[2, 2];
 
         private readonly Transform[] _crowns = new Transform[2];
@@ -163,6 +163,7 @@ namespace Tabletop.Presentation
                 for (int slot = 0; slot < 2; slot++) BuildPodium(side, slot);
             }
             BuildLights();
+            BuildInstruments();
             _projectile = Prim(PrimitiveType.Sphere, "Projectile", _root, new Vector3(0, -5, 0), Vector3.one * 0.4f, Color.white, _gloss).transform;
             _projectileRenderer = _projectile.GetComponent<Renderer>();
             _projectile.gameObject.SetActive(false);
@@ -201,8 +202,8 @@ namespace Tabletop.Presentation
         private void BuildCarvings()
         {
             // Centre plaza: a sunken oval where the pieces meet.
-            var plaza = Prim(PrimitiveType.Cylinder, "Plaza", _root, new Vector3(0, 0.03f, 0), new Vector3(5.4f, 0.03f, 2.3f), StoneDeep);
-            MeshPart("PlazaRim", _root, MeshFactory.Arc(0.46f, 0.5f, 0, 360, 0.09f, 48), new Vector3(0, 0.03f, 0), new Vector3(5.4f, 1, 2.3f), StoneEdge);
+            var plaza = Prim(PrimitiveType.Cylinder, "Plaza", _root, new Vector3(0, 0.03f, 0), new Vector3(6.2f, 0.03f, 2.5f), StoneDeep);
+            MeshPart("PlazaRim", _root, MeshFactory.Arc(0.46f, 0.5f, 0, 360, 0.09f, 48), new Vector3(0, 0.03f, 0), new Vector3(6.2f, 1, 2.5f), StoneEdge);
             // Long carved channels framing the plaza (the "X" the reference board is built around).
             for (int sx = -1; sx <= 1; sx += 2)
                 for (int side = 0; side < 2; side++)
@@ -211,23 +212,16 @@ namespace Tabletop.Presentation
                     var to = new Vector3(sx * 2.2f, 0, side == 0 ? -0.6f : 0.6f);
                     Groove(side, sx < 0 ? 0 : 1, from, to);
                 }
-            // Great arches around each crown and the carved ribs across the middle.
+            // The wall stands in a slot: a dark curved trench right where it rises, with a bronze lip (D-028: the
+            // larger decorative arch that used to sit further out read as the slot, so it is gone).
             for (int side = 0; side < 2; side++)
             {
                 var c = CrownPos(side);
                 float face = side == 0 ? 0 : 180;
-                MeshPart("Arch" + side, _root, MeshFactory.Arc(2.15f, 2.55f, face - 88, face + 88, 0.16f, 40), new Vector3(c.x, 0.05f, c.z), Vector3.one, StoneLight);
-                MeshPart("ArchTrim" + side, _root, MeshFactory.Arc(2.55f, 2.63f, face - 88, face + 88, 0.19f, 40), new Vector3(c.x, 0.05f, c.z), Vector3.one, BronzeDark, _bronze);
-                MeshPart("OuterArch" + side, _root, MeshFactory.Arc(2.95f, 3.2f, face - 70, face + 70, 0.1f, 40), new Vector3(c.x, 0.05f, c.z), Vector3.one, StoneLight);
-                // The wall stands in a slot: a dark curved trench it rises out of.
-                MeshPart("WallSlot" + side, _root, MeshFactory.Arc(WallRadius - 0.2f, WallRadius + 0.2f, face - WallSpanDeg - 4, face + WallSpanDeg + 4, 0.012f, 32),
+                MeshPart("WallSlot" + side, _root, MeshFactory.Arc(WallRadius - 0.22f, WallRadius + 0.22f, face - WallSpanDeg - 4, face + WallSpanDeg + 4, 0.012f, 32),
                     new Vector3(c.x, 0.05f, c.z), Vector3.one, StoneDeep);
-                // Sockets at the ends of the arches.
-                foreach (var a in new[] { face - 88f, face + 88f })
-                {
-                    float r = a * Mathf.Deg2Rad;
-                    Socket(new Vector3(c.x + Mathf.Sin(r) * 2.35f, 0.05f, c.z + Mathf.Cos(r) * 2.35f), 0.42f);
-                }
+                MeshPart("WallSlotLip" + side, _root, MeshFactory.Arc(WallRadius + 0.22f, WallRadius + 0.3f, face - WallSpanDeg - 4, face + WallSpanDeg + 4, 0.06f, 32),
+                    new Vector3(c.x, 0.05f, c.z), Vector3.one, BronzeDark, _bronze);
             }
             // Side panels behind the podiums.
             for (int sx = -1; sx <= 1; sx += 2)
@@ -415,7 +409,7 @@ namespace Tabletop.Presentation
             Prim(PrimitiveType.Cylinder, "Dais", podium, new Vector3(0, 0.36f, 0), new Vector3(1.05f, 0.04f, 1.05f), new Color(0.13f, 0.07f, 0.06f));
             // Energy meter: segments set into the rim; how many depends on the unit's cost (placed in Render).
             _meter[side, slot] = new List<Transform>();
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < 8; i++) // up to cost 5, plus up to 3 overflow segments shown while previewing
             {
                 var seg = Prim(PrimitiveType.Cube, "Meter" + i, podium, Vector3.zero, new Vector3(0.32f, 0.12f, 0.2f), MeterOff, _gloss).transform;
                 _meter[side, slot].Add(seg);
@@ -431,23 +425,8 @@ namespace Tabletop.Presentation
             gem.transform.localRotation = slot == 0 ? Quaternion.Euler(0, 15, 0) : Quaternion.Euler(45, 0, 45);
             _pillarGems[side, slot] = gem.GetComponent<Renderer>();
 
-            // Stat plaque on the table in front of the podium (toward the table edge).
-            // Always on the camera side of the podium so the figure never hides it.
-            var plaque = Prim(PrimitiveType.Cube, "Plaque", podium, new Vector3(0, 0.08f, -1.62f), new Vector3(1.8f, 0.08f, 0.62f), BronzeDark, _bronze);
-            var go = new GameObject("PlaqueText", typeof(RectTransform));
-            go.transform.SetParent(podium, false);
-            go.transform.localPosition = new Vector3(0, 0.14f, -1.62f);
-            go.transform.localRotation = Quaternion.Euler(90, 0, 0);
-            var canvas = go.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.WorldSpace;
-            canvas.worldCamera = _camera;
-            var prt = (RectTransform)go.transform;
-            prt.sizeDelta = new Vector2(340, 100);
-            prt.localScale = Vector3.one * (1.6f / 340f);
-            var ptext = Ui.Label("Text", go.transform, "", 34, TextAnchor.MiddleCenter, new Color(1f, 0.88f, 0.62f), FontStyle.Bold);
-            ptext.supportRichText = true;
-            ptext.rectTransform.Fill();
-            _plaques[side, slot] = ptext;
+            // Nameplate on the camera side of the podium, so the figure never hides it.
+            BuildNameplate(side, slot);
 
             // The piece: its root travels along the groove; the figure is rebuilt when the unit changes.
             var piece = new GameObject("Unit" + side + slot).transform;
@@ -625,17 +604,24 @@ namespace Tabletop.Presentation
 
         // ------------------------------------------------------------------ per frame
 
-        public void Render(VisualState v, Match match, MatchEvent current, float progress, bool applied, bool reducedMotion, bool opponentRevealed)
+        public void Render(TableFrame f)
         {
-            if (_root == null || match == null) return;
+            if (_root == null || f.Match == null) return;
+            var v = f.Visual;
+            var match = f.Match;
+            var current = f.Current;
+            float progress = f.Progress;
+            bool reducedMotion = f.ReducedMotion;
             float dt = Mathf.Min(Time.unscaledDeltaTime, 0.1f);
             for (int side = 0; side < 2; side++)
             {
+                var preview = side == 0 ? f.Preview : null;
                 RenderCrown(side, v.Crown[side], dt, reducedMotion);
-                RenderWall(side, v.Barrier[side], dt, reducedMotion);
-                RenderReels(side, v, current, progress, dt, reducedMotion, side == 1 && !opponentRevealed);
-                for (int slot = 0; slot < 2; slot++) RenderUnit(side, slot, v, match, current, progress, dt, reducedMotion);
+                RenderWall(side, v.Barrier[side], preview, dt, reducedMotion);
+                RenderReels(side, v, current, progress, dt, reducedMotion, side == 1 && !f.OpponentRevealed);
+                for (int slot = 0; slot < 2; slot++) RenderUnit(f, side, slot, preview != null ? preview.Units[slot] : null, dt);
             }
+            RenderInstruments(f, dt);
             RenderProjectile(current, progress, reducedMotion);
             UpdateFloating(reducedMotion);
             UpdateDebris(dt);
@@ -672,11 +658,14 @@ namespace Tabletop.Presentation
             _digits[side, 1].color = c;
         }
 
-        private void RenderWall(int side, int barrier, float dt, bool reducedMotion)
+        private void RenderWall(int side, int barrier, OutcomePreview preview, float dt, bool reducedMotion)
         {
+            // While deciding, layers your locked hammers will add stand part-way up, bobbing, ready to rise.
+            int previewTo = preview != null ? preview.BarrierAfter : barrier;
+            float bob = 0.28f + 0.08f * Mathf.Sin(Time.unscaledTime * 5f);
             for (int layer = 0; layer < 5; layer++)
             {
-                float target = layer < barrier ? 1f : 0f;
+                float target = layer < barrier ? 1f : layer < previewTo ? bob : 0f;
                 float rise = reducedMotion ? target : Mathf.MoveTowards(_layerRise[side, layer], target, dt * 3.2f);
                 _layerRise[side, layer] = rise;
                 float y = (layer + 0.5f) * SegmentHeight - (1f - rise) * (layer + 1.2f) * SegmentHeight;
@@ -687,7 +676,10 @@ namespace Tabletop.Presentation
                     b.gameObject.SetActive(rise > 0.001f);
                 }
             }
-            _wallLabels[side].text = barrier > 0 ? "WALL " + barrier : "";
+            if (preview != null && (preview.BarrierAfter > barrier || preview.BarrierWasted > 0))
+                _wallLabels[side].text = "WALL " + barrier + " > " + preview.BarrierAfter + (preview.BarrierWasted > 0 ? "  (" + preview.BarrierWasted + " WASTED)" : "");
+            else _wallLabels[side].text = barrier > 0 ? "WALL " + barrier : "";
+            _wallLabels[side].color = preview != null && preview.BarrierWasted > 0 ? new Color(1f, 0.45f, 0.4f) : new Color(0.88f, 0.9f, 0.96f);
         }
 
         private void RenderReels(int side, VisualState v, MatchEvent current, float progress, float dt, bool reducedMotion, bool hidden)
@@ -726,8 +718,13 @@ namespace Tabletop.Presentation
             }
         }
 
-        private void RenderUnit(int side, int slot, VisualState v, Match match, MatchEvent current, float progress, float dt, bool reducedMotion)
+        private void RenderUnit(TableFrame f, int side, int slot, OutcomePreview.UnitLine preview, float dt)
         {
+            var v = f.Visual;
+            var match = f.Match;
+            var current = f.Current;
+            float progress = f.Progress;
+            bool reducedMotion = f.ReducedMotion;
             var def = match.UnitDefinition((SideId)side, slot);
             var rank = v.Rank[side, slot];
             var rankColor = FigureFinish(rank);
@@ -735,18 +732,27 @@ namespace Tabletop.Presentation
             int cost = def.Stats(rank).EnergyCost;
             int energy = v.Energy[side, slot];
             var channel = slot == 0 ? Theme.ChannelA : Theme.ChannelB;
-            PlaceMeter(side, slot, cost);
-            for (int i = 0; i < _meter[side, slot].Count; i++)
-                SetColor(_meter[side, slot][i].GetComponent<Renderer>(), i < energy ? channel : MeterOff);
+            // Energy ring: stored energy lit; while deciding, what your LOCKED reels will add pulses in, and anything
+            // past the cost (wasted) shows as red segments beyond the ring's end (D-028).
+            int previewCost = preview != null ? preview.Cost : cost;
+            int incoming = preview != null ? preview.EnergyAfter - System.Math.Min(energy, previewCost) : 0;
+            int wasted = preview != null ? System.Math.Min(3, preview.Wasted) : 0;
+            PlaceMeter(side, slot, previewCost, wasted);
+            float glow = 0.5f + 0.5f * Mathf.Sin(Time.unscaledTime * 7f);
+            var segs = _meter[side, slot];
+            for (int i = 0; i < segs.Count; i++)
+            {
+                Color c;
+                if (i >= previewCost) c = Color.Lerp(new Color(0.5f, 0.05f, 0.05f), new Color(1f, 0.25f, 0.2f), glow);
+                else if (i < energy) c = channel;
+                else if (i < energy + incoming) c = Color.Lerp(channel * 0.45f, Color.Lerp(channel, Color.white, 0.55f), glow);
+                else c = MeterOff;
+                SetColor(segs[i].GetComponent<Renderer>(), c);
+            }
             bool ready = energy >= cost;
             float pulse = ready ? 0.75f + 0.25f * Mathf.Sin(Time.unscaledTime * 6f) : 0.35f;
             SetColor(_pillarGems[side, slot], Color.Lerp(Color.black, channel, pulse));
-            var s = def.Stats(rank);
-            string stats = def.Action == ActionKind.PriestBlessing ? "HEAL " + s.Heal
-                : def.Action == ActionKind.AssassinStrike ? "CROWN " + s.CrownDamage + "  DRAIN " + s.Delay
-                : "CROWN " + s.CrownDamage + "  WALL " + s.BarrierDamage;
-            string name = "<color=#" + ColorUtility.ToHtmlStringRGB(SideColor(side)) + ">" + def.DisplayName.ToUpperInvariant() + "</color>";
-            _plaques[side, slot].text = name + (ready ? "  <color=#FFE066>READY!</color>" : "  " + energy + "/" + cost) + "\n<size=28>" + stats + "</size>";
+            RenderNameplate(f, side, slot, def, rank, v.Xp[side, slot], energy, cost, preview);
 
             // Travel: out along the groove while this unit's action plays, home again afterwards.
             bool acting = current != null && current.Side == side && current.Slot == slot && current.Stage > 0
@@ -783,22 +789,29 @@ namespace Tabletop.Presentation
             SetColor(_podiumRims[side, slot], acting ? Color.Lerp(Bronze, Color.white, 0.5f) : Bronze);
         }
 
-        /// <summary>Spreads the meter segments evenly around the front of the rim for the current cost.</summary>
-        private void PlaceMeter(int side, int slot, int cost)
+        /// <summary>
+        /// Spreads the cost's segments evenly around the front of the rim; overflow segments continue past the end
+        /// of the arc after a small gap, so waste reads as "past full".
+        /// </summary>
+        private void PlaceMeter(int side, int slot, int cost, int overflow)
         {
-            if (_meterCount[side, slot] == cost) return;
-            _meterCount[side, slot] = cost;
+            int key = cost * 10 + overflow;
+            if (_meterCount[side, slot] == key) return;
+            _meterCount[side, slot] = key;
             var list = _meter[side, slot];
-            // Front arc faces the camera (toward -z); segments fan out 130 degrees either side of it.
+            const float span = 150f;
+            float step = cost <= 1 ? 30f : span / (cost - 1);
+            float start = 180f - (cost <= 1 ? 0f : span / 2f);
             for (int i = 0; i < list.Count; i++)
             {
-                bool on = i < cost;
+                bool on = i < cost + overflow;
                 list[i].gameObject.SetActive(on);
                 if (!on) continue;
-                float span = 150f;
-                float a = (180f - span / 2f + span * (cost == 1 ? 0.5f : i / (float)(cost - 1))) * Mathf.Deg2Rad;
+                float deg = i < cost ? start + step * i : start + step * (cost - 1) + 22f + (i - cost) * 20f;
+                float a = deg * Mathf.Deg2Rad;
                 list[i].localPosition = new Vector3(Mathf.Sin(a) * 1.1f, 0.36f, Mathf.Cos(a) * 1.1f);
-                list[i].localRotation = Quaternion.Euler(0, a * Mathf.Rad2Deg, 0);
+                list[i].localRotation = Quaternion.Euler(0, deg, 0);
+                list[i].localScale = i < cost ? new Vector3(0.32f, 0.12f, 0.2f) : new Vector3(0.22f, 0.16f, 0.16f);
             }
         }
 

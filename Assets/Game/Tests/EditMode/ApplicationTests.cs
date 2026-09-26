@@ -148,6 +148,87 @@ namespace Tabletop.Tests.EditMode
         }
 
         [Test]
+        public void Preview_LockedOnly_CountsJustTheLockedReels()
+        {
+            for (long seed = 0; seed < 40; seed++)
+            {
+                var m = Match.Start(MatchConfig.Standard(seed, Striker, Caster), TestKit.Catalog);
+                m.Ok(MatchCommand.Spin(SideId.Player));
+                m.Ok(MatchCommand.SetReelLock(SideId.Player, 1, true));
+                m.Ok(MatchCommand.SetReelLock(SideId.Player, 3, true));
+                var side = m.Snapshot().Side(SideId.Player);
+                var defs = m.ReelDefinitions(SideId.Player);
+                var locked = OutcomePreview.Compute(side, defs, TestKit.Catalog, lockedOnly: true);
+                var t = SymbolEvaluator.Evaluate(new[] { 1, 3 }.Select(r => defs[r].Faces[side.Reels[r].FaceIndex]).ToList());
+                Assert.IsTrue(locked.LockedOnly);
+                Assert.IsTrue(locked.HasFaces);
+                for (int u = 0; u < 2; u++)
+                {
+                    Assert.AreEqual(t.Symbols((Channel)u), locked.Units[u].Symbols, "seed " + seed);
+                    Assert.AreEqual(t.Energy((Channel)u), locked.Units[u].EnergyGain, "seed " + seed);
+                }
+                Assert.AreEqual(t.Hammer, locked.Hammers, "seed " + seed);
+
+                // With all five locked it is exactly the full preview.
+                foreach (int r in new[] { 0, 2, 4 }) m.Ok(MatchCommand.SetReelLock(SideId.Player, r, true));
+                side = m.Snapshot().Side(SideId.Player);
+                var all = OutcomePreview.Compute(side, defs, TestKit.Catalog, lockedOnly: true);
+                var full = OutcomePreview.Compute(side, defs, TestKit.Catalog);
+                for (int u = 0; u < 2; u++)
+                {
+                    Assert.AreEqual(full.Units[u].EnergyGain, all.Units[u].EnergyGain);
+                    Assert.AreEqual(full.Units[u].Wasted, all.Units[u].Wasted);
+                }
+                Assert.AreEqual(full.BarrierAfter, all.BarrierAfter);
+            }
+        }
+
+        [Test]
+        public void Preview_NothingLocked_ShowsNoIncomingEnergy()
+        {
+            var m = Match.Start(MatchConfig.Standard(5, Striker, Caster), TestKit.Catalog);
+            m.Ok(MatchCommand.Spin(SideId.Player));
+            var p = OutcomePreview.Compute(m.Snapshot().Side(SideId.Player), m.ReelDefinitions(SideId.Player), TestKit.Catalog, lockedOnly: true);
+            Assert.IsFalse(p.HasFaces);
+            for (int u = 0; u < 2; u++) { Assert.AreEqual(0, p.Units[u].Symbols); Assert.AreEqual(0, p.Units[u].EnergyGain); Assert.AreEqual(0, p.Units[u].Wasted); }
+        }
+
+        [Test]
+        public void Preview_SymbolsToNextPoint_FollowsTheThreeSymbolThreshold()
+        {
+            // 3 symbols give the first point, each further symbol one more (RULES_SPEC 5.2).
+            Assert.AreEqual(3, OutcomePreview.SymbolsToNextPoint(0));
+            Assert.AreEqual(2, OutcomePreview.SymbolsToNextPoint(1));
+            Assert.AreEqual(1, OutcomePreview.SymbolsToNextPoint(2));
+            Assert.AreEqual(1, OutcomePreview.SymbolsToNextPoint(3));
+            Assert.AreEqual(1, OutcomePreview.SymbolsToNextPoint(6));
+        }
+
+        [Test]
+        public void Session_LockingAllFive_WaitsForConfirmation()
+        {
+            var s = NewSession(77);
+            s.ContinueFromSetup();
+            s.Selection.Toggle(Striker);
+            s.Selection.Toggle(Caster);
+            s.ConfirmUnits();
+            Assert.IsTrue(s.RequestSpin());
+            while (s.DequeueEvent() != null) { }
+            s.NotifySpinPresented();
+            Assert.AreEqual(UxState.SpinDecision, s.State);
+            for (int r = 0; r < 5; r++) Assert.IsTrue(s.RequestToggleLock(r));
+            Assert.AreEqual(UxState.SpinDecision, s.State, "an accidental fifth lock must not end the turn");
+            Assert.IsTrue(s.CanFinalize);
+            Assert.IsTrue(s.RequestToggleLock(2));
+            Assert.IsFalse(s.CanFinalize, "unlocking one goes back to spinning");
+            Assert.IsTrue(s.RequestToggleLock(2));
+            Assert.AreEqual(1, s.Match.Snapshot().Side(SideId.Player).SpinsUsed);
+            Assert.IsTrue(s.RequestSpin(), "the lever confirms");
+            Assert.AreEqual(UxState.AiCommit, s.State);
+            Assert.AreEqual(1, s.Match.Snapshot().Side(SideId.Player).SpinsUsed, "confirming is not a spin");
+        }
+
+        [Test]
         public void EventNarrator_DescribesEveryEventWithItsDelta()
         {
             var m = TestKit.PlayFullMatch(777);

@@ -5,24 +5,29 @@ using UnityEngine.UI;
 
 namespace Tabletop.Presentation
 {
-    /// <summary>Placeholder palette. Every colored state also has a text, glyph, or shape cue.</summary>
+    /// <summary>
+    /// Palette (D-028): warm lacquered-wood darks, cream text, bronze and gold accents to match the table.
+    /// Every colored state also has a text, glyph, or shape cue.
+    /// </summary>
     public static class Theme
     {
-        public static readonly Color Background = new Color(0.10f, 0.09f, 0.10f, 1f);
-        public static readonly Color Panel = new Color(0.18f, 0.16f, 0.17f, 0.96f);
-        public static readonly Color PanelDark = new Color(0.12f, 0.11f, 0.12f, 0.98f);
-        public static readonly Color Overlay = new Color(0f, 0f, 0f, 0.72f);
-        public static readonly Color Text = new Color(0.95f, 0.93f, 0.88f, 1f);
-        public static readonly Color TextDim = new Color(0.70f, 0.67f, 0.62f, 1f);
+        public static readonly Color Background = new Color(0.06f, 0.03f, 0.022f, 1f);
+        public static readonly Color Panel = new Color(0.14f, 0.08f, 0.058f, 0.96f);
+        public static readonly Color PanelDark = new Color(0.09f, 0.05f, 0.036f, 0.97f);
+        public static readonly Color Overlay = new Color(0.02f, 0.01f, 0.006f, 0.80f);
+        public static readonly Color Text = new Color(0.98f, 0.94f, 0.86f, 1f);
+        public static readonly Color TextDim = new Color(0.76f, 0.67f, 0.56f, 1f);
+        public static readonly Color Gilt = new Color(0.93f, 0.72f, 0.36f, 1f);
+        public static readonly Color Hairline = new Color(0.93f, 0.72f, 0.36f, 0.45f);
         public static readonly Color ChannelA = new Color(0.95f, 0.55f, 0.20f, 1f);   // orange square
         public static readonly Color ChannelB = new Color(0.30f, 0.80f, 0.85f, 1f);   // teal diamond
         public static readonly Color Hammer = new Color(0.80f, 0.80f, 0.82f, 1f);
         public static readonly Color Xp = new Color(0.55f, 0.45f, 0.95f, 1f);
-        public static readonly Color Focus = new Color(1f, 0.92f, 0.25f, 1f);
+        public static readonly Color Focus = new Color(1f, 0.84f, 0.42f, 1f);
         public static readonly Color Locked = new Color(0.95f, 0.30f, 0.30f, 1f);
-        public static readonly Color Button = new Color(0.30f, 0.27f, 0.26f, 1f);
-        public static readonly Color ButtonPrimary = new Color(0.20f, 0.45f, 0.25f, 1f);
-        public static readonly Color Disabled = new Color(0.22f, 0.21f, 0.21f, 1f);
+        public static readonly Color Button = new Color(0.25f, 0.15f, 0.10f, 1f);
+        public static readonly Color ButtonPrimary = new Color(0.66f, 0.38f, 0.13f, 1f);
+        public static readonly Color Disabled = new Color(0.18f, 0.12f, 0.09f, 1f);
         public static readonly Color Crown = new Color(0.95f, 0.80f, 0.30f, 1f);
         public static readonly Color Barrier = new Color(0.55f, 0.58f, 0.65f, 1f);
         public static readonly Color Damage = new Color(1f, 0.35f, 0.30f, 1f);
@@ -41,12 +46,61 @@ namespace Tabletop.Presentation
         }
     }
 
-    /// <summary>Tiny factory for code-built uGUI (placeholder M1 UI; no prefabs or art assets).</summary>
+    /// <summary>Factory for the code-built uGUI. Uses the UI kit sprites (rounded panels, key caps) when available.</summary>
     public static class Ui
     {
-        private static Font _font;
+        /// <summary>The icon set carrying the UI kit sprites; set once by the scene's composition root.</summary>
+        public static IconSet Kit { get; set; }
 
-        public static Font Font => _font != null ? _font : (_font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"));
+        /// <summary>A rounded card, optionally with a gold hairline border.</summary>
+        public static Image Card(string name, Transform parent, Color color, bool hairline = false)
+        {
+            var img = Panel(name, parent, color);
+            Round(img);
+            img.raycastTarget = false;
+            if (hairline && Kit != null && Kit.uiFrame != null)
+            {
+                var f = Panel("Hairline", img.transform, Theme.Hairline);
+                f.sprite = Kit.uiFrame;
+                f.type = Image.Type.Sliced;
+                f.raycastTarget = false;
+                f.rectTransform.Fill();
+            }
+            return img;
+        }
+
+        /// <summary>Gives an image the rounded nine-slice panel sprite (no-op without the UI kit).</summary>
+        public static void Round(Image img, float cornerScale = 1f)
+        {
+            if (Kit == null || Kit.uiPanel == null) return;
+            img.sprite = Kit.uiPanel;
+            img.type = Image.Type.Sliced;
+            img.pixelsPerUnitMultiplier = 1f / Mathf.Max(0.05f, cornerScale);
+        }
+
+        /// <summary>A key cap showing a binding ("R", "Space", "A"), sized to its text.</summary>
+        public static RectTransform Keycap(Transform parent, string key, int size = 18)
+        {
+            var img = Panel("Key", parent, new Color(0.93f, 0.86f, 0.74f, 1f));
+            if (Kit != null && Kit.uiKeycap != null) { img.sprite = Kit.uiKeycap; img.type = Image.Type.Sliced; img.pixelsPerUnitMultiplier = 2f; }
+            img.raycastTarget = false;
+            var label = Label("Text", img.transform, key, size, TextAnchor.MiddleCenter, new Color(0.16f, 0.09f, 0.05f), FontStyle.Bold);
+            label.rectTransform.Fill();
+            label.rectTransform.offsetMin = new Vector2(8, 4);
+            label.rectTransform.offsetMax = new Vector2(-8, 0);
+            label.horizontalOverflow = HorizontalWrapMode.Overflow;
+            float w = Mathf.Max(size * 1.6f, label.preferredWidth + 18f);
+            img.rectTransform.sizeDelta = new Vector2(w, size * 1.7f);
+            return img.rectTransform;
+        }
+
+        private static Font _font;
+        private static Font _fontStrong;
+
+        /// <summary>Inter (SIL Open Font License, Resources/Fonts/Inter-LICENSE.txt); the built-in font only if it is missing.</summary>
+        public static Font Font => _font != null ? _font : (_font = Resources.Load<Font>("Fonts/Inter-Regular") ?? Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"));
+        /// <summary>Inter SemiBold: used for "bold" text instead of Unity's smeared synthetic bold.</summary>
+        public static Font FontStrong => _fontStrong != null ? _fontStrong : (_fontStrong = Resources.Load<Font>("Fonts/Inter-SemiBold") ?? Font);
 
         public static RectTransform Rect(string name, Transform parent)
         {
@@ -87,12 +141,13 @@ namespace Tabletop.Presentation
         {
             var rt = Rect(name, parent);
             var t = rt.gameObject.AddComponent<Text>();
-            t.font = Font;
+            bool strong = style == FontStyle.Bold || style == FontStyle.BoldAndItalic;
+            t.font = strong ? FontStrong : Font;
             t.text = text;
             t.fontSize = size;
             t.alignment = anchor;
             t.color = color ?? Theme.Text;
-            t.fontStyle = style;
+            t.fontStyle = strong ? (style == FontStyle.BoldAndItalic ? FontStyle.Italic : FontStyle.Normal) : style;
             t.horizontalOverflow = HorizontalWrapMode.Wrap;
             t.verticalOverflow = VerticalWrapMode.Truncate;
             t.raycastTarget = false;
@@ -112,6 +167,7 @@ namespace Tabletop.Presentation
             colors.disabledColor = new Color(0.5f, 0.5f, 0.5f, 0.6f);
             colors.colorMultiplier = 1.5f;
             btn.colors = colors;
+            Round(img);
             if (onClick != null) btn.onClick.AddListener(onClick);
             var label = Label("Label", img.transform, text, size, TextAnchor.MiddleCenter);
             label.rectTransform.Fill(6);
@@ -187,6 +243,18 @@ namespace Tabletop.Presentation
             var f = s.gameObject.AddComponent<FocusFrame>();
             var frame = Ui.Rect("FocusFrame", s.transform);
             frame.Fill(-7);
+            if (Ui.Kit != null && Ui.Kit.uiFrame != null)
+            {
+                var ring = Ui.Panel("Outline", frame, Theme.Focus);
+                ring.sprite = Ui.Kit.uiFrame;
+                ring.type = Image.Type.Sliced;
+                ring.pixelsPerUnitMultiplier = 0.6f; // thicker line
+                ring.raycastTarget = false;
+                ring.rectTransform.Fill();
+                f._frame = frame.gameObject;
+                f._frame.SetActive(false);
+                return;
+            }
             const float t = 5f;
             Bar(frame, new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -t), Vector2.zero);
             Bar(frame, new Vector2(0, 0), new Vector2(1, 0), Vector2.zero, new Vector2(0, t));

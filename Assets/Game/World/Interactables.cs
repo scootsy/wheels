@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Tabletop.Application;
+using Tabletop.Presentation;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -22,7 +23,7 @@ namespace Tabletop.World
         [System.NonSerialized] public EncounterDefinition Encounter;
         public string[] Lines = new string[0];
         public Transform Figure;
-        public Text Tag;
+        [System.NonSerialized] public NameTagView Tag;
         public Image Marker;
         public float HomeYaw;
         /// <summary>Rest offset of the figure (e.g. lowered when seated).</summary>
@@ -35,9 +36,15 @@ namespace Tabletop.World
         {
             if (Tag == null) return;
             bool beaten = Encounter != null && GameFlow.HasDefeated(Encounter.Id);
-            string sub = Encounter != null ? (beaten ? "BEATEN" : (Encounter.IsChampion ? "CHAMPION - challenge!" : "challenge!")) : Title;
-            Tag.text = DisplayName + "\n<size=24>" + sub + "</size>";
-            Tag.supportRichText = true;
+            var kit = Ui.Kit;
+            string sub;
+            Color accent;
+            Sprite emblem = null;
+            if (Encounter == null) { sub = (Title ?? "").ToUpperInvariant(); accent = Theme.TextDim; }
+            else if (beaten) { sub = "BEATEN"; accent = new Color(0.55f, 0.8f, 0.55f); emblem = kit != null ? kit.uiDiamond : null; }
+            else if (Encounter.IsChampion) { sub = "CHAMPION  -  CHALLENGE"; accent = Theme.Gilt; emblem = kit != null ? kit.crown : null; }
+            else { sub = "CHALLENGER"; accent = Theme.Gilt; emblem = kit != null ? kit.uiDiamond : null; }
+            Tag.Set(DisplayName, sub, emblem, accent);
             if (Marker != null) Marker.gameObject.SetActive(Encounter != null && !beaten);
         }
 
@@ -58,8 +65,8 @@ namespace Tabletop.World
             if (Tag == null) return;
             if (_tagGroup == null)
             {
-                _tagGroup = Tag.canvas.gameObject.GetComponent<CanvasGroup>();
-                if (_tagGroup == null) _tagGroup = Tag.canvas.gameObject.AddComponent<CanvasGroup>();
+                _tagGroup = Tag.Canvas.gameObject.GetComponent<CanvasGroup>();
+                if (_tagGroup == null) _tagGroup = Tag.Canvas.gameObject.AddComponent<CanvasGroup>();
                 _tagGroup.blocksRaycasts = false;
             }
             _tagGroup.alpha = alpha;

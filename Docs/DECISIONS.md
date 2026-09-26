@@ -245,6 +245,38 @@ This log records decisions that affect rules, player experience, architecture, s
   - **Table art style:** the creative director wants the table to match the source game's look, rendered in 3D. We match the style: warm carved bronze and stone, gold crown housings with red gems, a grey brick wall arc, framed reel tiles, clockwork. The shapes, ornaments and layout details are drawn fresh rather than traced or copied from the reference art (`RULES_SPEC.md` Section 2).
 - **Files updated:** `Docs/WORLD_SPEC.md`, `Docs/IMPLEMENTATION_STATUS.md`, `AGENTS.md`, `Docs/MILESTONES.md`
 
+### D-028: The board is the interface — sequence, locked-reel energy, confirm after locking (creative director, 2026-09-25)
+
+- **Date:** 2026-09-25
+- **Status:** Accepted (explicit creative-director instruction)
+- **Instruction (summary):** show how much energy the LOCKED reels will give, so pieces are not overfilled; a modern UX overhaul of the board with no text dumps; slow the round down into a readable sequence (spins revealed, XP, energy, wall, each action) with a key to skip; make the action order visible instead of a guess; require a confirm after locking so an accidental fifth lock does not end the turn; remove the curved inlay that looked like the wall slot; put everything on the board (the boards are purely mechanical devices in the lore), with no info boxes in the corners; production-ready look; move character names so they do not block the characters, and make them look finished.
+- **Decisions:**
+  - **Locked-reel energy.** While you decide, each piece's nameplate shows a gem tally counting only the gems on locked reels. Two cells prime the count, and each cell after that is marked +1. Beside the tally the plate says exactly what you will get: "+2 ENERGY", "1 MORE = +1", or in red "+3 (1 WASTED)".
+    - The podium's energy ring shows what is stored, pulses the segments the locked reels will fill, and shows red segments past the ring for any overflow.
+    - The wall label works the same way: "WALL 2 > 4 (1 WASTED)".
+    - Unlocked reels are not counted, because they will spin again. `OutcomePreview.Compute(..., lockedOnly: true)`.
+  - **Confirm after locking (interface only; the rule is unchanged).** Locking the fifth reel no longer ends the turn by itself.
+    - The sign reads "LOCK IT IN?" and the lever plate turns green and reads LOCK IN. Focus moves to the lever.
+    - Pulling it (R / Y / click) confirms. Unlocking any reel returns to spinning.
+    - The simulation's early finalize (`RULES_SPEC.md` 4.3, IMPL-03) is untouched; only the moment the controller issues it changed.
+  - **The round is a sequence.** The presenter groups events into steps: opponent choosing, reveal, 1 XP, 2 WALL, 3 ENERGY, 4 ACTIONS, round over.
+    - Each resolution step opens with a short beat. Resolution events play 1.6x slower than before.
+    - A flip-sign in the centre of the table names the step. The strip beneath it lights the steps in turn.
+    - Symbols fly from the reels to where they apply: stars to the XP diamonds, gems to the podiums, hammers to the wall.
+    - **Tab / RB skips the current step** (it is presented instantly, in order). Holding Space / A / RT still fast-forwards. Skipping never changes the result (test-covered).
+  - **Action order is shown.** Before a round resolves, pieces that will be ready wear a green READY tag. When the actions step starts, every piece that will act gets a numbered token (1, 2, 3...) in the exact order it will act, read ahead from the event queue. The token of the acting piece glows and finished ones dim.
+  - **Everything on the board.** Gone: the corner panels, the event log, the legend, the banner, the preview text and the SPIN/speed buttons.
+    - In their place are table parts: four nameplates (rank badge, name, XP diamonds, crown and wall damage, the energy tally), the step sign, the round dial, and the SPIN lever with three lamps for spins left and a label plate that says what the lever will do.
+    - Invisible hit areas over the drums, podiums and lever keep keyboard, gamepad and mouse focus working (focus is drawn on the table as a gold ring).
+    - What remains on screen: a bottom-left prompt bar with key caps for what you can do right now, a short toast for rejections, and two round buttons for Help and Menu.
+  - **Removed the curved inlay** (the arch in front of each crown); the wall rises from its own slot next to the crown. The plaza oval was widened to seat the sign.
+  - **Nameplates, not floating yellow text.**
+    - On the table, names are on flat plates in front of each podium, never over a piece.
+    - In the world, people carry a small dark card with a gilt edge, the name and a caption: CHALLENGER, CHAMPION, BEATEN, or their title. It floats about 0.75 m above the head instead of 0.45 m.
+  - **Result screen and world HUD restyled.** The result screen is a scoreboard: VICTORY / DEFEAT / TIE, "vs opponent · n rounds", both final crowns side by side with each team's pieces, then the buttons. Reel tier, AI and seed move to a small footer. The world HUD, prompt and dialogue boxes use the same warm, gilt-edged cards, and the area title is cream instead of yellow.
+  - **Production UI kit.** Inter (SIL Open Font License, bundled with its licence in `Assets/Game/Resources/Fonts`) replaces the default font. The warm dark theme is gilt-edged. Rounded nine-slice panels, key caps, rings and shadows are generated by `Tools/Art/make_ui.py` into `Assets/Game/Art/UI` and imported through the icon set.
+- **Files updated:** `Docs/MATCH_UX_SPEC.md` (4.4, 4.5, 5, 7.2, 7.3), `Docs/RULES_SPEC.md` (IMPL-03 note), `Docs/IMPLEMENTATION_STATUS.md`, `Docs/TECHNICAL_ARCHITECTURE.md`
+
 ## Open decisions
 
 The rules-level open questions and temporary prototype behaviors are maintained in `RULES_SPEC.md` Section 15. They do not block M0 or M1.

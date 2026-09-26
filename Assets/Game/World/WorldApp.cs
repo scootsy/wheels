@@ -74,7 +74,6 @@ namespace Tabletop.World
         private IList<(string, Action)> _finalChoices;
         private Action _onDialogueClosed;
         private int _page;
-        private Text _playerTag;
         private DeckView _deck;
         private float _fpYaw;
         private float _fpPitch;
@@ -88,6 +87,7 @@ namespace Tabletop.World
             var selfCheckFolder = SelfCheckFolder();
             if (selfCheckFolder != null) SaveGame.DirectoryOverride = selfCheckFolder;
             if (worldMaterial == null) Debug.LogError("[Tabletop] World material not assigned; the world will render magenta in builds.");
+            Presentation.Ui.Kit = icons;
             _kit = new WorldKit(worldMaterial);
             Layout = new WorldBuilder(_kit, icons, art).Build(transform);
             StaticBatchingUtility.Combine(Layout.StaticRoot.gameObject);
@@ -348,11 +348,10 @@ namespace Tabletop.World
             _deck.Tick(eventSystem);
             // At the champion's table the close-up camera would be covered by labels: hide them while seated.
             bool seated = _seatedAt != null;
-            if (_playerTag != null) _playerTag.enabled = !seated;
             if (Layout.ChampionChair != null)
             {
                 var champ = Layout.ChampionChair.Champion;
-                if (champ.Tag != null) champ.Tag.enabled = !seated;
+                if (champ.Tag != null) champ.Tag.Canvas.enabled = !seated;
                 if (champ.Marker != null && seated) champ.Marker.gameObject.SetActive(false);
             }
             if (seated) Ui.HideArea();

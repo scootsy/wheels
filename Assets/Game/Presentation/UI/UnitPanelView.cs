@@ -84,6 +84,27 @@ namespace Tabletop.Presentation
 
         public string Description { get; private set; } = "";
 
+        /// <summary>
+        /// Overlay mode (D-028): an invisible hit area over the unit's podium. The table's nameplate, meter and
+        /// figure show the unit; this keeps focus, click-to-inspect and the accessible description.
+        /// </summary>
+        private bool _overlay;
+
+        public void SetOverlay(bool overlay)
+        {
+            _overlay = overlay;
+            var bg = Button.GetComponent<Image>();
+            bg.color = overlay ? new Color(0, 0, 0, 0) : Theme.Panel;
+            var colors = Button.colors;
+            if (overlay) colors.normalColor = colors.highlightedColor = colors.selectedColor = colors.pressedColor = colors.disabledColor = new Color(1, 1, 1, 0);
+            Button.colors = colors;
+            for (int i = 0; i < Button.transform.childCount; i++)
+            {
+                var c = Button.transform.GetChild(i);
+                if (c.name != "FocusFrame") c.gameObject.SetActive(!overlay);
+            }
+        }
+
         public void Render(UnitDefinition def, Rank rank, int xp, int energy, bool sideIsPlayer, bool acting)
         {
             var stats = def.Stats(rank);
@@ -103,15 +124,15 @@ namespace Tabletop.Presentation
             _energy.text = "ENERGY " + energy + "/" + stats.EnergyCost;
             for (int i = 0; i < 5; i++)
             {
-                _energyPips[i].gameObject.SetActive(i < stats.EnergyCost);
+                _energyPips[i].gameObject.SetActive(!_overlay && i < stats.EnergyCost);
                 _energyPips[i].color = i < energy ? (Slot == 0 ? Theme.ChannelA : Theme.ChannelB) : new Color(0.3f, 0.3f, 0.3f, 1f);
             }
             _xp.text = "XP " + xp + "/6";
             for (int i = 0; i < 6; i++) _xpPips[i].color = i < xp ? Theme.Xp : new Color(0.3f, 0.3f, 0.3f, 1f);
             bool ready = energy >= stats.EnergyCost;
-            _readyBg.gameObject.SetActive(ready);
+            _readyBg.gameObject.SetActive(!_overlay && ready);
             _stats.text = StatsLine(def, stats) + "\n" + (rank == Rank.Gold ? "At 6 XP: launches a 2-damage BOMB" : "At 6 XP: ranks up");
-            _highlight.gameObject.SetActive(acting);
+            _highlight.gameObject.SetActive(!_overlay && acting);
             Description = (sideIsPlayer ? "Player " : "Opponent ") + def.DisplayName + ", " + rank + " rank, " + xp + " of 6 XP, "
                 + energy + " of " + stats.EnergyCost + " energy" + (ready ? ", ready" : "");
         }

@@ -29,10 +29,12 @@ Flow: setup (see the opponent) → choose two units (Striker, Caster) for slots 
 |---|---|---|
 | Move focus | Arrow keys / WASD, mouse hover | D-pad / left stick |
 | Confirm, or lock/unlock the focused reel | Enter / Space, click | A (south) |
-| Spin | R, or focus SPIN and confirm | Y (north), or focus SPIN and press A |
+| Spin (pull the lever) | R, or click the lever | Y (north), or focus the lever and press A |
+| Lock in with all five locked | R, or click the lever (it reads LOCK IN) | Y, or A on the lever |
 | Lock reel 1-5 directly | 1-5 | focus the reel + A |
 | Next / previous element | Tab / Shift+Tab | RB / LB |
-| Inspect focused unit | I (or click a unit plaque) | X (west) |
+| Skip the current step while the round plays out | Tab | RB |
+| Inspect focused unit | I (or click a piece) | X (west) |
 | Help | H | View / Select |
 | Hold to speed up animations (x4) | hold Space | hold A or RT |
 | Pause / close overlay | Esc | Menu / Start (B closes overlays) |
@@ -188,6 +190,34 @@ Known defects: table figures are still primitive miniatures (blobby from above);
   contains unpacked textures of the excluded models in Git history (removing them needs a history rewrite).
 Blockers: none
 Next authorized work: fixes only, until the creative director plays this build.
+Gate status: PLAYTEST STOP ACTIVE (waiting for the creative director).
+```
+
+## Update 2026-09-25 — the board is the interface (D-028)
+
+```text
+Date/time: 2026-09-25 21:20 MDT
+Milestone: W2 polish, requested by the creative director
+Completed:
+  Locked-reel energy: nameplate gem tally + exact result ("+2 ENERGY", "1 MORE = +1", red "(1 WASTED)"),
+    pulsing ring segments, red overflow; wall label "WALL a > b (n WASTED)". Only locked reels count.
+  Confirm after locking: all five locked no longer ends the turn; the lever reads LOCK IN and confirms.
+  Sequence: opponent, reveal, 1 XP, 2 WALL, 3 ENERGY, 4 ACTIONS, each with a beat and a flip-sign; symbols fly
+    from reels to where they apply; Tab / RB skips a step; hold Space still fast-forwards.
+  Action order: READY tags before resolution, numbered order tokens during actions.
+  Board-only UI: corner panels, log, legend, banner and on-screen buttons removed; nameplates, step sign,
+    lever with spin lamps, round dial; key-cap prompt bar, toast, round Help / Menu buttons.
+  Removed the curved arch inlay. Inter font (OFL) and a generated UI kit. Result screen is a scoreboard.
+  World: people carry dark gilt-edged nameplates (name + CHALLENGER / CHAMPION / BEATEN / title) well above
+    their heads; world HUD restyled to match.
+Tests: EditMode 108/108 (locked-only preview, next-point helper, confirm-after-lock);
+  PlayMode 37/37 (ordered sequence + Tab skip, nameplate not clipped and clear of the head).
+Console/build: Windows build 0 errors / 0 warnings; self-check world 1245 renderers, table 440 renderers,
+  0 unsupported shaders, attack captured, PLAYER PROBLEMS: none.
+Screenshots/build path: Docs/Screenshots/Table/, Docs/Screenshots/World/; Builds/Windows/TabletopReels.exe
+Known defects: the enemy crown's back spike clips the top corner of enemy reel 3's window (the face stays
+  readable); table figures are still primitive miniatures; commit ff17d5c still holds the excluded models'
+  unpacked textures in Git history (removal needs a history rewrite, awaiting approval).
 Gate status: PLAYTEST STOP ACTIVE (waiting for the creative director).
 ```
 
