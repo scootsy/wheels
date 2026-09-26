@@ -21,6 +21,8 @@
 
 **Fastest:** double-click `Builds/Windows/TabletopReels.exe` (Windows development build; not committed to Git, rebuild with **Tabletop → Build → Windows x64 Development Build**). It opens in the world: see `WORLD_SPEC.md` for places, opponents, and world controls (walk WASD/arrows/left stick, talk E/A, menu Esc/Start). The table below is for the match itself.
 
+**Published builds (D-030):** every published test build is on the GitHub repo's **Releases** page (Windows zip + iOS Xcode zip). To make one: **Tabletop → Build → All (Windows + iOS)**, commit, then `bash Tools/publish_builds.sh "what changed"`.
+
 **iPhone / iPad (test builds, D-029):** in Unity choose **Tabletop → Build → iOS Xcode Project (iPhone + iPad)**. It writes `Builds/TabletopReels-iOS-Xcode.zip`. On a Mac:
 1. Unzip it and open `TabletopReels/Unity-iPhone.xcodeproj` in Xcode.
 2. Select the **Unity-iPhone** target, then **Signing & Capabilities**, and choose your Apple ID team. If Xcode says the bundle id is taken, change it (e.g. add your initials).

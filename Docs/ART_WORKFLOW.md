@@ -24,6 +24,14 @@ How imported 3D models (characters and buildings) get from a model generator or 
 
 The game scales every model automatically, stands it on the ground, and centres it, so exported size and pivot don't matter.
 
+## Shelving models (switch back to placeholders without deleting anything)
+
+- **Tabletop → Art → Shelve Imported People (use placeholders)** (or **Shelve Imported Buildings**) takes the model off its slot and puts it on a shelf (`Assets/Game/Editor/Art/ShelvedArt.asset`). The placeholder comes back.
+- Nothing in the game points at a shelved model any more, so **it is not in any build**. Each build's result line reports `peopleModels=` / `buildingModels=` so this can be checked.
+- The model files stay in `Assets/Game/Characters` / `Buildings` and in Git.
+- **Tabletop → Art → Restore Shelved Models** puts every shelved model back exactly as it was.
+- As of D-030, the two imported people (Wren, Mira Tallow) are shelved; the imported buildings are still in use.
+
 ## What to ask the model generator for
 
 | | Characters | Buildings |

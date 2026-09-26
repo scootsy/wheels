@@ -106,6 +106,8 @@ namespace Tabletop.EditorTools
             }
         }
 
+        public const string WindowsZipPath = "Builds/TabletopReels-Windows.zip";
+
         [MenuItem("Tabletop/Build/Windows x64 Development Build")]
         public static void BuildWindows()
         {
@@ -120,9 +122,53 @@ namespace Tabletop.EditorTools
             var report = BuildPipeline.BuildPlayer(options);
             var summary = report.summary;
             string line = "[Tabletop] Build " + summary.result + ": " + summary.outputPath + " size=" + summary.totalSize + " errors=" + summary.totalErrors
-                + " warnings=" + summary.totalWarnings + " time=" + summary.totalTime;
+                + " warnings=" + summary.totalWarnings + " time=" + summary.totalTime + " " + ModelsIn(report);
+            if (summary.result == BuildResult.Succeeded)
+                line += " zip=" + WindowsZipPath + " (" + ZipForTesters(Path.GetDirectoryName(BuildPath), WindowsZipPath) + " MB)";
             File.WriteAllText(Path.Combine("Logs", "BuildResult.txt"), line + "\n");
             if (summary.result == BuildResult.Succeeded) Debug.Log(line); else Debug.LogError(line);
+        }
+
+        /// <summary>Windows, then the iOS Xcode project (D-030). Results in Logs/BuildResult*.txt.</summary>
+        [MenuItem("Tabletop/Build/All (Windows + iOS)")]
+        public static void BuildAll()
+        {
+            BuildWindows();
+            BuildIOS();
+        }
+
+        /// <summary>How many imported model files went into a build (shelved models must be 0, D-030).</summary>
+        public static string ModelsIn(BuildReport report)
+        {
+            var people = new System.Collections.Generic.HashSet<string>();
+            var buildings = new System.Collections.Generic.HashSet<string>();
+            foreach (var packed in report.packedAssets)
+                foreach (var info in packed.contents)
+                {
+                    var src = info.sourceAssetPath ?? "";
+                    if (!src.EndsWith(".fbx", System.StringComparison.OrdinalIgnoreCase)) continue;
+                    if (src.StartsWith("Assets/Game/Characters/")) people.Add(src);
+                    else if (src.StartsWith("Assets/Game/Buildings/")) buildings.Add(src);
+                }
+            return "peopleModels=" + people.Count + " buildingModels=" + buildings.Count;
+        }
+
+        /// <summary>Zips a build folder for sharing, leaving out Unity's debug-symbol folders ("DoNotShip"). Returns MB.</summary>
+        private static long ZipForTesters(string folder, string zipPath)
+        {
+            if (File.Exists(zipPath)) File.Delete(zipPath);
+            string root = Path.GetFullPath(folder);
+            string top = Path.GetFileName(root.TrimEnd('/', '\\'));
+            using (var zip = System.IO.Compression.ZipFile.Open(zipPath, System.IO.Compression.ZipArchiveMode.Create))
+            {
+                foreach (var file in Directory.GetFiles(root, "*", SearchOption.AllDirectories))
+                {
+                    string rel = file.Substring(root.Length).TrimStart('/', '\\').Replace('\\', '/');
+                    if (rel.Contains("DoNotShip")) continue;
+                    System.IO.Compression.ZipFileExtensions.CreateEntryFromFile(zip, file, top + "/" + rel, System.IO.Compression.CompressionLevel.Optimal);
+                }
+            }
+            return new FileInfo(zipPath).Length / (1024 * 1024);
         }
 
         public const string IosProjectPath = "Builds/iOS/TabletopReels";
@@ -158,23 +204,20 @@ namespace Tabletop.EditorTools
                 target = BuildTarget.iOS,
                 options = BuildOptions.Development,
             };
-            BuildSummary summary;
+            BuildReport report;
             try
             {
-                summary = BuildPipeline.BuildPlayer(options).summary;
+                report = BuildPipeline.BuildPlayer(options);
             }
             finally
             {
                 EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Standalone, BuildTarget.StandaloneWindows64);
             }
+            var summary = report.summary;
             string line = "[Tabletop] iOS build " + summary.result + ": " + summary.outputPath + " errors=" + summary.totalErrors
-                + " warnings=" + summary.totalWarnings + " time=" + summary.totalTime;
+                + " warnings=" + summary.totalWarnings + " time=" + summary.totalTime + " " + ModelsIn(report);
             if (summary.result == BuildResult.Succeeded)
-            {
-                if (File.Exists(IosZipPath)) File.Delete(IosZipPath);
-                System.IO.Compression.ZipFile.CreateFromDirectory(IosProjectPath, IosZipPath, System.IO.Compression.CompressionLevel.Optimal, true);
-                line += " zip=" + IosZipPath + " (" + new FileInfo(IosZipPath).Length / (1024 * 1024) + " MB)";
-            }
+                line += " zip=" + IosZipPath + " (" + ZipForTesters(IosProjectPath, IosZipPath) + " MB)";
             File.WriteAllText(Path.Combine("Logs", "BuildResult-iOS.txt"), line + "\n");
             if (summary.result == BuildResult.Succeeded) Debug.Log(line); else Debug.LogError(line);
         }

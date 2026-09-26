@@ -42,8 +42,8 @@ MonoBehaviour:
     turn: 0
     size: 0
   - who: Wren
-    model: {fileID: 919132149155446097, guid: 480cc2ce1408c3746bad6d666f8dc203, type: 3}
-    pose: {fileID: -8980640070995229378, guid: 480cc2ce1408c3746bad6d666f8dc203, type: 3}
+    model: {fileID: 0}
+    pose: {fileID: 0}
     poseTime: 0
     loop: 0
     turn: 0
@@ -56,8 +56,8 @@ MonoBehaviour:
     turn: 0
     size: 0
   - who: Mira Tallow
-    model: {fileID: 919132149155446097, guid: 8cd7484381898c9468831eb2d1d56c7e, type: 3}
-    pose: {fileID: -8980640070995229378, guid: 8cd7484381898c9468831eb2d1d56c7e, type: 3}
+    model: {fileID: 0}
+    pose: {fileID: 0}
     poseTime: 0
     loop: 0
     turn: 0

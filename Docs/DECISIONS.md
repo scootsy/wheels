@@ -296,6 +296,23 @@ This log records decisions that affect rules, player experience, architecture, s
   - **Not included:** App Store / TestFlight distribution, touch controls, and a macOS build. Each waits for its own go-ahead.
 - **Files updated:** `Docs/TOOLING.md`, `Docs/IMPLEMENTATION_STATUS.md`, `Docs/MATCH_UX_SPEC.md` (section 5 screen shapes)
 
+### D-030: Shelved people models, build-all, published test builds (creative director, 2026-09-25)
+
+- **Date:** 2026-09-25
+- **Status:** Accepted (explicit creative-director instruction)
+- **Instruction:** "could you upload the builds? id lkke them in the repo. also, im curious if you can manage all the different buolds at the same rime? ... also, last thing... fhe models we jsed are a little goonery. any chance we could keep them in there, bur like switch back to the origials? even if its just temporary. like commentinf somethjng out. ... i dont want to hse those models in the build im sending out to testers"
+- **Decisions:**
+  - **Shelving models:** `ArtShelf` (Tabletop → Art → Shelve / Restore) moves model assignments between `WorldArt.asset` and an editor-only shelf asset. A shelved model has no reference from the game, so Unity leaves it out of builds.
+    - The two imported people (Wren, Mira Tallow) are shelved. The imported buildings stay; they were not the concern. They can be shelved the same way.
+    - Every build reports how many imported model files it contains, so this is checked, not assumed.
+  - **Builds go to GitHub Releases, not Git history:**
+    - `AGENTS.md` keeps build output out of Git.
+    - Each Windows + iOS pair is about 0.5 GB, so committing builds through Git LFS would use up GitHub's free LFS allowance in a couple of builds, and every old build would stay in history.
+    - A Release attaches the zips to a tagged commit on the repo's Releases page instead. The repo stays small and each build is downloadable from GitHub.
+    - The process: `Tabletop → Build → All (Windows + iOS)`, then `bash Tools/publish_builds.sh "note"`. It refuses to publish uncommitted work.
+  - **Several platforms:** building both targets is one command (about 3 minutes), so there is no cost to keeping them in step. Windows remains the everyday verification target. iOS is rebuilt whenever a build is published.
+- **Files updated:** `Docs/ART_WORKFLOW.md`, `Docs/IMPLEMENTATION_STATUS.md`
+
 ## Open decisions
 
 The rules-level open questions and temporary prototype behaviors are maintained in `RULES_SPEC.md` Section 15. They do not block M0 or M1.
