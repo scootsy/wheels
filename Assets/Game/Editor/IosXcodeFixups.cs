@@ -1,8 +1,7 @@
-#if UNITY_IOS
 using System.IO;
+using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEditor.Callbacks;
-using UnityEditor.iOS.Xcode;
 
 namespace Tabletop.EditorTools
 {
@@ -12,31 +11,32 @@ namespace Tabletop.EditorTools
     ///   executable ("Sandbox: mkdir/chmod deny").
     /// - Module verification rejects UnityFramework's umbrella header ("umbrella header does not include",
     ///   "expected a type", "could not build module").
-    /// Both are turned off on every target of the generated project.
+    /// Both are turned off in every build configuration of the generated project.
+    /// Deliberately not behind #if UNITY_IOS and not using the iOS-only PBXProject API: the iOS build runs while
+    /// the editor is still compiled for Windows, where such code would be missing and the fix silently skipped.
     /// </summary>
     public static class IosXcodeFixups
     {
+        public static readonly string[] Settings = { "ENABLE_USER_SCRIPT_SANDBOXING", "ENABLE_MODULE_VERIFIER" };
+
         [PostProcessBuild(1000)]
         public static void OnPostprocessBuild(BuildTarget target, string path)
         {
             if (target != BuildTarget.iOS) return;
-            string projPath = PBXProject.GetPBXProjectPath(path);
-            var proj = new PBXProject();
-            proj.ReadFromFile(projPath);
-            foreach (var guid in new[]
-                     {
-                         proj.ProjectGuid(),
-                         proj.GetUnityMainTargetGuid(),
-                         proj.GetUnityFrameworkTargetGuid(),
-                         proj.TargetGuidByName("GameAssembly"),
-                     })
+            string projPath = Path.Combine(path, "Unity-iPhone.xcodeproj", "project.pbxproj");
+            File.WriteAllText(projPath, Apply(File.ReadAllText(projPath)));
+        }
+
+        /// <summary>Removes any existing value of each setting, then sets it to NO in every buildSettings block.</summary>
+        public static string Apply(string pbxproj)
+        {
+            string insert = "";
+            foreach (var key in Settings)
             {
-                if (string.IsNullOrEmpty(guid)) continue;
-                proj.SetBuildProperty(guid, "ENABLE_USER_SCRIPT_SANDBOXING", "NO");
-                proj.SetBuildProperty(guid, "ENABLE_MODULE_VERIFIER", "NO");
+                pbxproj = Regex.Replace(pbxproj, @"^[ \t]*" + key + @"[ \t]*=[^;]*;[ \t]*\r?\n", "", RegexOptions.Multiline);
+                insert += "\n\t\t\t\t" + key + " = NO;";
             }
-            File.WriteAllText(projPath, proj.WriteToString());
+            return Regex.Replace(pbxproj, @"buildSettings = \{", m => m.Value + insert);
         }
     }
 }
-#endif

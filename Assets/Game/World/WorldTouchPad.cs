@@ -16,7 +16,7 @@ namespace Tabletop.World
         public readonly GameObject Root;
 
         /// <summary>True on phones/tablets, or anywhere a touchscreen is attached.</summary>
-        public static bool Wanted => Application.isMobilePlatform || Touchscreen.current != null;
+        public static bool Wanted => UnityEngine.Application.isMobilePlatform || Touchscreen.current != null;
 
         public WorldTouchPad(Transform frame)
         {

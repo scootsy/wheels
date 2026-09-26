@@ -8,7 +8,8 @@
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
         "Tabletop.World",
-        "Tabletop.Presentation"
+        "Tabletop.Presentation",
+        "Tabletop.Editor"
     ],
     "includePlatforms": [
         "Editor"

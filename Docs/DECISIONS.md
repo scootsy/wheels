@@ -336,6 +336,10 @@ This log records decisions that affect rules, player experience, architecture, s
 - **Decision:**
   - The Xcode build failed on Xcode 27 beta for two reasons: user script sandboxing blocked Unity's IL2CPP build script (`Sandbox: mkdir/chmod deny`), and module verification rejected UnityFramework's headers (`umbrella header ... does not include`, `expected a type`). `Assets/Game/Editor/IosXcodeFixups.cs` sets `ENABLE_USER_SCRIPT_SANDBOXING = NO` and `ENABLE_MODULE_VERIFIER = NO` on the generated project after every iOS build.
   - `Assets/Game/World/WorldTouchPad.cs` adds an on-screen stick (bottom-left) and A / RUN / VIEW / MENU buttons (bottom-right) in the world when a touchscreen is present. They use the Input System's `OnScreenStick`/`OnScreenButton`, which press a virtual gamepad, so the existing gamepad bindings drive Move, Interact/Jump, Sprint, ToggleView and Pause. No gameplay code reads touch directly. The pad hides during dialogue, menus, the deck and at the table.
+- **Verified on Windows before publishing (2026-09-26):**
+  - The first version compiled on nothing: `Application.isMobilePlatform` resolved to the project's `Tabletop.Application` namespace. It is now `UnityEngine.Application`.
+  - The first Xcode fix sat behind `#if UNITY_IOS` and used the iOS-only `PBXProject` API. `BuildIOS` runs while the editor is still compiled for Windows, so it would have been skipped silently. It now edits `project.pbxproj` as text, with no platform switch, and is covered by `IosXcodeFixupsTests`. The published Xcode project was checked: all 20 build configurations have both settings set to `NO`.
+  - The pad was forced on in Play Mode: dragging the stick walked the player north. Screenshot: `Docs/Screenshots/World/touchpad.png`.
 - **Limits:** no touch camera look in first-person view (use VIEW to return to the overhead camera). The match table already works by tapping. Placeholder look only.
 - **Files updated:** `Docs/IMPLEMENTATION_STATUS.md`
 
