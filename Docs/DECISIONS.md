@@ -313,6 +313,22 @@ This log records decisions that affect rules, player experience, architecture, s
   - **Several platforms:** building both targets is one command (about 3 minutes), so there is no cost to keeping them in step. Windows remains the everyday verification target. iOS is rebuilt whenever a build is published.
 - **Files updated:** `Docs/ART_WORKFLOW.md`, `Docs/IMPLEMENTATION_STATUS.md`
 
+### D-031: History rewrite to erase the excluded models' textures (creative director, 2026-09-25)
+
+- **Date:** 2026-09-25
+- **Status:** Accepted (explicit creative-director approval: "yes go agead and do the hsotory rewrite and erase those textures")
+- **Decision:**
+  - `main` was rewritten with `git filter-branch` to remove the 22 unpacked texture and material files of the four excluded models from every commit. The model files themselves had never been committed.
+  - The rewrite was force-pushed with a lease on the old tip. The project's current files are unchanged (same tree). Every commit hash from D-026 onward changed.
+  - The test-build release was deleted and republished on the new commit, so no tag keeps the old commits reachable.
+  - Locally the old history, reflog and LFS copies were purged. A backup bundle of the pre-rewrite history is kept outside the project (`../wheels-history-backup-2026-09-25.bundle`; it holds Git history only, not the LFS texture files).
+- **Limits:**
+  - GitHub keeps LFS objects that were ever uploaded until the repository is deleted or GitHub Support removes them.
+  - GitHub may also keep the orphaned commits reachable by their old hash for a while.
+  - Nothing in the repository's history or on its pages references them any more.
+  - Any other clone must be re-cloned.
+- **Files updated:** `Docs/IMPLEMENTATION_STATUS.md`
+
 ## Open decisions
 
 The rules-level open questions and temporary prototype behaviors are maintained in `RULES_SPEC.md` Section 15. They do not block M0 or M1.

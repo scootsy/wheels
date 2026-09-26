@@ -226,8 +226,8 @@ Console/build: Windows build 0 errors / 0 warnings; self-check world 1245 render
   0 unsupported shaders, attack captured, PLAYER PROBLEMS: none.
 Screenshots/build path: Docs/Screenshots/Table/, Docs/Screenshots/World/; Builds/Windows/TabletopReels.exe
 Known defects: the enemy crown's back spike clips the top corner of enemy reel 3's window (the face stays
-  readable); table figures are still primitive miniatures; commit ff17d5c still holds the excluded models'
-  unpacked textures in Git history (removal needs a history rewrite, awaiting approval).
+  readable); table figures are still primitive miniatures. (Excluded models' textures erased from Git
+  history on 2026-09-25, D-031.)
 Gate status: PLAYTEST STOP ACTIVE (waiting for the creative director).
 ```
 
