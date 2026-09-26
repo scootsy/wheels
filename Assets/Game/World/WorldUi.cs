@@ -56,6 +56,7 @@ namespace Tabletop.World
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1920, 1080);
             scaler.matchWidthOrHeight = 1f;
+            canvasGo.AddComponent<FrameFitter>();
             canvasGo.AddComponent<GraphicRaycaster>();
             var root = Ui.Rect("Frame", canvasGo.transform);
             root.anchorMin = root.anchorMax = new Vector2(0.5f, 0.5f);

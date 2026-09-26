@@ -63,6 +63,7 @@ namespace Tabletop.Presentation
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1920, 1080);
             scaler.matchWidthOrHeight = 1f;
+            go.AddComponent<FrameFitter>();
             go.AddComponent<GraphicRaycaster>();
 
             // Frame: a centered 1920x1080 area; wider/taller screens get decorative margins.

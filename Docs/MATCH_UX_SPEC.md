@@ -232,6 +232,8 @@ Developer mode MAY add `REPLAY SAME SEED`. Normal rematch MUST use a new seed so
 
 The first playable targets a 16:9 landscape viewport. Design at 1920×1080 reference resolution and verify down to 1280×720. Wider or taller displays should expand decorative margins; the functional board preserves aspect ratio and safe-area placement.
 
+**As built (D-029):** the 1920×1080 interface frame is always fully visible. At 16:9 and wider (PC, iPhone) it scales by height and gets side margins. On narrower screens (iPad 4:3) it scales by width and gets margins above and below. The table camera widens its vertical field of view below 16:9 so the whole table, including the lever and the round dial, stays in view.
+
 ```text
 OPPONENT REELS
 OPPONENT A UNIT      OPPONENT CROWN      OPPONENT B UNIT

@@ -3,7 +3,7 @@
 ## Required local stack
 
 - Unity Hub;
-- Unity 6000.5.9f1 editor with Windows Build Support (D-010);
+- Unity 6000.5.9f1 editor with Windows Build Support (D-010) and iOS Build Support (D-029, for iPhone/iPad test builds; finished on a Mac with Xcode);
 - Git available on `PATH`;
 - Git LFS;
 - GitHub CLI (`gh`) authenticated for the `scootsy/wheels` remote;

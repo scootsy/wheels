@@ -54,13 +54,28 @@ namespace Tabletop.Presentation
         /// <summary>Where a piece stands when it attacks: out along its groove toward the middle of the table.</summary>
         public static Vector3 AttackPos(int side, int slot) => Vector3.Lerp(UnitPos(side, slot), new Vector3(slot == 0 ? -1.9f : 1.9f, 0, side == 0 ? -0.55f : 0.55f), 0.72f);
 
+        public const float BaseFieldOfView = 30f;
+
+        /// <summary>
+        /// Vertical field of view that keeps the whole table in view (D-029): 30 degrees at 16:9 and wider; on
+        /// narrower screens (iPad 4:3) it opens up so the horizontal view never shrinks and the lever and round
+        /// dial stay on screen.
+        /// </summary>
+        public static float FieldOfViewFor(float aspect)
+        {
+            const float frame = 16f / 9f;
+            if (aspect <= 0f || aspect >= frame) return BaseFieldOfView;
+            float half = Mathf.Atan(Mathf.Tan(BaseFieldOfView * 0.5f * Mathf.Deg2Rad) * frame / aspect);
+            return 2f * half * Mathf.Rad2Deg;
+        }
+
         /// <summary>Frames the whole table on a full-screen camera (also used by the editor preview).</summary>
         public static void ConfigureCamera(Camera cam)
         {
             cam.rect = new Rect(0, 0, 1, 1);
             cam.clearFlags = CameraClearFlags.SolidColor;
             cam.backgroundColor = new Color(0.09f, 0.035f, 0.025f);
-            cam.fieldOfView = 30f;
+            cam.fieldOfView = FieldOfViewFor(cam.aspect);
             cam.transform.position = new Vector3(0, 20.6f, -9.6f);
             cam.transform.LookAt(new Vector3(0, 0, -0.25f));
         }

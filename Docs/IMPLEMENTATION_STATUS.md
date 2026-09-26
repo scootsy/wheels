@@ -21,6 +21,14 @@
 
 **Fastest:** double-click `Builds/Windows/TabletopReels.exe` (Windows development build; not committed to Git, rebuild with **Tabletop → Build → Windows x64 Development Build**). It opens in the world: see `WORLD_SPEC.md` for places, opponents, and world controls (walk WASD/arrows/left stick, talk E/A, menu Esc/Start). The table below is for the match itself.
 
+**iPhone / iPad (test builds, D-029):** in Unity choose **Tabletop → Build → iOS Xcode Project (iPhone + iPad)**. It writes `Builds/TabletopReels-iOS-Xcode.zip`. On a Mac:
+1. Unzip it and open `TabletopReels/Unity-iPhone.xcodeproj` in Xcode.
+2. Select the **Unity-iPhone** target, then **Signing & Capabilities**, and choose your Apple ID team. If Xcode says the bundle id is taken, change it (e.g. add your initials).
+3. Connect the iPhone/iPad, trust the computer, turn on **Developer Mode** (Settings → Privacy & Security), then press **Run**.
+4. With a free Apple ID, the app expires after 7 days; re-run from Xcode to refresh it.
+
+There are no touch controls yet: tap works for menus, reels, pieces and the lever. Use a Bluetooth controller or keyboard to walk the world, skip steps or speed up.
+
 **In Unity:** open `Assets/Game/Scenes/World.unity` (the journey) or `Assets/Game/Scenes/MatchPrototype.unity` (practice table) and press Play.
 
 Flow: setup (see the opponent) → choose two units (Striker, Caster) for slots A/left and B/right → each round spin up to three times, locking reels you want to keep → the opponent spins → both sides are revealed → the round resolves step by step → repeat until a Crown breaks → Victory / Defeat / Tie → Rematch, Change Units, Copy Replay, or Exit.

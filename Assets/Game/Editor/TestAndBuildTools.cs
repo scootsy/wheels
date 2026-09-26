@@ -124,5 +124,59 @@ namespace Tabletop.EditorTools
             File.WriteAllText(Path.Combine("Logs", "BuildResult.txt"), line + "\n");
             if (summary.result == BuildResult.Succeeded) Debug.Log(line); else Debug.LogError(line);
         }
+
+        public const string IosProjectPath = "Builds/iOS/TabletopReels";
+        public const string IosZipPath = "Builds/TabletopReels-iOS-Xcode.zip";
+        public const string IosBundleId = "com.scootsy.tabletopreels";
+
+        /// <summary>
+        /// iPhone / iPad development build (D-029): Unity on Windows writes an Xcode project, which is finished,
+        /// signed and installed on a Mac with Xcode. Needs the iOS Build Support module. The editor is switched
+        /// back to Windows afterwards so tests and the Windows build are unaffected.
+        /// </summary>
+        [MenuItem("Tabletop/Build/iOS Xcode Project (iPhone + iPad)")]
+        public static void BuildIOS()
+        {
+            PlayerSettings.SetApplicationIdentifier(UnityEditor.Build.NamedBuildTarget.iOS, IosBundleId);
+            PlayerSettings.iOS.targetDevice = iOSTargetDevice.iPhoneAndiPad;
+            PlayerSettings.iOS.targetOSVersionString = "15.0";
+            PlayerSettings.iOS.requiresFullScreen = true;
+            PlayerSettings.iOS.appleEnableAutomaticSigning = true; // pick your team in Xcode > Signing & Capabilities
+            // The table is a landscape game.
+            PlayerSettings.defaultInterfaceOrientation = UIOrientation.AutoRotation;
+            PlayerSettings.allowedAutorotateToLandscapeLeft = true;
+            PlayerSettings.allowedAutorotateToLandscapeRight = true;
+            PlayerSettings.allowedAutorotateToPortrait = false;
+            PlayerSettings.allowedAutorotateToPortraitUpsideDown = false;
+
+            if (Directory.Exists(IosProjectPath)) Directory.Delete(IosProjectPath, true);
+            Directory.CreateDirectory(IosProjectPath);
+            var options = new BuildPlayerOptions
+            {
+                scenes = new[] { WorldSceneSetup.WorldScenePath, ProjectSetup.ScenePath },
+                locationPathName = IosProjectPath,
+                target = BuildTarget.iOS,
+                options = BuildOptions.Development,
+            };
+            BuildSummary summary;
+            try
+            {
+                summary = BuildPipeline.BuildPlayer(options).summary;
+            }
+            finally
+            {
+                EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Standalone, BuildTarget.StandaloneWindows64);
+            }
+            string line = "[Tabletop] iOS build " + summary.result + ": " + summary.outputPath + " errors=" + summary.totalErrors
+                + " warnings=" + summary.totalWarnings + " time=" + summary.totalTime;
+            if (summary.result == BuildResult.Succeeded)
+            {
+                if (File.Exists(IosZipPath)) File.Delete(IosZipPath);
+                System.IO.Compression.ZipFile.CreateFromDirectory(IosProjectPath, IosZipPath, System.IO.Compression.CompressionLevel.Optimal, true);
+                line += " zip=" + IosZipPath + " (" + new FileInfo(IosZipPath).Length / (1024 * 1024) + " MB)";
+            }
+            File.WriteAllText(Path.Combine("Logs", "BuildResult-iOS.txt"), line + "\n");
+            if (summary.result == BuildResult.Succeeded) Debug.Log(line); else Debug.LogError(line);
+        }
     }
 }

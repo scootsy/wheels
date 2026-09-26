@@ -32,8 +32,8 @@ namespace Tabletop.EditorTools
                 camGo.transform.SetParent(root.transform, false);
                 var cam = camGo.AddComponent<Camera>();
                 cam.scene = scene;
+                cam.targetTexture = rt; // first, so the camera frames the table for this image's shape
                 MechanicalTable.ConfigureCamera(cam);
-                cam.targetTexture = rt;
                 var lightGo = new GameObject("Sun");
                 lightGo.transform.SetParent(root.transform, false);
                 lightGo.transform.rotation = Quaternion.Euler(55, -30, 0);

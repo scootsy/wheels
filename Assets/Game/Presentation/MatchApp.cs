@@ -193,6 +193,7 @@ namespace Tabletop.Presentation
                 _lastRenderedState = Session.State;
                 ShowScreenFor(Session.State);
             }
+            if (boardCamera != null) boardCamera.fieldOfView = MechanicalTable.FieldOfViewFor(boardCamera.aspect);
             RenderBoard();
             RenderSetupAndSelect();
             EnsureFocus();
