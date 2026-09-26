@@ -329,6 +329,16 @@ This log records decisions that affect rules, player experience, architecture, s
   - Any other clone must be re-cloned.
 - **Files updated:** `Docs/IMPLEMENTATION_STATUS.md`
 
+### D-032: iOS Xcode build fix and stop-gap touch pad (creative director, 2026-09-26)
+
+- **Date:** 2026-09-26
+- **Status:** Accepted (creative director asked to fix the failing iPhone build and add "a little virtual joystick button pad" without full touch controls)
+- **Decision:**
+  - The Xcode build failed on Xcode 27 beta for two reasons: user script sandboxing blocked Unity's IL2CPP build script (`Sandbox: mkdir/chmod deny`), and module verification rejected UnityFramework's headers (`umbrella header ... does not include`, `expected a type`). `Assets/Game/Editor/IosXcodeFixups.cs` sets `ENABLE_USER_SCRIPT_SANDBOXING = NO` and `ENABLE_MODULE_VERIFIER = NO` on the generated project after every iOS build.
+  - `Assets/Game/World/WorldTouchPad.cs` adds an on-screen stick (bottom-left) and A / RUN / VIEW / MENU buttons (bottom-right) in the world when a touchscreen is present. They use the Input System's `OnScreenStick`/`OnScreenButton`, which press a virtual gamepad, so the existing gamepad bindings drive Move, Interact/Jump, Sprint, ToggleView and Pause. No gameplay code reads touch directly. The pad hides during dialogue, menus, the deck and at the table.
+- **Limits:** no touch camera look in first-person view (use VIEW to return to the overhead camera). The match table already works by tapping. Placeholder look only.
+- **Files updated:** `Docs/IMPLEMENTATION_STATUS.md`
+
 ## Open decisions
 
 The rules-level open questions and temporary prototype behaviors are maintained in `RULES_SPEC.md` Section 15. They do not block M0 or M1.
