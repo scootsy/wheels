@@ -22,7 +22,7 @@ namespace Tabletop.World
         private readonly Text _area;
         private readonly CanvasGroup _areaGroup;
         private readonly Text _hud;
-        private readonly Text _controls;
+        private string _controls = "";
         private readonly Text _speaker;
         private readonly Text _line;
         private readonly Image _portrait;
@@ -63,17 +63,7 @@ namespace Tabletop.World
             root.sizeDelta = new Vector2(1920, 1080);
             Frame = root;
 
-            // HUD
-            var hudBg = Ui.Card("HudBg", root, new Color(0.09f, 0.05f, 0.035f, 0.86f), true);
-            hudBg.rectTransform.Place(20, 20, 520, 86);
-            hudBg.raycastTarget = false;
-            _hud = Ui.Label("Hud", hudBg.transform, "", 24, TextAnchor.MiddleLeft, Theme.Text, FontStyle.Bold);
-            _hud.rectTransform.Fill(14);
-            var ctlBg = Ui.Card("ControlsBg", root, new Color(0.09f, 0.05f, 0.035f, 0.86f), true);
-            ctlBg.rectTransform.Place(1300, 20, 600, 112);
-            ctlBg.raycastTarget = false;
-            _controls = Ui.Label("Controls", ctlBg.transform, "", 21, TextAnchor.MiddleLeft, Theme.TextDim);
-            _controls.rectTransform.Fill(12);
+            // No always-on HUD: where you are, coins, wins and the controls live in the pause menu (D-037).
 
             // Area title
             var area = Ui.Rect("AreaTitle", root);
@@ -125,6 +115,8 @@ namespace Tabletop.World
             var pbox = Ui.Panel("Box", Pause.transform, Theme.Panel);
             pbox.rectTransform.Place(560, 90, 800, 900);
             Ui.Label("Title", pbox.transform, "PAUSED", 48, TextAnchor.UpperCenter, Theme.Text, FontStyle.Bold).rectTransform.Place(0, 20, 800, 60);
+            _hud = Ui.Label("Status", pbox.transform, "", 24, TextAnchor.UpperCenter, Theme.Gilt, FontStyle.Bold);
+            _hud.rectTransform.Place(20, 78, 760, 64);
             PauseResume = Ui.Button("Resume", pbox.transform, "RESUME", null, 26, Theme.ButtonPrimary);
             PauseJournal = Ui.Button("Journal", pbox.transform, "ERRANDS AND SATCHEL", null, 26);
             PauseDeck = Ui.Button("Deck", pbox.transform, "YOUR DECK", null, 26);
@@ -134,9 +126,9 @@ namespace Tabletop.World
             PausePractice = Ui.Button("Practice", pbox.transform, "PRACTICE TABLE", null, 26);
             PauseQuit = Ui.Button("Quit", pbox.transform, "SAVE AND QUIT", null, 26);
             var pauseButtons = new[] { PauseResume, PauseJournal, PauseDeck, PauseView, PauseSound, PauseHelp, PausePractice, PauseQuit };
-            for (int i = 0; i < pauseButtons.Length; i++) ((RectTransform)pauseButtons[i].transform).Place(200, 90 + i * 62, 400, 54);
+            for (int i = 0; i < pauseButtons.Length; i++) ((RectTransform)pauseButtons[i].transform).Place(200, 150 + i * 60, 400, 52);
             _pauseText = Ui.Label("HelpText", pbox.transform, "", 21, TextAnchor.UpperLeft, Theme.Text);
-            _pauseText.rectTransform.Place(40, 598, 720, 290);
+            _pauseText.rectTransform.Place(40, 638, 720, 250);
             Link(pauseButtons);
             Pause.SetActive(false);
 
@@ -205,8 +197,12 @@ namespace Tabletop.World
         }
 
         public void HideArea() => _areaTimer = 0;
+        /// <summary>Where you are, coins and wins, shown at the top of the pause menu.</summary>
         public void SetHud(string text) => _hud.text = text;
-        public void SetControls(string text) => _controls.text = text;
+        public string HudText => _hud.text;
+        /// <summary>The short controls list the pause menu shows until HOW TO PLAY is chosen.</summary>
+        public void SetControls(string text) => _controls = text ?? "";
+        public string ControlsText => _controls;
         public void SetPauseText(string text) => _pauseText.text = text;
 
         public void Tick(float dt)

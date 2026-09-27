@@ -62,6 +62,8 @@ namespace Tabletop.World
         public bool Busy => DialogueOpen || Ui.Pause.activeSelf || Ui.Title.activeSelf || _fading || (_deck != null && _deck.IsOpen) || (_list != null && _list.IsOpen);
         public bool FirstPerson => GameFlow.FirstPersonView;
         public DeckView Deck => _deck;
+        /// <summary>The on-screen stick and buttons; null where there is no touchscreen.</summary>
+        public WorldTouchPad TouchPad => _touchPad;
         public ListOverlay List => _list;
         public Camera WorldCamera => worldCamera;
         public string CurrentArea { get; private set; }
@@ -396,7 +398,8 @@ namespace Tabletop.World
                 Footsteps(dt);
             }
             else if (_seatedAt == null) Player.Rig?.SetMove(0f, false);
-            _touchPad?.SetVisible(!Busy && _seatedAt == null);
+            // A connected controller replaces the on-screen pad (D-037).
+            _touchPad?.SetVisible(!Busy && _seatedAt == null && !_touchPad.RealGamepadConnected);
             UpdateCamera(dt);
             _kit.FaceCamera(worldCamera);
             Ui.Tick(dt);
@@ -649,7 +652,7 @@ namespace Tabletop.World
         {
             _returnFocus = eventSystem.currentSelectedGameObject;
             Ui.Pause.SetActive(true);
-            Ui.SetPauseText(showHelp ? HelpText() : "");
+            Ui.SetPauseText(showHelp ? HelpText() : Ui.ControlsText);
             Select(Ui.PauseResume);
         }
 

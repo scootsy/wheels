@@ -49,6 +49,18 @@ namespace Tabletop.Presentation
     /// <summary>Factory for the code-built uGUI. Uses the UI kit sprites (rounded panels, key caps) when available.</summary>
     public static class Ui
     {
+        /// <summary>
+        /// Phones and tablets: no pop-up developer console over the game (D-037). On a touchscreen it covers the
+        /// bottom buttons and is hard to close. Errors still reach the Xcode / device log.
+        /// </summary>
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        private static void HideDeveloperConsoleOnMobile()
+        {
+            if (!UnityEngine.Application.isMobilePlatform) return;
+            Debug.developerConsoleEnabled = false;
+            Debug.developerConsoleVisible = false;
+        }
+
         /// <summary>The icon set carrying the UI kit sprites; set once by the scene's composition root.</summary>
         public static IconSet Kit { get; set; }
 

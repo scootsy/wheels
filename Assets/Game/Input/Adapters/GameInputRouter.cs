@@ -146,7 +146,8 @@ namespace Tabletop.Input
         {
             var device = ctx.control?.device;
             if (device == null) return;
-            var scheme = device is Gamepad ? ControlScheme.Gamepad : ControlScheme.KeyboardMouse;
+            // Touch shows gamepad names: the on-screen pad's buttons are labelled like a gamepad's (D-037).
+            var scheme = device is Gamepad || device is Touchscreen || device is Pen ? ControlScheme.Gamepad : ControlScheme.KeyboardMouse;
             if (scheme == ActiveScheme) return;
             ActiveScheme = scheme;
             SchemeChanged?.Invoke(scheme);

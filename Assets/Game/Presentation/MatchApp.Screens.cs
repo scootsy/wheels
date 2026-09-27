@@ -46,6 +46,7 @@ namespace Tabletop.Presentation
         public GameObject ConfirmOverlay => _confirmOverlay;
         public Button SetupContinueButton => _setupContinue;
         public Button ConfirmUnitsButton => _confirm;
+        public Button SelectBackButton => _selectBack;
         public IReadOnlyList<Button> UnitCardButtons => _cardButtons;
         public Button ResultRematchButton => _resultRematch;
         public Button ResultChangeUnitsButton => _resultChange;
@@ -255,6 +256,7 @@ namespace Tabletop.Presentation
                 _slotB.SetText("<B> SLOT B / RIGHT:  " + (sel.Slots[1] != null ? Catalog.Unit(sel.Slots[1]).DisplayName : "(empty)") + (sel.Slots[1] != null ? "   - press to clear" : ""));
                 _confirm.interactable = sel.IsComplete && sel.Validate() == null;
                 _confirm.SetText(_confirm.interactable ? "CONFIRM AND START" : "CONFIRM (choose two figurines)");
+                LinkBottomRow();
                 _selectStatus.text = Session.LastRejection != null ? Session.LastStatus : sel.LastMessage;
             }
         }
@@ -367,10 +369,23 @@ namespace Tabletop.Presentation
             }
             SetNav(_slotA, up: putButtons[0], right: _slotB, down: _swap);
             SetNav(_slotB, up: putButtons[putButtons.Count - 1], left: _slotA, down: _confirm);
-            SetNav(_swap, up: _slotA, right: _confirm);
-            SetNav(_confirm, up: _slotB, left: _swap, right: _selectBack);
-            SetNav(_selectBack, up: _slotB, left: _confirm);
+            LinkBottomRow();
             ApplyUiScale(Settings.UiScale);
+        }
+
+        /// <summary>
+        /// SWAP, CONFIRM, BACK. A greyed-out CONFIRM cannot hold focus, so the controller path steps over it to BACK
+        /// (D-037); otherwise BACK / LEAVE TABLE could never be reached with a controller.
+        /// </summary>
+        private void LinkBottomRow()
+        {
+            bool canConfirm = _confirm.interactable;
+            var slotBNav = _slotB.navigation;
+            slotBNav.selectOnDown = canConfirm ? (Selectable)_confirm : _selectBack;
+            _slotB.navigation = slotBNav;
+            SetNav(_swap, up: _slotA, right: canConfirm ? (Selectable)_confirm : _selectBack);
+            SetNav(_confirm, up: _slotB, left: _swap, right: _selectBack);
+            SetNav(_selectBack, up: _slotB, left: canConfirm ? (Selectable)_confirm : _swap);
         }
 
         // ------------------------------------------------------------------ overlays

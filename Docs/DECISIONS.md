@@ -390,6 +390,25 @@ This log records decisions that affect rules, player experience, architecture, s
 - **Verification limit:** this Windows machine cannot run Xcode or codesign, so the fix is checked in the generated `project.pbxproj` only; the next Mac build confirms it.
 - **Files updated:** `Assets/Game/Editor/IosXcodeFixups.cs`, `Docs/IMPLEMENTATION_STATUS.md`
 
+### D-037: Touch that works on iPhone, a pad that gives way to a controller, no corner panels (creative director, 2026-09-27)
+
+- **Date:** 2026-09-27
+- **Status:** Accepted (creative director played the first iPhone build that installed and reported: the on-screen pad did nothing and stayed up with a controller connected; the bottom-middle and bottom-right buttons on the piece-selection screen could not be selected, so no match could start; error pop-ups were hard to dismiss; the always-on info panels in the top corners should move to menus)
+- **Findings:**
+  - The UI's `Point` and `Click` actions were bound to the mouse only. A phone has no mouse, so no tap reached any button, and the on-screen stick and buttons (which work through taps) were decoration. D-032's claim that tapping worked had only been checked in the editor, where a mouse is always present.
+  - On the piece-selection screen a greyed-out CONFIRM cannot hold controller focus, and BACK / LEAVE TABLE could only be reached through CONFIRM. With fewer than two pieces chosen, a controller could reach neither.
+  - Development builds show Unity's pop-up developer console when anything logs an error; on a phone it covers the bottom of the screen and its close control is tiny.
+- **Decision:**
+  - `GameInput.inputactions` gains a `Touch` control scheme and binds UI `Point`/`Click` to `<Touchscreen>/touch*/position` / `<Touchscreen>/touch*/press` (and a pen's position/tip). Several fingers are tracked separately, so the stick and a button can be held together. Touch shows gamepad prompt names, which match the pad's A / RUN / VIEW / MENU labels.
+  - The on-screen pad hides whenever a real controller is connected and returns when it is disconnected. The pad's own virtual gamepad does not count.
+  - The piece-selection bottom row links around a greyed-out CONFIRM, so BACK is always reachable. CONFIRM stays disabled until two pieces are chosen, as `MATCH_UX_SPEC.md` requires.
+  - The top-left (place, coins, wins) and top-right (controls) panels are gone from the world screen. The pause menu shows the place, coins and wins under PAUSED and the controls list below the buttons; HOW TO PLAY still shows the full help. The title screen keeps its controls line, and the area name still fades in when you enter a place.
+  - On phones and tablets the pop-up developer console is switched off (`Debug.developerConsoleEnabled = false`); errors still go to the Xcode / device log.
+- **Verified in the editor (2026-09-27):** new `TouchDeviceTests` run with a touchscreen only (no mouse or keyboard): tapping BEGIN, dragging the stick to walk, the pad hiding for a connected controller and returning, the MENU button opening the pause menu with place/coins/controls, and choosing two pieces, confirming and spinning by taps alone. A controller-only test reaches BACK while CONFIRM is greyed and then starts a match. The iPhone itself can only be checked by the creative director.
+- **Screenshots:** `Docs/Screenshots/World/pause_menu.png`, `Docs/Screenshots/World/world_1_hearthmoor_no_corner_panels.png` (Windows build self-check).
+- **Not changed:** no touch camera-look in first-person view yet (use VIEW for the overhead camera).
+- **Files updated:** `Docs/TECHNICAL_ARCHITECTURE.md`, `Docs/IMPLEMENTATION_STATUS.md`, `Docs/WORLD_SPEC.md`
+
 ## Open decisions
 
 The rules-level open questions and temporary prototype behaviors are maintained in `RULES_SPEC.md` Section 15. They do not block M0 or M1.

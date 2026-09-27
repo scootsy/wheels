@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Tabletop.Presentation;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -14,6 +15,11 @@ namespace Tabletop.World
     public sealed class WorldTouchPad
     {
         public readonly GameObject Root;
+        private readonly List<OnScreenControl> _controls = new List<OnScreenControl>();
+
+        /// <summary>The stick's knob, for tests that drag it.</summary>
+        public RectTransform StickKnob => (RectTransform)_controls[0].transform;
+        public bool Visible => Root.activeSelf;
 
         /// <summary>True on phones/tablets, or anywhere a touchscreen is attached.</summary>
         public static bool Wanted => UnityEngine.Application.isMobilePlatform || Touchscreen.current != null;
@@ -32,13 +38,33 @@ namespace Tabletop.World
             knob.rectTransform.anchorMin = knob.rectTransform.anchorMax = knob.rectTransform.pivot = new Vector2(0.5f, 0.5f);
             knob.rectTransform.anchoredPosition = Vector2.zero;
             knob.rectTransform.sizeDelta = new Vector2(150, 150);
-            AddControl<OnScreenStick>(knob.gameObject, "<Gamepad>/leftStick", s => s.movementRange = 110);
+            _controls.Add(AddControl<OnScreenStick>(knob.gameObject, "<Gamepad>/leftStick", s => s.movementRange = 110));
 
             // Buttons, bottom-right. A = talk / jump / confirm, like the gamepad.
-            PadButton(root, "A", "<Gamepad>/buttonSouth", 1640, 780, 200, Theme.ButtonPrimary);
-            PadButton(root, "RUN", "<Gamepad>/leftTrigger", 1440, 860, 150, Theme.Button);
-            PadButton(root, "VIEW", "<Gamepad>/buttonNorth", 1690, 600, 150, Theme.Button);
-            PadButton(root, "MENU", "<Gamepad>/start", 1760, 150, 130, Theme.Button);
+            _controls.Add(PadButton(root, "A", "<Gamepad>/buttonSouth", 1640, 780, 200, Theme.ButtonPrimary));
+            _controls.Add(PadButton(root, "RUN", "<Gamepad>/leftTrigger", 1440, 860, 150, Theme.Button));
+            _controls.Add(PadButton(root, "VIEW", "<Gamepad>/buttonNorth", 1690, 600, 150, Theme.Button));
+            _controls.Add(PadButton(root, "MENU", "<Gamepad>/start", 1760, 150, 130, Theme.Button));
+        }
+
+        /// <summary>
+        /// True when a real controller is connected. The pad's own buttons press a virtual gamepad, which must not
+        /// count, or the pad would hide itself as soon as it appeared.
+        /// </summary>
+        public bool RealGamepadConnected
+        {
+            get
+            {
+                foreach (var device in InputSystem.devices)
+                {
+                    if (!(device is Gamepad) || !device.added) continue;
+                    bool ours = false;
+                    foreach (var c in _controls)
+                        if (c != null && c.control != null && c.control.device == device) { ours = true; break; }
+                    if (!ours) return true;
+                }
+                return false;
+            }
         }
 
         public void SetVisible(bool visible)
@@ -46,13 +72,13 @@ namespace Tabletop.World
             if (Root.activeSelf != visible) Root.SetActive(visible);
         }
 
-        private static void PadButton(RectTransform parent, string label, string path, float x, float y, float size, Color color)
+        private static OnScreenControl PadButton(RectTransform parent, string label, string path, float x, float y, float size, Color color)
         {
             var img = Circle("Pad" + label, parent, new Color(color.r, color.g, color.b, 0.8f));
             img.rectTransform.Place(x, y, size, size);
             var text = Ui.Label("Label", img.transform, label, size >= 200 ? 64 : 28, TextAnchor.MiddleCenter, Theme.Text, FontStyle.Bold);
             text.rectTransform.Fill();
-            AddControl<OnScreenButton>(img.gameObject, path, null);
+            return AddControl<OnScreenButton>(img.gameObject, path, null);
         }
 
         private static Image Circle(string name, Transform parent, Color color)
@@ -64,7 +90,7 @@ namespace Tabletop.World
         }
 
         /// <summary>The control path is set while the object is inactive so the virtual gamepad is created with it.</summary>
-        private static void AddControl<T>(GameObject go, string path, System.Action<T> setup) where T : OnScreenControl
+        private static T AddControl<T>(GameObject go, string path, System.Action<T> setup) where T : OnScreenControl
         {
             bool was = go.activeSelf;
             go.SetActive(false);
@@ -72,6 +98,7 @@ namespace Tabletop.World
             c.controlPath = path;
             setup?.Invoke(c);
             go.SetActive(was);
+            return c;
         }
     }
 }

@@ -179,6 +179,7 @@ The project uses one versioned asset at `Assets/Game/Input/GameInput.inputaction
 
 - `KeyboardMouse`
 - `Gamepad`
+- `Touch` (touchscreen, optional pen): UI `Point`/`Click` also bind `<Touchscreen>/touch*/position` and `<Touchscreen>/touch*/press`, so taps and the world's on-screen pad reach the UI on phones and tablets (D-037). Touch shows gamepad prompt names, matching the pad's labels.
 
 The EventSystem uses `InputSystemUIInputModule`. UI focus is authoritative for controller navigation. Direct keyboard lock actions are optional conveniences; focus plus Submit must always provide the same function.
 

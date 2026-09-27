@@ -65,7 +65,10 @@ namespace Tabletop.Tests.PlayMode
                 Assert.IsNotNull(asset.FindAction("Match/" + a), a);
             Assert.IsNotNull(asset.FindAction("WorldReserved/Move"));
             Assert.IsNotNull(asset.FindAction("WorldReserved/Interact"));
-            CollectionAssert.AreEquivalent(new[] { "KeyboardMouse", "Gamepad" }, asset.controlSchemes.Select(s => s.name));
+            CollectionAssert.AreEquivalent(new[] { "KeyboardMouse", "Gamepad", "Touch" }, asset.controlSchemes.Select(s => s.name));
+            // Taps must reach the UI on phones and tablets (D-037).
+            CollectionAssert.IsSubsetOf(new[] { "<Touchscreen>/touch*/position" }, asset.FindAction("UI/Point").bindings.Select(b => b.path));
+            CollectionAssert.IsSubsetOf(new[] { "<Touchscreen>/touch*/press" }, asset.FindAction("UI/Click").bindings.Select(b => b.path));
 
             var focused = Selected;
             yield return Tap(Pad.dpad.up);

@@ -62,7 +62,7 @@ figurine; beating them wins it. Each opponent brings their own fifth wheel; the 
 
 ## Coins, stakes and favours (D-033)
 
-- A new journey starts with **20 coins**. The HUD shows coins and wins.
+- A new journey starts with **20 coins**. The pause menu shows the place, coins and wins (D-037: no always-on corner panels).
 - **Coins:** both put up the opponent's stake; the winner takes it (+stake or -stake). Ties change nothing.
 - **Friendly table** (Gran): costs nothing; a win pays 3 coins. Always available, so a player can never be stuck.
 - **Favour:** if you can't cover a stake, the opponent plays you for a favour. Win: half the stake (rounded up).

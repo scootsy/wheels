@@ -34,7 +34,7 @@
 
 The first Xcode build compiles the game code (about 640 steps) and takes several minutes; later builds are quicker. Let it finish: Xcode shows "Build stopped" if it is cancelled, which is not a failure (D-034). If Xcode offers "Update to recommended settings", decline it; only the signing team needs changing (D-035). Lines like `ld: warning: no platform load command found in lib_burst_generated.a` are harmless. If an earlier attempt failed, choose **Product → Clean Build Folder** (Shift-Cmd-K) once before building a new zip, so Xcode does not reuse files from the failed attempt. A `CodeSign ... internal error in Code Signing subsystem` on UnityFramework means the zip predates D-036.
 
-On a touchscreen the world shows a thumb stick (walk) and A (talk/jump), RUN, VIEW and MENU buttons (D-032). Tap works for menus, reels, pieces and the lever. A Bluetooth controller or keyboard still works too. If Xcode ever shows `Sandbox: ... deny` or `umbrella header` errors, the build predates D-032: rebuild from Unity.
+On a touchscreen the world shows a thumb stick (walk) and A (talk/jump), RUN, VIEW and MENU buttons (D-032, working since D-037). Tap works for menus, reels, pieces and the lever. Connecting a Bluetooth controller hides the on-screen pad; it returns when the controller disconnects. The place, coins, wins and controls are in the pause menu (MENU / Esc / Start), not in the screen corners (D-037). If Xcode ever shows `Sandbox: ... deny` or `umbrella header` errors, the build predates D-032: rebuild from Unity.
 
 **In Unity:** open `Assets/Game/Scenes/World.unity` (the journey) or `Assets/Game/Scenes/MatchPrototype.unity` (practice table) and press Play.
 
