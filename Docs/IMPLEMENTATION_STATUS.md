@@ -32,6 +32,8 @@
 3. Connect the iPhone/iPad, trust the computer, turn on **Developer Mode** (Settings → Privacy & Security), then press **Run**.
 4. With a free Apple ID, the app expires after 7 days; re-run from Xcode to refresh it.
 
+The first Xcode build compiles the game code (about 640 steps) and takes several minutes; later builds are quicker. Let it finish: Xcode shows "Build stopped" if it is cancelled, which is not a failure (D-034).
+
 On a touchscreen the world shows a thumb stick (walk) and A (talk/jump), RUN, VIEW and MENU buttons (D-032). Tap works for menus, reels, pieces and the lever. A Bluetooth controller or keyboard still works too. If Xcode ever shows `Sandbox: ... deny` or `umbrella header` errors, the build predates D-032: rebuild from Unity.
 
 **In Unity:** open `Assets/Game/Scenes/World.unity` (the journey) or `Assets/Game/Scenes/MatchPrototype.unity` (practice table) and press Play.

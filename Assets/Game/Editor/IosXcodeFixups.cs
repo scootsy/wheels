@@ -12,12 +12,19 @@ namespace Tabletop.EditorTools
     /// - Module verification rejects UnityFramework's umbrella header ("umbrella header does not include",
     ///   "expected a type", "could not build module").
     /// Both are turned off in every build configuration of the generated project.
+    /// - IL2CPP compiles the game code for iOS 11 whatever the app's target, so Xcode 27's libc++ prints
+    ///   "The selected platform is no longer supported by libc++" for every file (1,600+ warnings that bury real
+    ///   problems). The IL2CPP script phase gets -Wno-#warnings, which silences only #warning directives.
     /// Deliberately not behind #if UNITY_IOS and not using the iOS-only PBXProject API: the iOS build runs while
     /// the editor is still compiled for Windows, where such code would be missing and the fix silently skipped.
     /// </summary>
     public static class IosXcodeFixups
     {
         public static readonly string[] Settings = { "ENABLE_USER_SCRIPT_SANDBOXING", "ENABLE_MODULE_VERIFIER" };
+
+        /// <summary>The line in Unity's IL2CPP script phase (pbxproj-escaped) that the compiler flag follows.</summary>
+        public const string Il2CppArgsAnchor = "--configuration=\\\"$IL2CPP_CONFIG\\\"";
+        public const string Il2CppCompilerFlags = "\\n    --compiler-flags=\\\"-Wno-#warnings\\\"";
 
         [PostProcessBuild(1000)]
         public static void OnPostprocessBuild(BuildTarget target, string path)
@@ -27,7 +34,7 @@ namespace Tabletop.EditorTools
             File.WriteAllText(projPath, Apply(File.ReadAllText(projPath)));
         }
 
-        /// <summary>Removes any existing value of each setting, then sets it to NO in every buildSettings block.</summary>
+        /// <summary>Sets each setting to NO in every buildSettings block and adds the IL2CPP compiler flag, replacing any earlier copy.</summary>
         public static string Apply(string pbxproj)
         {
             string insert = "";
@@ -36,7 +43,9 @@ namespace Tabletop.EditorTools
                 pbxproj = Regex.Replace(pbxproj, @"^[ \t]*" + key + @"[ \t]*=[^;]*;[ \t]*\r?\n", "", RegexOptions.Multiline);
                 insert += "\n\t\t\t\t" + key + " = NO;";
             }
-            return Regex.Replace(pbxproj, @"buildSettings = \{", m => m.Value + insert);
+            pbxproj = Regex.Replace(pbxproj, @"buildSettings = \{", m => m.Value + insert);
+            pbxproj = pbxproj.Replace(Il2CppCompilerFlags, "");
+            return pbxproj.Replace(Il2CppArgsAnchor, Il2CppArgsAnchor + Il2CppCompilerFlags);
         }
     }
 }

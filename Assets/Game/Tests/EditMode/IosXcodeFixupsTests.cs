@@ -24,6 +24,17 @@ namespace Tabletop.Tests.EditMode
             Assert.AreEqual(result, IosXcodeFixups.Apply(result), "applying twice changes nothing");
         }
 
+        [Test]
+        public void Apply_AddsCompilerFlagToIl2CppScriptOnce()
+        {
+            // As Unity writes it in project.pbxproj: quotes as \" and line breaks as \n inside one string.
+            const string script = "\t\t\tshellScript = \"ARGS=(\\n    --outputpath=\\\"x\\\"\\n    --configuration=\\\"$IL2CPP_CONFIG\\\"\\n    )\\n\";\n";
+            string result = IosXcodeFixups.Apply(Pbx + script);
+            StringAssert.Contains("--configuration=\\\"$IL2CPP_CONFIG\\\"\\n    --compiler-flags=\\\"-Wno-#warnings\\\"\\n    )", result);
+            Assert.AreEqual(1, Count(result, "--compiler-flags"));
+            Assert.AreEqual(result, IosXcodeFixups.Apply(result), "applying twice changes nothing");
+        }
+
         private static int Count(string s, string part)
         {
             int n = 0;

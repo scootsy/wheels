@@ -361,6 +361,15 @@ This log records decisions that affect rules, player experience, architecture, s
 - **Controls:** Cancel (Esc / B) now closes any conversation, like NOT NOW (at a champion's table it stands you up); lists close with Esc / B.
 - **Files updated:** `WORLD_SPEC.md`, `RULES_SPEC.md` (2, 13.2, 13.2a), `MATCH_UX_SPEC.md` (4.1, 4.8), `ART_WORKFLOW.md`, `IMPLEMENTATION_STATUS.md`, `AGENTS.md` (gate status).
 
+### D-034: Quiet Xcode 27's libc++ warning flood in iOS builds (creative director, 2026-09-26)
+
+- **Date:** 2026-09-26
+- **Status:** Accepted (creative director asked to find out why the iPhone build failed, fix it and publish a working build)
+- **Finding:** the Xcode log the creative director sent (Xcode 27 beta, iOS 27 SDK) contains no error. It ends with "Build stopped" after 265 seconds, at step 598 of 643 of Unity's IL2CPP compile, meaning the build was cancelled, not failed. The D-032 fixes worked: the IL2CPP script ran and compiled. The log did carry 1,644 copies of one warning, "The selected platform is no longer supported by libc++": Unity's IL2CPP compiles the game code with `-mios-version-min=11.0` whatever the app's iOS 15 target, and Xcode 27's libc++ warns for anything below its minimum. The flood hides real problems and makes Xcode look stuck.
+- **Decision:** `IosXcodeFixups` adds `--compiler-flags="-Wno-#warnings"` to the IL2CPP arguments in the generated Xcode script phase. It silences only `#warning` directives in the IL2CPP compile; real compiler warnings and errors still show. Raising IL2CPP's own minimum was rejected: IL2CPP offers no option for it, and a second `-mios-version-min` would add an "overriding option" warning per file. The app's iOS 15 minimum is unchanged.
+- **Verified on Windows (2026-09-26):** `IosXcodeFixupsTests` covers the new flag (added once, idempotent). The rebuilt Xcode project and the published zip contain the flag once, and all 20 build configurations still turn sandboxing and module verification off. EditMode 137/137, PlayMode 40/40; the Windows self-check is clean. The Xcode build itself can only run on a Mac.
+- **Files updated:** `Docs/IMPLEMENTATION_STATUS.md`
+
 ## Open decisions
 
 The rules-level open questions and temporary prototype behaviors are maintained in `RULES_SPEC.md` Section 15. They do not block M0 or M1.
