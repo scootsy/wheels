@@ -380,6 +380,16 @@ This log records decisions that affect rules, player experience, architecture, s
 - **Verified on Windows (2026-09-26):** `IosXcodeFixupsTests` covers both changes. The rebuilt project and the zip have `DEFINES_MODULE = NO` in all 4 UnityFramework configurations (none left at YES) and one `alwaysOutOfDate`. EditMode 138/138, PlayMode 40/40; the Windows self-check is clean. The Xcode build itself can only run on a Mac.
 - **Files updated:** `Docs/IMPLEMENTATION_STATUS.md`
 
+### D-036: iOS build no longer rewrites the signed UnityFramework (creative director, 2026-09-26)
+
+- **Date:** 2026-09-26
+- **Status:** Accepted (creative director reported a fifth failed iPhone build and sent the log)
+- **Finding:** the third Xcode log shows real progress: the IL2CPP game code, UnityFramework and the app all compiled and linked, and UnityFramework's own target signed it successfully. The build then failed at the last step: when Xcode copied UnityFramework into the app, it ran `bitcode_strip` over the already signed binary ("not stripping binary because it is signed"), and re-signing the rewritten file failed with `internal error in Code Signing subsystem`. That copy step is the only thing that touched the file between the successful signature and the failed one. The warnings in the log (missing 1024x1024 App Store icon, 76x76 iPad icon notice, Burst "no platform load command") do not stop a build to a phone.
+- **Decision:** `IosXcodeFixups` also sets `STRIP_BITCODE_FROM_COPIED_FILES = NO` in every build configuration. Bitcode has not existed since Xcode 14 and the project already has `ENABLE_BITCODE = NO`, so there is nothing to strip; the embedded copy now stays byte-identical to the file codesign produced, and Xcode only re-signs it with the team's profile. Considered and not done: turning off UnityFramework's own signing (more moving parts, and Xcode's signing UI can turn it back on).
+- **Advice to the creative director:** unzip the new zip into a fresh folder, choose Product → Clean Build Folder once, change only the signing team, and do not accept "Update to recommended settings".
+- **Verification limit:** this Windows machine cannot run Xcode or codesign, so the fix is checked in the generated `project.pbxproj` only; the next Mac build confirms it.
+- **Files updated:** `Assets/Game/Editor/IosXcodeFixups.cs`, `Docs/IMPLEMENTATION_STATUS.md`
+
 ## Open decisions
 
 The rules-level open questions and temporary prototype behaviors are maintained in `RULES_SPEC.md` Section 15. They do not block M0 or M1.

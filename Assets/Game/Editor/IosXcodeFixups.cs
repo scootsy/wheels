@@ -21,12 +21,16 @@ namespace Tabletop.EditorTools
     /// - The IL2CPP script phase declares no outputs, so Xcode warns it "will be run during every build". Running
     ///   every build is intended (IL2CPP tracks its own changes), so the phase is marked alwaysOutOfDate, which is
     ///   what unchecking "Based on dependency analysis" does.
+    /// - Xcode 27 ran bitcode_strip over UnityFramework after UnityFramework's own target had already signed it, then
+    ///   failed to re-sign the rewritten binary ("internal error in Code Signing subsystem", D-036). Bitcode no longer
+    ///   exists (ENABLE_BITCODE = NO), so STRIP_BITCODE_FROM_COPIED_FILES is turned off: the embedded copy stays
+    ///   byte-identical to the file codesign just produced.
     /// Deliberately not behind #if UNITY_IOS and not using the iOS-only PBXProject API: the iOS build runs while
     /// the editor is still compiled for Windows, where such code would be missing and the fix silently skipped.
     /// </summary>
     public static class IosXcodeFixups
     {
-        public static readonly string[] Settings = { "ENABLE_USER_SCRIPT_SANDBOXING", "ENABLE_MODULE_VERIFIER" };
+        public static readonly string[] Settings = { "ENABLE_USER_SCRIPT_SANDBOXING", "ENABLE_MODULE_VERIFIER", "STRIP_BITCODE_FROM_COPIED_FILES" };
 
         /// <summary>The line in Unity's IL2CPP script phase (pbxproj-escaped) that the compiler flag follows.</summary>
         public const string Il2CppArgsAnchor = "--configuration=\\\"$IL2CPP_CONFIG\\\"";
