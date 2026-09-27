@@ -20,6 +20,6 @@ Built from commit $sha.
 
 **Windows:** download \`TabletopReels-Windows.zip\`, unzip, run \`Windows/TabletopReels.exe\`.
 
-**iPhone / iPad:** download \`TabletopReels-iOS-Xcode.zip\` on a Mac, unzip, open \`TabletopReels/Unity-iPhone.xcodeproj\` in Xcode, pick your team under Signing & Capabilities, connect the device and press Run. The first build takes several minutes; let it finish (Build stopped means it was cancelled, not failed). On-screen stick and buttons for walking and talking; tap menus, reels, pieces and the lever."
+**iPhone / iPad:** download \`TabletopReels-iOS-Xcode.zip\` on a Mac, unzip, open \`TabletopReels/Unity-iPhone.xcodeproj\` in Xcode, pick your team under Signing & Capabilities, connect the device and press Run. The first build takes several minutes; let it finish (Build stopped means it was cancelled, not failed). Do not accept Update to recommended settings; only the signing team needs changing. On-screen stick and buttons for walking and talking; tap menus, reels, pieces and the lever."
 gh release create "$tag" "$win" "$ios" --title "Test build $(date +%Y-%m-%d) ($sha)" --notes "$notes" --prerelease --target "$(git rev-parse HEAD)"
 echo "Published $tag"

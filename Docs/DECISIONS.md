@@ -370,6 +370,16 @@ This log records decisions that affect rules, player experience, architecture, s
 - **Verified on Windows (2026-09-26):** `IosXcodeFixupsTests` covers the new flag (added once, idempotent). The rebuilt Xcode project and the published zip contain the flag once, and all 20 build configurations still turn sandboxing and module verification off. EditMode 137/137, PlayMode 40/40; the Windows self-check is clean. The Xcode build itself can only run on a Mac.
 - **Files updated:** `Docs/IMPLEMENTATION_STATUS.md`
 
+### D-035: iOS build survives Xcode's "Update to recommended settings" (creative director, 2026-09-26)
+
+- **Date:** 2026-09-26
+- **Status:** Accepted (creative director reported "so many errors causing failure to build on iOS")
+- **Finding:** the second Xcode log failed at `VerifyModule` for UnityFramework with the D-032 errors (`umbrella header ... does not include`, `double-quoted include`, `expected a type`). In that build the iOS minimum was 17.0, but the published project says 15.0. That means the project's settings had been changed in Xcode, most likely by accepting "Update to recommended settings", which turns module verification back on. The ~100 `ld: warning: no platform load command found in lib_burst_generated.a` lines are harmless warnings: Burst code is compiled on Windows, and it does not stop the build.
+- **Decision:** `IosXcodeFixups` now also builds UnityFramework without a module (`DEFINES_MODULE = NO`). The verifier only checks frameworks that declare a module, so it has nothing to reject even if `ENABLE_MODULE_VERIFIER` is switched back on. Nothing needs the module: the app imports `<UnityFramework/UnityFramework.h>` directly and there is no Swift code. The IL2CPP script phase is also marked `alwaysOutOfDate = 1`, the same as unchecking "Based on dependency analysis". That removes the "will be run during every build" warning. Running on every build is intended, because IL2CPP tracks its own changes.
+- **Advice to the creative director:** unzip a fresh copy, do not accept "Update to recommended settings", and change only the signing team.
+- **Verified on Windows (2026-09-26):** `IosXcodeFixupsTests` covers both changes. The rebuilt project and the zip have `DEFINES_MODULE = NO` in all 4 UnityFramework configurations (none left at YES) and one `alwaysOutOfDate`. EditMode 138/138, PlayMode 40/40; the Windows self-check is clean. The Xcode build itself can only run on a Mac.
+- **Files updated:** `Docs/IMPLEMENTATION_STATUS.md`
+
 ## Open decisions
 
 The rules-level open questions and temporary prototype behaviors are maintained in `RULES_SPEC.md` Section 15. They do not block M0 or M1.

@@ -35,6 +35,19 @@ namespace Tabletop.Tests.EditMode
             Assert.AreEqual(result, IosXcodeFixups.Apply(result), "applying twice changes nothing");
         }
 
+        [Test]
+        public void Apply_BuildsUnityFrameworkWithoutAModule_AndRunsScriptEveryBuild()
+        {
+            const string extra = "\t\tB1 /* Release */ = {\n\t\t\tisa = XCBuildConfiguration;\n\t\t\tbuildSettings = {\n\t\t\t\tDEFINES_MODULE = YES;\n\t\t\t};\n\t\t};\n"
+                + "\t\tC1 /* ShellScript */ = {\n\t\t\tisa = PBXShellScriptBuildPhase;\n\t\t\tbuildActionMask = 2147483647;\n\t\t};\n";
+            string result = IosXcodeFixups.Apply(Pbx + extra);
+            StringAssert.DoesNotContain("DEFINES_MODULE = YES;", result);
+            StringAssert.Contains("DEFINES_MODULE = NO;", result);
+            StringAssert.Contains("isa = PBXShellScriptBuildPhase;\n\t\t\talwaysOutOfDate = 1;", result);
+            Assert.AreEqual(1, Count(result, "alwaysOutOfDate"));
+            Assert.AreEqual(result, IosXcodeFixups.Apply(result), "applying twice changes nothing");
+        }
+
         private static int Count(string s, string part)
         {
             int n = 0;

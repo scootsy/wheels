@@ -15,6 +15,12 @@ namespace Tabletop.EditorTools
     /// - IL2CPP compiles the game code for iOS 11 whatever the app's target, so Xcode 27's libc++ prints
     ///   "The selected platform is no longer supported by libc++" for every file (1,600+ warnings that bury real
     ///   problems). The IL2CPP script phase gets -Wno-#warnings, which silences only #warning directives.
+    /// - Xcode's "Update to recommended settings" turns module verification back on (D-035). UnityFramework is
+    ///   therefore built without a module (DEFINES_MODULE = NO), so there is nothing to verify: the app imports
+    ///   its header directly and no Swift code needs the module.
+    /// - The IL2CPP script phase declares no outputs, so Xcode warns it "will be run during every build". Running
+    ///   every build is intended (IL2CPP tracks its own changes), so the phase is marked alwaysOutOfDate, which is
+    ///   what unchecking "Based on dependency analysis" does.
     /// Deliberately not behind #if UNITY_IOS and not using the iOS-only PBXProject API: the iOS build runs while
     /// the editor is still compiled for Windows, where such code would be missing and the fix silently skipped.
     /// </summary>
@@ -44,6 +50,9 @@ namespace Tabletop.EditorTools
                 insert += "\n\t\t\t\t" + key + " = NO;";
             }
             pbxproj = Regex.Replace(pbxproj, @"buildSettings = \{", m => m.Value + insert);
+            pbxproj = pbxproj.Replace("DEFINES_MODULE = YES;", "DEFINES_MODULE = NO;");
+            pbxproj = Regex.Replace(pbxproj, @"^[ \t]*alwaysOutOfDate[ \t]*=[^;]*;[ \t]*\r?\n", "", RegexOptions.Multiline);
+            pbxproj = Regex.Replace(pbxproj, @"isa = PBXShellScriptBuildPhase;", m => m.Value + "\n\t\t\talwaysOutOfDate = 1;");
             pbxproj = pbxproj.Replace(Il2CppCompilerFlags, "");
             return pbxproj.Replace(Il2CppArgsAnchor, Il2CppArgsAnchor + Il2CppCompilerFlags);
         }
