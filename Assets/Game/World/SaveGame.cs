@@ -21,6 +21,12 @@ namespace Tabletop.World
         public float z;
         public float yaw;
         public bool firstPerson;
+        // Version 2 (D-033): coins, the satchel and errands.
+        public int coins;
+        public List<string> itemIds = new List<string>();
+        public List<int> itemCounts = new List<int>();
+        public List<string> errandIds = new List<string>();
+        public List<int> errandStages = new List<int>();
     }
 
     /// <summary>
@@ -30,7 +36,7 @@ namespace Tabletop.World
     /// </summary>
     public static class SaveGame
     {
-        public const int Version = 1;
+        public const int Version = 2;
         public const string FileName = "journey.json";
 
         /// <summary>Tests and the build self-check point this at a scratch folder so they never touch a real save.</summary>
@@ -53,6 +59,9 @@ namespace Tabletop.World
             d.defeated.AddRange(GameFlow.Defeated);
             foreach (var l in GameFlow.Losses) { d.lossIds.Add(l.Key); d.lossCounts.Add(l.Value); }
             d.unlocked.AddRange(GameFlow.UnlockedUnits);
+            d.coins = GameFlow.Coins;
+            foreach (var i in GameFlow.Items) { d.itemIds.Add(i.Key); d.itemCounts.Add(i.Value); }
+            foreach (var e in GameFlow.Errands) { d.errandIds.Add(e.Key); d.errandStages.Add((int)e.Value); }
             return d;
         }
 
@@ -97,8 +106,14 @@ namespace Tabletop.World
             var losses = new List<KeyValuePair<string, int>>();
             for (int i = 0; i < data.lossIds.Count && i < data.lossCounts.Count; i++)
                 losses.Add(new KeyValuePair<string, int>(data.lossIds[i], data.lossCounts[i]));
+            var items = new List<KeyValuePair<string, int>>();
+            for (int i = 0; i < data.itemIds.Count && i < data.itemCounts.Count; i++) items.Add(new KeyValuePair<string, int>(data.itemIds[i], data.itemCounts[i]));
+            var errands = new List<KeyValuePair<string, int>>();
+            for (int i = 0; i < data.errandIds.Count && i < data.errandStages.Count; i++) errands.Add(new KeyValuePair<string, int>(data.errandIds[i], data.errandStages[i]));
+            // Journeys saved before coins existed (version 1) start with the usual purse.
+            int coins = data.version >= 2 ? data.coins : GameFlow.StartingCoins;
             GameFlow.Restore(data.defeated, losses, data.unlocked, data.firstPerson,
-                id => ReferenceContent.Catalog.TryGetUnit(id, out _));
+                id => ReferenceContent.Catalog.TryGetUnit(id, out _), coins, items, errands);
         }
 
         public static void Delete()

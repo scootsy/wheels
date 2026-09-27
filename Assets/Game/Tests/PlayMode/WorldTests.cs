@@ -168,31 +168,41 @@ namespace Tabletop.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator ImportedModels_ReplacePlaceholders_StandOnTheGround_AndUseUrp()
+        public IEnumerator People_AreAnimatedCharacters_StandOnTheGround_AndNothingRendersMagenta()
         {
             yield return Begin();
             Assert.IsNotNull(World.Art, "World Art Set assigned in the scene");
-            int people = 0;
+            bool characters = World.LookAsset != null && World.LookAsset.HasCharacters;
+            Assert.AreEqual(characters, World.Player.Rig != null, "the player is an animated character when the characters pack is present");
             foreach (var npc in World.Layout.Npcs)
             {
                 var slot = World.Art.Person(npc.DisplayName);
                 var model = npc.Figure.Find("Model");
-                Assert.AreEqual(slot != null, model != null, npc.DisplayName + ": model only where the art set assigns one");
-                if (model == null) continue;
-                people++;
+                if (slot != null)
+                {
+                    Assert.IsNotNull(model, npc.DisplayName + ": the art set's model is used (D-026)");
+                    continue;
+                }
+                if (!characters) continue;
+                Assert.IsNotNull(npc.Rig, npc.DisplayName + " is an animated KayKit character (D-033)");
+                Assert.IsNotNull(model, npc.DisplayName);
+                if (npc.Rig.Sitting) continue;
                 var b = WorldKit.LocalBounds(model, npc.transform);
-                float expected = slot.size > 0 ? slot.size : WorldBuilder.DefaultPersonHeight;
-                Assert.AreEqual(expected, b.size.y, 0.05f, npc.DisplayName + " height");
-                Assert.AreEqual(npc.BaseOffset.y, b.min.y, 0.06f, npc.DisplayName + " stands on the ground");
-                // Posed through Playables: AnimationClip.SampleAnimation works in the editor but not in players.
-                if (slot.pose != null) Assert.IsNotNull(model.GetComponentInChildren<ModelPose>(), npc.DisplayName + " pose must work in builds");
+                // The idle animation breathes, so allow a little either way.
+                Assert.AreEqual(0f, b.min.y, 0.15f, npc.DisplayName + " stands on the ground");
+                Assert.AreEqual(npc.transform.position.y, WorldGround.Walk(npc.transform.position.x, npc.transform.position.z), 0.01f, npc.DisplayName + " is placed on the land");
+                Assert.That(b.size.y, Is.InRange(1.1f, 2.3f), npc.DisplayName + " height");
             }
-            int buildings = World.Art.buildings.Count(s => s.model != null);
-            Assert.AreEqual(buildings, World.Layout.Root.Find("Models").childCount, "one placed model per assigned building");
-            Assert.Greater(people + buildings, 0, "at least one imported model is in use");
+            foreach (var slot in World.Art.buildings.Where(s => s.model != null))
+                Assert.IsNotNull(World.Layout.Root.Find("Models/" + slot.who.Substring(slot.who.IndexOf('/') + 1)), slot.who + " placed");
+            // Pack shaders are fine as long as they can draw; an unsupported one would show magenta in the build.
             foreach (var r in World.GetComponentsInChildren<Renderer>(true))
                 foreach (var m in r.sharedMaterials)
-                    if (m != null) StringAssert.StartsWith("Universal Render Pipeline/", m.shader.name, r.name + " would render magenta in the build");
+                    if (m != null)
+                    {
+                        Assert.IsTrue(m.shader.isSupported, r.name + ": " + m.shader.name + " would render magenta in the build");
+                        StringAssert.DoesNotStartWith("Hidden/InternalErrorShader", m.shader.name, r.name);
+                    }
         }
 
         [UnityTest]

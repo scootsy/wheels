@@ -89,7 +89,7 @@ namespace Tabletop.Presentation
             _setupScreen = Screen("SetupScreen");
             var bg = Ui.Panel("Bg", _setupScreen.transform, Theme.Background);
             bg.rectTransform.Fill();
-            L("Title", _setupScreen.transform, "TABLETOP REELS", 64, TextAnchor.UpperCenter, Theme.Crown, FontStyle.Bold).rectTransform.Place(0, 40, 1920, 80);
+            L("Title", _setupScreen.transform, "WHEELS", 64, TextAnchor.UpperCenter, Theme.Crown, FontStyle.Bold).rectTransform.Place(0, 40, 1920, 80);
             L("Subtitle", _setupScreen.transform, "First playable (M1)  -  placeholder art  -  rules " + RulesConstants.RulesVersion, 24, TextAnchor.UpperCenter, Theme.TextDim)
                 .rectTransform.Place(0, 118, 1920, 34);
             var card = Ui.Panel("OpponentCard", _setupScreen.transform, Theme.Panel);
@@ -220,16 +220,16 @@ namespace Tabletop.Presentation
                 var o = Session.Options;
                 var (oppA, oppB, ai) = EffectiveOpponent();
                 _setupOpponent.text = "OPPONENT: " + Session.OpponentName + "  (" + AiName(ai) + ")\n\n"
-                    + "Their units (visible before you choose yours):\n"
+                    + "Their figurines (visible before you choose yours):\n"
                     + "  A / LEFT:  " + UnitSummary(Catalog.Unit(oppA)) + "\n\n"
                     + "  B / RIGHT: " + UnitSummary(Catalog.Unit(oppB)) + "\n\n"
-                    + "Goal: reduce the enemy Crown from 10 to 0. Three spins per round; lock reels to keep them.";
+                    + "Goal: reduce the enemy Crown from 10 to 0. Three spins per round; lock wheels to keep them.";
                 _setupStatus.text = ConfigError != null ? "CONTENT ERROR - match cannot start:\n" + ConfigError : Session.LastStatus;
                 _setupContinue.interactable = ConfigError == null;
                 _setupQuit.SetText(GameFlow.TitleShown ? "BACK TO THE VILLAGE" : "QUIT");
                 if (_devPanel.activeSelf)
                 {
-                    _devTier.SetText("REEL TIER: " + o.Tier.ToString().ToUpperInvariant() + "  (both sides)");
+                    _devTier.SetText("WHEEL TIER: " + o.Tier.ToString().ToUpperInvariant() + "  (both sides)");
                     _devAi.SetText("AI PROFILE: " + AiName(o.AiProfile));
                     _devOppA.SetText("OPPONENT A: " + Catalog.Unit(o.OpponentA).DisplayName);
                     _devOppB.SetText("OPPONENT B: " + Catalog.Unit(o.OpponentB).DisplayName);
@@ -254,7 +254,7 @@ namespace Tabletop.Presentation
                 _slotA.SetText("[A] SLOT A / LEFT:  " + (sel.Slots[0] != null ? Catalog.Unit(sel.Slots[0]).DisplayName : "(empty)") + (sel.Slots[0] != null ? "   - press to clear" : ""));
                 _slotB.SetText("<B> SLOT B / RIGHT:  " + (sel.Slots[1] != null ? Catalog.Unit(sel.Slots[1]).DisplayName : "(empty)") + (sel.Slots[1] != null ? "   - press to clear" : ""));
                 _confirm.interactable = sel.IsComplete && sel.Validate() == null;
-                _confirm.SetText(_confirm.interactable ? "CONFIRM AND START" : "CONFIRM (choose two units)");
+                _confirm.SetText(_confirm.interactable ? "CONFIRM AND START" : "CONFIRM (choose two figurines)");
                 _selectStatus.text = Session.LastRejection != null ? Session.LastStatus : sel.LastMessage;
             }
         }
@@ -278,7 +278,7 @@ namespace Tabletop.Presentation
             L("Title", _selectScreen.transform, "CHOOSE YOUR TWO UNITS", 44, TextAnchor.UpperCenter, Theme.Text, FontStyle.Bold).rectTransform.Place(0, 24, 1920, 60);
             _selectOpponent = L("Opponent", _selectScreen.transform, "", 26, TextAnchor.UpperCenter, Theme.Enemy);
             _selectOpponent.rectTransform.Place(0, 92, 1920, 40);
-            L("Hint", _selectScreen.transform, "Select a unit to put it in the first empty slot (select again to remove). Use PUT IN A / B to replace a slot. Inspect (I / X) shows every rank.",
+            L("Hint", _selectScreen.transform, "Select a figurine to put it in the first empty slot (select again to remove). Use PUT IN A / B to replace a slot. Inspect (I / X) shows every rank.",
                 18, TextAnchor.UpperCenter, Theme.TextDim).rectTransform.Place(160, 136, 1600, 30);
             _selectStatus = L("Status", _selectScreen.transform, "", 22, TextAnchor.UpperCenter, Theme.Focus);
             _selectStatus.rectTransform.Place(0, 1000, 1920, 40);
@@ -553,7 +553,7 @@ namespace Tabletop.Presentation
             foreach (Rank r in new[] { Rank.Bronze, Rank.Silver, Rank.Gold })
                 sb.Append(r.ToString().ToUpperInvariant()).Append(": cost ").Append(def.Stats(r).EnergyCost).Append(". ")
                   .Append(UnitPanelView.StatsLine(def, def.Stats(r)).Replace("\n", ". ")).Append('\n');
-            sb.Append("Ranks up at 6 XP (XP faces +1 each, acting +2). At Gold, 6 XP launches a 2-damage bomb that ignores Wall.");
+            sb.Append("Ranks up at 6 XP (XP faces +1 each, acting +2). At Gold, 6 XP launches a 2-damage bomb that ignores the Bulwark.");
             return sb.ToString();
         }
 
@@ -572,26 +572,26 @@ namespace Tabletop.Presentation
             string B(string map, string action) => Input.Binding(map, action);
             _helpText.text =
                 "HOW A ROUND WORKS\n" +
-                "- You get up to 3 spins of 5 reels. The first spin rolls all five.\n" +
-                "- After a spin, lock reels to keep them; locked reels do not move. You may unlock them again after spin 2.\n" +
-                "- The third spin is final. Locking all five reels also makes the result final immediately.\n" +
-                "- The enemy spins after you, using the same reels. You cannot see their reels until both sides are done.\n\n" +
-                "SYMBOLS  (orange SQUARE = Channel A / left unit, teal DIAMOND = Channel B / right unit, bar = HAMMER)\n" +
+                "- You get up to 3 spins of 5 wheels. The first spin rolls all five.\n" +
+                "- After a spin, lock wheels to keep them; locked wheels do not move. You may unlock them again after spin 2.\n" +
+                "- The third spin is final. Locking all five wheels also makes the result final immediately.\n" +
+                "- The enemy spins after you, using their own wheels. You cannot see their wheels until both sides are done.\n\n" +
+                "SYMBOLS  (orange SQUARE = your left figurine, teal DIAMOND = your right figurine, bar = HAMMER)\n" +
                 "- Count every printed symbol of a kind, then subtract 2: 3 symbols = 1, 4 = 2, 5 = 3, 6 = 4.\n" +
-                "- Squares give energy to your A unit, diamonds to your B unit, hammers build your Wall (max 5).\n" +
-                "- An XP badge gives exactly +1 XP to that unit, even with fewer than 3 symbols.\n\n" +
-                "UNITS, CROWN, WALL\n" +
-                "- A unit acts when its energy reaches its cost; extra energy is wasted. Acting gives +2 XP.\n" +
-                "- 6 XP ranks Bronze -> Silver -> Gold. At Gold, 6 XP launches a 2-damage BOMB that ignores Wall.\n" +
-                "- A shot hits the Crown only if its height is GREATER than the Wall; otherwise it damages the Wall (no spill-over).\n" +
+                "- Squares give energy to your left figurine, diamonds to your right figurine, hammers build your Bulwark (max 5).\n" +
+                "- An XP badge gives exactly +1 XP to that figurine, even with fewer than 3 symbols.\n\n" +
+                "FIGURINES, CROWN, BULWARK\n" +
+                "- A figurine acts when its energy reaches its cost; extra energy is wasted. Acting gives +2 XP.\n" +
+                "- 6 XP ranks Bronze -> Silver -> Gold. At Gold, 6 XP launches a 2-damage BOMB that ignores the Bulwark.\n" +
+                "- A shot hits the Crown only if its height is GREATER than the Bulwark; otherwise it damages the Bulwark (no spill-over).\n" +
                 "- Crowns start at 10, the normal cap (healing can push one to 12: its counter turns green). The match is checked only after the whole round: 0 HP = defeat, both 0 = tie.\n\n" +
                 "CONTROLS (" + (Input.ActiveScheme == Tabletop.Input.ControlScheme.Gamepad ? "gamepad" : "keyboard / mouse") + ")\n" +
-                "- Move focus: " + B("UI", "Navigate") + "     Confirm / toggle lock on focused reel: " + B("UI", "Submit") + "\n" +
-                "- Spin: " + B("Match", "Spin") + " (or focus SPIN and confirm)     Lock reels directly: " + B("Match", "LockSlot1") + "-" + B("Match", "LockSlot5") + "\n" +
+                "- Move focus: " + B("UI", "Navigate") + "     Confirm / toggle lock on focused wheel: " + B("UI", "Submit") + "\n" +
+                "- Spin: " + B("Match", "Spin") + " (or focus SPIN and confirm)     Lock wheels directly: " + B("Match", "LockSlot1") + "-" + B("Match", "LockSlot5") + "\n" +
                 "- Next / previous element: " + B("Match", "FocusNext") + " / " + B("Match", "FocusPrevious") + " (while the round plays out, " + B("Match", "FocusNext") + " skips to the next step)     Inspect focused unit: " + B("Match", "Inspect") + "\n" +
-                "- Locking all five reels does not end your turn: pull the lever (" + B("Match", "Spin") + ") to lock in.\n" +
+                "- Locking all five wheels does not end your turn: pull the lever (" + B("Match", "Spin") + ") to lock in.\n" +
                 "- Hold to speed up animations: " + B("Match", "AcceleratePresentation") + "     Help: " + B("Match", "Help") + "     Pause / close: " + B("Match", "Pause") + "\n" +
-                "- Mouse: click reels to lock, click buttons, hover a unit for details. There is no timer.";
+                "- Mouse: click wheels to lock, click buttons, hover a figurine for details. There is no timer.";
         }
 
         private void RefreshPrompts()

@@ -143,6 +143,8 @@ namespace Tabletop.Presentation
 
         public Camera Camera { get => _camera; set => _camera = value; }
         public IconSet Icons { get => _icons; set => _icons = value; }
+        /// <summary>Sculpted figurines (D-033); units without one keep the primitive miniature.</summary>
+        public FigurineSet Figurines { get; set; }
 
         /// <summary>
         /// URP material asset every part derives from. Required in players: runtime CreatePrimitive falls back to the
@@ -470,6 +472,15 @@ namespace Tabletop.Presentation
             Color rank = FigureFinish(Rank.Bronze);
             Renderer R(GameObject g) { parts.Add(g.GetComponent<Renderer>()); return g.GetComponent<Renderer>(); }
             R(Prim(PrimitiveType.Cylinder, "Base", fig, new Vector3(0, 0.04f, 0), new Vector3(0.95f, 0.04f, 0.95f), rank, _satin));
+            var sculpt = Figurines != null ? Figurines.Find(def.Id) : null;
+            if (sculpt != null)
+            {
+                // A cast metal figurine standing on its base; its whole body takes the rank finish.
+                var cast = FigurineSet.Cast(sculpt, fig, 1.55f, _satin);
+                fig.Find("Sculpt").localPosition = new Vector3(0, 0.08f, 0);
+                foreach (var r in cast) { parts.Add(r); SetColor(r, rank); }
+                return;
+            }
             if (def.Id == ReferenceContent.Striker)
             {
                 R(Prim(PrimitiveType.Capsule, "Body", fig, new Vector3(0, 0.72f, 0), new Vector3(0.62f, 0.55f, 0.5f), rank, _satin));
@@ -692,8 +703,8 @@ namespace Tabletop.Presentation
                 }
             }
             if (preview != null && (preview.BarrierAfter > barrier || preview.BarrierWasted > 0))
-                _wallLabels[side].text = "WALL " + barrier + " > " + preview.BarrierAfter + (preview.BarrierWasted > 0 ? "  (" + preview.BarrierWasted + " WASTED)" : "");
-            else _wallLabels[side].text = barrier > 0 ? "WALL " + barrier : "";
+                _wallLabels[side].text = "BULWARK " + barrier + " > " + preview.BarrierAfter + (preview.BarrierWasted > 0 ? "  (" + preview.BarrierWasted + " WASTED)" : "");
+            else _wallLabels[side].text = barrier > 0 ? "BULWARK " + barrier : "";
             _wallLabels[side].color = preview != null && preview.BarrierWasted > 0 ? new Color(1f, 0.45f, 0.4f) : new Color(0.88f, 0.9f, 0.96f);
         }
 
@@ -884,10 +895,10 @@ namespace Tabletop.Presentation
                 case MatchEventType.CrownHealed:
                     text = "+" + e.Amount; color = Theme.Heal; at = CrownPos(e.Side) + new Vector3(0, 1.5f, 0); break;
                 case MatchEventType.BarrierDamaged:
-                    text = "WALL -" + e.Amount; color = new Color(0.85f, 0.88f, 1f); at = new Vector3(0, 1.9f, WallZ(e.TargetSide));
+                    text = "BULWARK -" + e.Amount; color = new Color(0.85f, 0.88f, 1f); at = new Vector3(0, 1.9f, WallZ(e.TargetSide));
                     SpawnDebris(e.TargetSide, e.Amount); break;
                 case MatchEventType.BarrierBuilt:
-                    text = "WALL +" + e.Amount; color = new Color(0.85f, 0.88f, 1f); at = new Vector3(0, 1.9f, WallZ(e.Side)); break;
+                    text = "BULWARK +" + e.Amount; color = new Color(0.85f, 0.88f, 1f); at = new Vector3(0, 1.9f, WallZ(e.Side)); break;
                 case MatchEventType.EnergyGranted:
                     text = "+" + e.Amount + " ENERGY"; color = e.Slot == 0 ? Theme.ChannelA : Theme.ChannelB; at = UnitPos(e.Side, e.Slot) + new Vector3(0, 2.2f, 0); break;
                 case MatchEventType.EnergyDelayed:

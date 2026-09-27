@@ -52,6 +52,9 @@ namespace Tabletop.Presentation
         /// <summary>The icon set carrying the UI kit sprites; set once by the scene's composition root.</summary>
         public static IconSet Kit { get; set; }
 
+        /// <summary>Played by every button press (set by <see cref="AudioDirector"/>; null = silent).</summary>
+        public static System.Action ClickSound { get; set; }
+
         /// <summary>A rounded card, optionally with a gold hairline border.</summary>
         public static Image Card(string name, Transform parent, Color color, bool hairline = false)
         {
@@ -162,13 +165,14 @@ namespace Tabletop.Presentation
             var colors = btn.colors;
             colors.normalColor = Color.white;
             colors.highlightedColor = new Color(1.15f, 1.15f, 1.15f, 1f);
-            colors.selectedColor = new Color(1.25f, 1.2f, 1.0f, 1f);
+            colors.selectedColor = new Color(1.12f, 1.08f, 1.0f, 1f); // the focus frame marks focus; keep the label readable
             colors.pressedColor = new Color(0.8f, 0.8f, 0.8f, 1f);
             colors.disabledColor = new Color(0.5f, 0.5f, 0.5f, 0.6f);
-            colors.colorMultiplier = 1.5f;
+            colors.colorMultiplier = 1.3f;
             btn.colors = colors;
             Round(img);
             if (onClick != null) btn.onClick.AddListener(onClick);
+            btn.onClick.AddListener(() => ClickSound?.Invoke());
             var label = Label("Label", img.transform, text, size, TextAnchor.MiddleCenter);
             label.rectTransform.Fill(6);
             label.resizeTextForBestFit = true;

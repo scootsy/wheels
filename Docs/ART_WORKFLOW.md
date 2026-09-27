@@ -44,6 +44,18 @@ The game scales every model automatically, stands it on the ground, and centres 
 
 The biggest single improvement is **an idle animation per character**. The game will loop it with **Loop** ticked. The current rigged models only contain an attack combo, so they hold its first frame as a pose.
 
+## Asset Store packs and the world look (D-033)
+
+1. In Unity: **Window → Package Manager → My Assets**, download and import the pack.
+2. If the import says it will overwrite **ProjectSettings**, that is a complete-project pack: let it import, then
+   ask Claude to restore the project's settings from Git (it keeps a backup of the pack's versions).
+3. Run **Tabletop → Art → Build World Look and Sounds**. It lists what the world uses (`WorldLook.asset`), the
+   sounds (`SoundBank.asset`) and the table figurines (`Figurines.asset`), caps texture sizes, and links them into
+   both scenes.
+4. Pack folders are **not committed** (public repository; Asset Store EULA). Builds contain what they use. A fresh
+   checkout without the packs still runs, with placeholders and without pack sounds.
+5. New CC0 downloads go in `Assets/Game/ThirdParty/` with their licence and a line in `CREDITS.md`.
+
 ## Rules the project keeps
 
 - **Original characters only.** No recognizable characters from existing games, anime, or films (project mission in `AGENTS.md`).

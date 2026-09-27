@@ -25,6 +25,13 @@ The project must never silently replace an OPEN rule with an assumption. Any ass
 
 ## 2. IP and Naming Boundary
 
+> **D-033 (2026-09-26):** the creative director states that a licensing agreement is now in place permitting the
+> source's names and assets. Player-facing text therefore uses the source's terms (Wheels, Wheel, Crown, Bulwark,
+> figurine, Square / Diamond energy, Warrior, Mage, Archer, Engineer, Assassin, Priest, Warlock). Code ids stay
+> neutral (`striker`, `caster`, `ranger`, `mason`, `shade`, `mender`, `hexer`; Channel A/B; Barrier), so saves,
+> replays and tests are unchanged. The world's towns and people remain original. The paragraph below is the
+> pre-licence rule, kept for history.
+
 The mechanics may be used as a design reference. Player-facing names, art, characters, setting, dialogue, UI, audio, icon designs, and presentation must remain original unless a separate written license explicitly permits their use.
 
 Use neutral internal terminology in production code:
@@ -549,7 +556,22 @@ Expose only two original working units in the first player-facing build:
 
 Use the exact Copper reel configuration for the default match. Add a developer-only selector for every fifth-reel tier so playtesting can distinguish rule quality from early-tier blank frequency.
 
-Both sides must use the same reel tier and valid face distributions.
+Each side brings its own fifth reel (D-033): the tiers may differ, and each side spins only its own set. Face
+distributions must still be valid.
+
+### 13.2a Charm head starts (D-033, IMPLEMENTATION DECISION)
+
+A side may carry **boons** in its configuration (from a charm bought in the world). They change only the starting
+state, before the first round, through the simulation, and are part of the configuration and so of every replay:
+
+| Boon | Effect | Limit |
+|---|---|---|
+| Rank A / Rank B | that figurine starts at the given rank (0 XP) | charms give at most one Silver |
+| Barrier | starting Bulwark | 0-5 (charms give 2) |
+| Crown bonus | added to the starting Crown | Crown ≤ 12 (charms give +2) |
+| Energy A / Energy B | starting energy | capped at cost - 1, so nobody starts ready (charms give 2 each) |
+
+`SideConfig.Encode` appends boons only when present, so replays from before D-033 decode unchanged.
 
 ### 13.3 Human Playtest Gate
 

@@ -33,6 +33,10 @@ namespace Tabletop.Application
         public System.Collections.Generic.IReadOnlyCollection<string> UnlockedUnits;
         /// <summary>World challenge being played (opponent, units, AI), or null for a free match.</summary>
         public EncounterDefinition Encounter;
+        /// <summary>The player's own fifth wheel in a world challenge (their best bought wheel, D-033).</summary>
+        public ReelTier PlayerTier = ReelTier.Copper;
+        /// <summary>Charm head start for the player's side in the next match only (D-033); cleared once it is used.</summary>
+        public SideBoons PlayerBoons;
     }
 
     /// <summary>
@@ -106,6 +110,8 @@ namespace Tabletop.Application
             string oppB = Options.DeveloperMode ? Options.OpponentB : ReferenceContent.Caster;
             var tier = Options.DeveloperMode ? Options.Tier : ReelTier.Copper;
             var ai = Options.DeveloperMode ? Options.AiProfile : ControllerIds.AiStandard;
+            var playerTier = tier;
+            SideBoons boons = null;
             var enc = Options.Encounter;
             if (enc != null)
             {
@@ -113,9 +119,11 @@ namespace Tabletop.Application
                 oppB = enc.UnitB;
                 tier = enc.Tier;
                 ai = enc.AiProfile;
+                playerTier = Options.PlayerTier;
+                boons = Options.PlayerBoons;
             }
             return new MatchConfig(RulesConstants.RulesVersion, seed,
-                new SideConfig(ControllerIds.Human, tier, Selection.Slots[0], Selection.Slots[1]),
+                new SideConfig(ControllerIds.Human, playerTier, Selection.Slots[0], Selection.Slots[1], boons),
                 new SideConfig(ai, tier, oppA, oppB), false, scenario);
         }
 
@@ -161,7 +169,7 @@ namespace Tabletop.Application
             // Capture the public round-start state the AI may evaluate (MATCH_UX_SPEC 4.3, 4.6).
             var side = Match.Config.Sides[1];
             _aiInput = AiDecisionInput.Capture(Match.Snapshot(), SideId.Opponent, _catalog, Match.ReelDefinitions(SideId.Opponent));
-            LastStatus = "Round " + Match.Round + ": spin the reels.";
+            LastStatus = "Round " + Match.Round + ": spin the wheels.";
             SetState(UxState.RoundReady);
         }
 
@@ -197,7 +205,7 @@ namespace Tabletop.Application
             var result = Dispatch(MatchCommand.Spin(SideId.Player));
             if (!result.Accepted) return false;
             Enqueue(result.Events);
-            LastStatus = PlayerSide.Committed ? "Third spin: result is final." : "Spinning unlocked reels.";
+            LastStatus = PlayerSide.Committed ? "Third spin: result is final." : "Spinning unlocked wheels.";
             SetState(UxState.Spinning);
             return true;
         }
@@ -205,16 +213,16 @@ namespace Tabletop.Application
         public bool RequestToggleLock(int reelIndex)
         {
             if (Paused) { Reject(RejectionCode.WrongPhase, "Resume the game first."); return false; }
-            if (State == UxState.RoundReady) { Reject(RejectionCode.FirstSpinRequired, "Spin all reels before locking."); return false; }
-            if (State != UxState.SpinDecision) { Reject(RejectionCode.WrongPhase, "Reels cannot change now."); return false; }
-            if (reelIndex < 0 || reelIndex >= ReelSetDefinition.ReelCount) { Reject(RejectionCode.InvalidReelIndex, "No such reel."); return false; }
+            if (State == UxState.RoundReady) { Reject(RejectionCode.FirstSpinRequired, "Spin all wheels before locking."); return false; }
+            if (State != UxState.SpinDecision) { Reject(RejectionCode.WrongPhase, "Wheels cannot change now."); return false; }
+            if (reelIndex < 0 || reelIndex >= ReelSetDefinition.ReelCount) { Reject(RejectionCode.InvalidReelIndex, "No such wheel."); return false; }
             bool locked = PlayerSide.Reels[reelIndex].Locked;
             var result = Dispatch(MatchCommand.SetReelLock(SideId.Player, reelIndex, !locked));
             if (!result.Accepted) return false;
             Enqueue(result.Events);
             LastStatus = PlayerSide.LockedCount == ReelSetDefinition.ReelCount
-                ? "All five reels locked: confirm to lock in the result, or unlock one to keep spinning."
-                : "Reel " + (reelIndex + 1) + (locked ? " unlocked." : " locked.");
+                ? "All five wheels locked: confirm to lock in the result, or unlock one to keep spinning."
+                : "Wheel " + (reelIndex + 1) + (locked ? " unlocked." : " locked.");
             return true;
         }
 
@@ -224,7 +232,7 @@ namespace Tabletop.Application
             if (State != UxState.Spinning) return;
             SetState(PlayerSide.Committed ? UxState.AiCommit : UxState.SpinDecision);
             if (State == UxState.SpinDecision)
-                LastStatus = "Lock reels to keep them, or spin the unlocked reels (" + PlayerSide.SpinsRemaining + " left).";
+                LastStatus = "Lock wheels to keep them, or spin the unlocked wheels (" + PlayerSide.SpinsRemaining + " left).";
         }
 
         /// <summary>Runs the AI's whole spin phase through the legal command surface.</summary>

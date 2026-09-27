@@ -148,9 +148,9 @@ namespace Tabletop.Presentation
                 default:
                 {
                     string h = string.Join(", ", def.Heights);
-                    string line = "Crown " + s.CrownDamage + " / Wall " + s.BarrierDamage + " per shot\n"
+                    string line = "Crown " + s.CrownDamage + " / Bulwark " + s.BarrierDamage + " per shot\n"
                         + def.Heights.Count + (def.Heights.Count == 1 ? " shot" : " shots") + " at height " + h;
-                    if (s.FriendlyBarrier > 0) line += ", +" + s.FriendlyBarrier + " own Wall";
+                    if (s.FriendlyBarrier > 0) line += ", +" + s.FriendlyBarrier + " own Bulwark";
                     if (s.SelfDamage > 0) line += ", self " + s.SelfDamage;
                     return line;
                 }

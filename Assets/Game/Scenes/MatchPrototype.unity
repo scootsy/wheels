@@ -483,6 +483,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c37961634cfbc6943bbb079b4ae42915, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Tabletop.Presentation::Tabletop.Presentation.MatchApp
+  sounds: {fileID: 11400000, guid: dd1cceba5ee9ed54b978929d3b5ad51d, type: 2}
+  figurines: {fileID: 11400000, guid: 3cbb2114643d78f4ca4c4a34b6b0b7d3, type: 2}
   inputActions: {fileID: -944628639613478452, guid: 57b731bb5b75bbb4d8de429518dc03e2, type: 3}
   content: {fileID: 11400000, guid: ffbe9fa268143e44a9e13d8c948d649c, type: 2}
   boardCamera: {fileID: 324685996}

@@ -102,7 +102,8 @@ Only commands listed for the current state are legal. The presentation layer MUS
 The normal first-playable setup uses:
 
 - Standard AI;
-- Copper reel tier for both sides;
+- Copper reel tier for both sides (practice); in a world challenge the player brings their best bought wheel and
+  the opponent their own (D-033);
 - a newly generated seed;
 - Striker and Caster as the AI pair.
 
@@ -212,6 +213,11 @@ The presenter consumes the simulation event list in order. It MUST NOT reorder e
 At `RoundEnded`, pause long enough to make the final state readable, then return to `ROUND_READY`. At `MatchEnded`, finish the current event, reconcile visual state, and open `MATCH_RESULT`.
 
 ### 4.8 Match result
+
+**World challenges (D-033):** the line under the result reads the stake ("Stake 8" / "Friendly game" / "Played for a
+favour"), what changed ("+8 coins", "Crown Tonic used", "you owe a favour") and the purse. Each finished match settles
+once; a rematch stakes again and never reuses the charm. Table sounds (spins, locks, lever, hits, Bulwark, rank-up,
+result) and table music play through `AudioDirector`; they never affect timing or results.
 
 The result overlay MUST distinguish:
 

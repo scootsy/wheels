@@ -229,7 +229,7 @@ namespace Tabletop.Tests.PlayMode
             Assert.AreEqual(hash, Session.Match.StateHash());
             Assert.AreEqual(App.SpinButton.gameObject, Selected, "focus kept on attempted control");
             Assert.AreEqual(UxState.RoundReady, Session.State);
-            StringAssert.Contains("Spin all reels before locking", App.RoundInfoText.text);
+            StringAssert.Contains("Spin all wheels before locking", App.RoundInfoText.text);
         }
 
         [UnityTest]

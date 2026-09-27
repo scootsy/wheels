@@ -59,3 +59,23 @@ Thumbs.db
 /Assets/Game/Characters/Materials/2765322-20260707031935038.mat*
 /Assets/Game/Characters/Materials/2765322-20260707033207830.mat*
 /Assets/Game/Characters/Materials/5332524-20260822163940301.mat*
+
+# Asset Store packs (D-033). Licensed to the creative director's seat; the Asset Store EULA does not allow
+# publishing them, and this repository is public. Re-import them from Package Manager > My Assets
+# (see Docs/ART_WORKFLOW.md). The game falls back to placeholders when they are missing.
+/Assets/Art/
+/Assets/Art.meta
+/Assets/Audio/
+/Assets/Audio.meta
+/Assets/Terrain/
+/Assets/Terrain.meta
+/Assets/TerrainTexturesPackFree/
+/Assets/TerrainTexturesPackFree.meta
+/Assets/Polytope Studio/
+/Assets/Polytope Studio.meta
+/Assets/ithappy/
+/Assets/ithappy.meta
+/Assets/Shaders/
+/Assets/Shaders.meta
+/Assets/TextMesh Pro/
+/Assets/TextMesh Pro.meta

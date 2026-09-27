@@ -44,6 +44,8 @@ At that point, **STOP AND WAIT FOR THE CREATIVE DIRECTOR TO PLAY IT**.
 
 **Journey + table (2026-09-25, D-027):** save/resume, piece progression (each town's champion holds a new piece), first-person view, sprint/jump, the deck screen, and the production table with animated pieces are authorized. See `Docs/DECISIONS.md` D-027.
 
+**Journey economy, look, sound and the Outpost (2026-09-26, D-033):** coins, stakes and favours, errands, stalls, charms and wheels, the creative director's Asset Store packs and CC0 downloads (characters, music, sound effects), the source's names (licence stated by the creative director), and the Stonemasons' Outpost are authorized as described in `Docs/WORLD_SPEC.md`. When W3 is verified, stop and wait for the creative director to play it.
+
 **Imported art (2026-09-25, D-026):** creative-director-supplied models may replace W1 placeholders through `Docs/ART_WORKFLOW.md`. Keep the project original: no recognizable existing characters, nothing sexual, nothing that reads as underage in a revealing outfit. Producing new art (Blender, VFX, audio) remains gated.
 
 Do not begin any of the following without an explicit instruction approving continuation past the human playtest gate:

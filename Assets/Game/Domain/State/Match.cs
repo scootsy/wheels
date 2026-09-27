@@ -112,7 +112,12 @@ namespace Tabletop.Domain
                 var side = new SideState { Tier = cfg.ReelTier };
                 for (int r = 0; r < ReelSetDefinition.ReelCount; r++) side.Reels[r] = new ReelState { Def = set.Reels[r] };
                 for (int u = 0; u < RulesConstants.UnitsPerSide; u++)
-                    side.Units[u] = new UnitState { Def = Catalog.Unit(cfg.UnitIds[u]), Channel = (Channel)u, Rank = Rank.Bronze };
+                    side.Units[u] = new UnitState { Def = Catalog.Unit(cfg.UnitIds[u]), Channel = (Channel)u, Rank = cfg.Boons.RankOf(u) };
+                // Charm head starts (D-033), applied before any developer scenario.
+                side.Crown = RulesConstants.StartingCrown + cfg.Boons.CrownBonus;
+                side.Barrier = cfg.Boons.Barrier;
+                for (int u = 0; u < RulesConstants.UnitsPerSide; u++)
+                    side.Units[u].Energy = System.Math.Min(cfg.Boons.EnergyOf(u), side.Units[u].Cost - 1);
                 _sides[s] = side;
             }
             var sc = Config.Scenario;

@@ -13,7 +13,7 @@ namespace Tabletop.World
         public readonly GameObject Pause;
         public readonly GameObject Dialogue;
         public readonly Button TitleContinue, TitleBegin, TitlePractice, TitleQuit;
-        public readonly Button PauseResume, PauseDeck, PauseView, PauseHelp, PausePractice, PauseQuit;
+        public readonly Button PauseResume, PauseJournal, PauseDeck, PauseView, PauseSound, PauseHelp, PausePractice, PauseQuit;
         public readonly Transform Frame;
         public readonly Button Continue;
         public readonly List<Button> Choices = new List<Button>();
@@ -126,22 +126,24 @@ namespace Tabletop.World
             pbox.rectTransform.Place(560, 90, 800, 900);
             Ui.Label("Title", pbox.transform, "PAUSED", 48, TextAnchor.UpperCenter, Theme.Text, FontStyle.Bold).rectTransform.Place(0, 20, 800, 60);
             PauseResume = Ui.Button("Resume", pbox.transform, "RESUME", null, 26, Theme.ButtonPrimary);
+            PauseJournal = Ui.Button("Journal", pbox.transform, "ERRANDS AND SATCHEL", null, 26);
             PauseDeck = Ui.Button("Deck", pbox.transform, "YOUR DECK", null, 26);
             PauseView = Ui.Button("View", pbox.transform, "VIEW: OVERHEAD", null, 26);
+            PauseSound = Ui.Button("Sound", pbox.transform, "SOUND: ON", null, 26);
             PauseHelp = Ui.Button("Help", pbox.transform, "HOW TO PLAY", null, 26);
             PausePractice = Ui.Button("Practice", pbox.transform, "PRACTICE TABLE", null, 26);
             PauseQuit = Ui.Button("Quit", pbox.transform, "SAVE AND QUIT", null, 26);
-            var pauseButtons = new[] { PauseResume, PauseDeck, PauseView, PauseHelp, PausePractice, PauseQuit };
-            for (int i = 0; i < pauseButtons.Length; i++) ((RectTransform)pauseButtons[i].transform).Place(200, 96 + i * 76, 400, 64);
+            var pauseButtons = new[] { PauseResume, PauseJournal, PauseDeck, PauseView, PauseSound, PauseHelp, PausePractice, PauseQuit };
+            for (int i = 0; i < pauseButtons.Length; i++) ((RectTransform)pauseButtons[i].transform).Place(200, 90 + i * 62, 400, 54);
             _pauseText = Ui.Label("HelpText", pbox.transform, "", 21, TextAnchor.UpperLeft, Theme.Text);
-            _pauseText.rectTransform.Place(40, 560, 720, 320);
+            _pauseText.rectTransform.Place(40, 598, 720, 290);
             Link(pauseButtons);
             Pause.SetActive(false);
 
             // Title
             Title = Ui.Panel("Title", root, new Color(0.05f, 0.04f, 0.04f, 0.78f)).gameObject;
             ((RectTransform)Title.transform).Fill();
-            Ui.Label("Name", Title.transform, "TABLETOP REELS", 110, TextAnchor.UpperCenter, Theme.Crown, FontStyle.Bold).rectTransform.Place(0, 150, 1920, 140);
+            Ui.Label("Name", Title.transform, "WHEELS", 110, TextAnchor.UpperCenter, Theme.Crown, FontStyle.Bold).rectTransform.Place(0, 150, 1920, 140);
             Ui.Label("Tagline", Title.transform, "A journey north, one table at a time.", 34, TextAnchor.UpperCenter, Theme.Text).rectTransform.Place(0, 300, 1920, 50);
             TitleContinue = Ui.Button("Continue", Title.transform, "CONTINUE JOURNEY", null, 32, Theme.ButtonPrimary);
             ((RectTransform)TitleContinue.transform).Place(710, 410, 500, 84);
@@ -153,7 +155,7 @@ namespace Tabletop.World
             ((RectTransform)TitleQuit.transform).Place(760, 684, 400, 66);
             Ui.Label("How", Title.transform,
                 "Walk: WASD / arrows or left stick.  Sprint: Shift or LT.  Jump: Space or (A).  Talk: E or (A).  Switch view: V or (Y).  Deck: I or (X).  Menu: Esc or Start.\n"
-                + "Villagers with a gem above their heads will play Reels with you. The Champion waits in Brindlecross, far to the north. Your journey saves itself.",
+                + "People with a golden marker above their heads play Wheels, mostly for coins. Villagers pay for errands; stalls sell charms and wheels. Your journey saves itself.",
                 23, TextAnchor.UpperCenter, Theme.TextDim).rectTransform.Place(160, 790, 1600, 120);
             Link(TitleContinue, TitleBegin, TitlePractice, TitleQuit);
             Title.SetActive(false); // shown by WorldApp only on the first visit

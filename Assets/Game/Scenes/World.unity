@@ -458,6 +458,8 @@ MonoBehaviour:
   worldCamera: {fileID: 310573322}
   eventSystem: {fileID: 751981745}
   art: {fileID: 11400000, guid: b87effa6e42ecb74d8ac13c9d2834f77, type: 2}
+  look: {fileID: 11400000, guid: a1af78117228a28489d8a55c63147844, type: 2}
+  sounds: {fileID: 11400000, guid: dd1cceba5ee9ed54b978929d3b5ad51d, type: 2}
 --- !u!4 &1596816545
 Transform:
   m_ObjectHideFlags: 0

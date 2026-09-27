@@ -1,9 +1,9 @@
 # Implementation Status
 
-**Current authorized target:** W1 world slice (D-025, `WORLD_SPEC.md`), then stop for the creative director to play it.  
-**Last updated:** 2026-09-24  
+**Current authorized target:** W3 (D-033, `WORLD_SPEC.md`): coins, stakes and favours, errands, stalls, charms and wheels, pack art and sound, the source's names, and the Stonemasons' Outpost. Then stop for the creative director to play it.  
+**Last updated:** 2026-09-26  
 
-**W1 COMPLETE — waiting for the creative director to play the world slice.** Nothing beyond `WORLD_SPEC.md` is authorized.
+**W3 COMPLETE - waiting for the creative director to play it.** Nothing beyond `WORLD_SPEC.md` is authorized.
 
 | Stage | Status | Verification |
 |---|---|---|
@@ -12,7 +12,10 @@
 | M1 ugly playable match | Complete | 21/21 PlayMode tests; keyboard, gamepad, and mouse paths; screenshots; Windows build |
 | Human playtest gate | Opened for W1 only (D-025) | Creative director asked for the explorable world on 2026-09-24 |
 | W1 world slice | Complete | 97/97 EditMode, 27/27 PlayMode; Windows build self-check with world screenshots |
-| W1 playtest stop | **ACTIVE** | Waiting for the creative director to play W1 |
+| W1 playtest stop | Passed | Creative director played W1 and asked for W2 / W3 |
+| W2 journey + table (D-027..D-032) | Complete | Save/continue, first person, deck, 3D table, iOS builds, touch pad |
+| W3 journey economy, look, sound, Outpost (D-033) | Complete | 136/136 EditMode, 40/40 PlayMode; Windows build self-check (world + table screenshots, 20/20 animated people, no unsupported shaders) |
+| W3 playtest stop | **ACTIVE** | Waiting for the creative director to play W3 |
 | M2 progression | Not authorized | Untouched |
 | M3 tiny world (beyond W1) | Not authorized | Untouched |
 | M4 production presentation | Not authorized | Untouched |

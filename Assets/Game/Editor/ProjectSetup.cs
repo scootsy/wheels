@@ -114,6 +114,8 @@ namespace Tabletop.EditorTools
             so.FindProperty("eventSystem").objectReferenceValue = es;
             so.FindProperty("icons").objectReferenceValue = icons;
             so.FindProperty("boardMaterial").objectReferenceValue = AssetDatabase.LoadAssetAtPath<Material>(BoardMaterialSetup.MaterialPath);
+            so.FindProperty("sounds").objectReferenceValue = AssetDatabase.LoadAssetAtPath<SoundBank>(WorldLookSetup.SoundsPath);
+            so.FindProperty("figurines").objectReferenceValue = AssetDatabase.LoadAssetAtPath<FigurineSet>(WorldLookSetup.FigurinesPath);
             so.ApplyModifiedPropertiesWithoutUndo();
 
             Directory.CreateDirectory(Path.GetDirectoryName(ScenePath));

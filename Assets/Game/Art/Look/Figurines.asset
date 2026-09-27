@@ -1,0 +1,73 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30f170cff9f9da545a7a89ffa9a88e2c, type: 3}
+  m_Name: Figurines
+  m_EditorClassIdentifier: Tabletop.Presentation::Tabletop.Presentation.FigurineSet
+  entries:
+  - unitId: striker
+    model: {fileID: 919132149155446097, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+    keep:
+    - 1H_Sword
+    - Round_Shield
+    hat: 1
+    cape: 1
+    pose: {fileID: -6801083763907307519, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+    poseTime: 0.4
+  - unitId: caster
+    model: {fileID: 919132149155446097, guid: b61b54862d3ea004589568b848e5d3c7, type: 3}
+    keep:
+    - 2H_Staff
+    hat: 1
+    cape: 1
+    pose: {fileID: 5352130994113808372, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+    poseTime: 0.8
+  - unitId: ranger
+    model: {fileID: 919132149155446097, guid: 8f67b0b6ad49dd64597ff8167147bdbe, type: 3}
+    keep:
+    - 2H_Crossbow
+    hat: 1
+    cape: 1
+    pose: {fileID: -2767709846786070005, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+    poseTime: 0.5
+  - unitId: mason
+    model: {fileID: 919132149155446097, guid: 1c890e2386aa5364ab62da240e5a269a, type: 3}
+    keep:
+    - 2H_Axe
+    hat: 1
+    cape: 1
+    pose: {fileID: -7009279140402340920, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+    poseTime: 0.3
+  - unitId: shade
+    model: {fileID: 919132149155446097, guid: 85bf72d0285dfcb48a55fb2f48d2eee9, type: 3}
+    keep:
+    - Knife
+    - Knife_Offhand
+    hat: 1
+    cape: 1
+    pose: {fileID: 5812068982650959540, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+    poseTime: 0.2
+  - unitId: mender
+    model: {fileID: 919132149155446097, guid: b61b54862d3ea004589568b848e5d3c7, type: 3}
+    keep:
+    - Spellbook_open
+    hat: 0
+    cape: 1
+    pose: {fileID: -6008979419217260773, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+    poseTime: 0.2
+  - unitId: hexer
+    model: {fileID: 919132149155446097, guid: b61b54862d3ea004589568b848e5d3c7, type: 3}
+    keep:
+    - 1H_Wand
+    hat: 1
+    cape: 0
+    pose: {fileID: 5237015913805051347, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+    poseTime: 0.4

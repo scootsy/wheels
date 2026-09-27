@@ -165,13 +165,13 @@ namespace Tabletop.Tests.PlayMode
                 Assert.GreaterOrEqual(c[0].x, frame[0].x - 0.5f, card.name + " off the left edge");
                 Assert.LessOrEqual(c[2].x, frame[2].x + 0.5f, card.name + " off the right edge");
             }
-            StringAssert.Contains("STRIKER", World.Deck.DetailText);
+            StringAssert.Contains("WARRIOR", World.Deck.DetailText); // the source's names (D-033)
             StringAssert.Contains("BRONZE", World.Deck.DetailText);
             int ranger = -1;
             for (int i = 0; i < World.Deck.UnitOrder.Count; i++) if (World.Deck.UnitOrder[i] == ReferenceContent.Ranger) ranger = i;
             Assert.GreaterOrEqual(ranger, 0);
             for (int i = 0; i < ranger; i++) yield return Tap(Kb.rightArrowKey);
-            StringAssert.Contains("RANGER", World.Deck.DetailText);
+            StringAssert.Contains("ARCHER", World.Deck.DetailText);
             StringAssert.Contains("LOCKED", World.Deck.DetailText);
             StringAssert.Contains("Corvin Vale", World.Deck.DetailText, "says who to beat");
             yield return Tap(Kb.escapeKey);
@@ -199,7 +199,9 @@ namespace Tabletop.Tests.PlayMode
             Assert.IsFalse(World.Ui.Title.activeSelf);
             Assert.IsTrue(GameFlow.HasDefeated(EncounterCatalog.Champion), "wins restored");
             Assert.IsTrue(GameFlow.IsUnlocked(ReferenceContent.Ranger), "won pieces restored");
-            Assert.Less(Vector3.Distance(new Vector3(3f, 0, 125f), World.Player.transform.position), 0.1f, "back where you were");
+            var at = World.Player.transform.position;
+            Assert.Less(Vector2.Distance(new Vector2(3f, 125f), new Vector2(at.x, at.z)), 0.1f, "back where you were");
+            Assert.AreEqual(WorldGround.Walk(3f, 125f), at.y, 0.01f, "standing on the ground");
             Assert.AreEqual("Brindlecross", World.CurrentArea);
         }
 

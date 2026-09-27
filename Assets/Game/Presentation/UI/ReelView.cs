@@ -181,7 +181,7 @@ namespace Tabletop.Presentation
         }
 
         /// <summary>Shows a face (null = no face yet). Unit names say who each channel feeds.</summary>
-        public void SetFace(ReelFace face, string unitAName = "left unit", string unitBName = "right unit")
+        public void SetFace(ReelFace face, string unitAName = "left figurine", string unitBName = "right figurine")
         {
             string key = (face == null ? "" : face.Code) + "|" + unitAName + "|" + unitBName;
             if (key == _shownKey) return;
@@ -197,7 +197,7 @@ namespace Tabletop.Presentation
             {
                 _caption.text = "";
                 _xpBadge.SetActive(false);
-                Description = "Reel " + (Index + 1) + ", not spun";
+                Description = "Wheel " + (Index + 1) + ", not spun";
                 return;
             }
 
@@ -217,7 +217,7 @@ namespace Tabletop.Presentation
             else if (face.Hammer > 0)
             {
                 AddIcons(_icons != null ? _icons.hammer : null, Theme.Hammer, face.Hammer, GlyphShape.Hammer);
-                caption = "HAMMER -> WALL";
+                caption = "HAMMER -> BULWARK";
                 _count.text = "x" + face.Hammer;
             }
             else
@@ -228,7 +228,7 @@ namespace Tabletop.Presentation
             _xpBadge.SetActive(face.XpChannel.HasValue && !_overlay);
             if (face.XpChannel.HasValue) caption += "\n+1 XP";
             _caption.text = caption;
-            Description = "Reel " + (Index + 1) + ", " + caption.Replace("\n", ", ").Replace("->", "feeds") + (_count.text.Length > 0 ? " (" + _count.text + ")" : "");
+            Description = "Wheel " + (Index + 1) + ", " + caption.Replace("\n", ", ").Replace("->", "feeds") + (_count.text.Length > 0 ? " (" + _count.text + ")" : "");
         }
     }
 }

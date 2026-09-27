@@ -66,6 +66,8 @@ namespace Tabletop.EditorTools
             so.FindProperty("worldCamera").objectReferenceValue = cam;
             so.FindProperty("eventSystem").objectReferenceValue = es;
             so.FindProperty("art").objectReferenceValue = art;
+            so.FindProperty("look").objectReferenceValue = AssetDatabase.LoadAssetAtPath<WorldLook>(WorldLookSetup.LookPath);
+            so.FindProperty("sounds").objectReferenceValue = AssetDatabase.LoadAssetAtPath<SoundBank>(WorldLookSetup.SoundsPath);
             so.ApplyModifiedPropertiesWithoutUndo();
 
             Directory.CreateDirectory(Path.GetDirectoryName(WorldScenePath));

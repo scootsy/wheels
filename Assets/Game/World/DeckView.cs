@@ -103,7 +103,7 @@ namespace Tabletop.World
                 _cardStatus[i].color = has ? Theme.Heal : Theme.TextDim;
                 _portraits[i].color = has ? Color.white : new Color(0.12f, 0.12f, 0.14f, 1f);
             }
-            _summary.text = "You own " + owned + " of " + _unitIds.Count + " pieces. Each town's Champion holds a new one: beat them to win it.";
+            _summary.text = "You own " + owned + " of " + _unitIds.Count + " figurines. Each town's Champion holds a new one: beat them to win it.";
             _shown = -1;
             Show(0);
             return Cards.Count > 0 ? Cards[0] : Close;
@@ -141,7 +141,7 @@ namespace Tabletop.World
                 sb.Append(names[r]).Append("    cost ").Append(s.EnergyCost).Append(" energy    ")
                   .Append(UnitPanelView.StatsLine(def, s).Replace("\n", "    ")).Append('\n');
             }
-            sb.Append("\nEvery piece starts a match at Bronze and ranks up at ").Append(RulesConstants.XpThreshold).Append(" XP.");
+            sb.Append("\nEvery figurine starts a match at Bronze and ranks up at ").Append(RulesConstants.XpThreshold).Append(" XP.");
             if (!owned)
             {
                 var source = EncounterCatalog.PrizeSource(def.Id);

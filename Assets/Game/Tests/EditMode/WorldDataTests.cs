@@ -18,7 +18,9 @@ namespace Tabletop.Tests.EditMode
         {
             var ids = EncounterCatalog.All.Select(e => e.Id).ToList();
             CollectionAssert.AllItemsAreUnique(ids);
-            Assert.AreEqual(1, EncounterCatalog.All.Count(e => e.IsChampion), "exactly one champion");
+            // One champion per town (D-033): Brindlecross and the Stonemasons' Outpost.
+            Assert.AreEqual(1, EncounterCatalog.All.Count(e => e.IsChampion && e.Area != Areas.Outpost), "one champion in the valley");
+            Assert.AreEqual(1, EncounterCatalog.All.Count(e => e.IsChampion && e.Area == Areas.Outpost), "one champion at the Outpost");
             foreach (var e in EncounterCatalog.All)
             {
                 var cfg = MatchConfig.Standard(42, ReferenceContent.Striker, ReferenceContent.Caster, e.UnitA, e.UnitB, e.Tier, e.AiProfile);
@@ -81,21 +83,26 @@ namespace Tabletop.Tests.EditMode
         }
 
         [Test]
-        public void TownVillagers_PlayTheStartingPair_AndOnlyTheChampionHoldsAPrize()
+        public void TownVillagers_PlayTheStartingPair_AndOnlyTheChampionsHoldAPrize()
         {
+            var prizes = new System.Collections.Generic.List<string>();
             foreach (var e in EncounterCatalog.All)
             {
                 if (e.IsChampion)
                 {
-                    Assert.AreEqual(ReferenceContent.Ranger, e.PrizeUnit, "Brindlecross's champion holds the Ranger");
-                    Assert.IsTrue(e.UnitA == e.PrizeUnit || e.UnitB == e.PrizeUnit, "the champion plays the piece you can win");
+                    Assert.IsNotNull(e.PrizeUnit, e.Id);
+                    Assert.IsTrue(e.UnitA == e.PrizeUnit || e.UnitB == e.PrizeUnit, e.Id + ": the champion plays the figurine you can win");
+                    prizes.Add(e.PrizeUnit);
                 }
                 else
                 {
                     Assert.IsNull(e.PrizeUnit, e.Id);
-                    CollectionAssert.AreEquivalent(EncounterCatalog.StartingUnits, new[] { e.UnitA, e.UnitB }, e.Id + " plays the town's practice pair");
+                    // The valley plays the practice pair; the Outpost's stonemasons bring an Archer or play on better wheels (D-033).
+                    if (e.Area != Areas.Outpost)
+                        CollectionAssert.AreEquivalent(EncounterCatalog.StartingUnits, new[] { e.UnitA, e.UnitB }, e.Id + " plays the town's practice pair");
                 }
             }
+            CollectionAssert.AreEqual(new[] { ReferenceContent.Ranger, ReferenceContent.Mason }, prizes, "Brindlecross holds the Archer, the Outpost the Engineer");
         }
 
         [Test]

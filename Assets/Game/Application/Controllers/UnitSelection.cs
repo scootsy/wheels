@@ -48,7 +48,7 @@ namespace Tabletop.Application
         public CommandRejection Toggle(string unitId)
         {
             if (!_catalog.TryGetUnit(unitId, out var def) || !Selectable(def, DeveloperMode))
-                return Fail(RejectionCode.ConfigInvalid, "That unit is not available.");
+                return Fail(RejectionCode.ConfigInvalid, "That figurine is not available.");
             int slot = SlotOf(unitId);
             if (slot >= 0 && !AllowDuplicates)
             {
@@ -57,7 +57,7 @@ namespace Tabletop.Application
                 return null;
             }
             int empty = _slots[0] == null ? 0 : _slots[1] == null ? 1 : -1;
-            if (empty < 0) return Fail(RejectionCode.UnitSelectionIncomplete, "Both slots are full. Remove a unit or choose a slot to replace.");
+            if (empty < 0) return Fail(RejectionCode.UnitSelectionIncomplete, "Both slots are full. Remove a figurine or choose a slot to replace.");
             _slots[empty] = unitId;
             LastMessage = def.DisplayName + " assigned to " + SlotName(empty) + ".";
             return null;
@@ -68,9 +68,9 @@ namespace Tabletop.Application
         {
             if (slot < 0 || slot > 1) return Fail(RejectionCode.InvalidReelIndex, "No such slot.");
             if (!_catalog.TryGetUnit(unitId, out var def) || !Selectable(def, DeveloperMode))
-                return Fail(RejectionCode.ConfigInvalid, "That unit is not available.");
+                return Fail(RejectionCode.ConfigInvalid, "That figurine is not available.");
             if (!AllowDuplicates && _slots[1 - slot] == unitId)
-                return Fail(RejectionCode.DuplicateUnitNotAllowed, "Choose two different units.");
+                return Fail(RejectionCode.DuplicateUnitNotAllowed, "Choose two different figurines.");
             _slots[slot] = unitId;
             LastMessage = def.DisplayName + " assigned to " + SlotName(slot) + ".";
             return null;
@@ -99,9 +99,9 @@ namespace Tabletop.Application
 
         public CommandRejection Validate()
         {
-            if (!IsComplete) return new CommandRejection(-1, RejectionCode.UnitSelectionIncomplete, "Choose two units.", MatchPhase.Setup);
+            if (!IsComplete) return new CommandRejection(-1, RejectionCode.UnitSelectionIncomplete, "Choose two figurines.", MatchPhase.Setup);
             if (!AllowDuplicates && _slots[0] == _slots[1])
-                return new CommandRejection(-1, RejectionCode.DuplicateUnitNotAllowed, "Choose two different units.", MatchPhase.Setup);
+                return new CommandRejection(-1, RejectionCode.DuplicateUnitNotAllowed, "Choose two different figurines.", MatchPhase.Setup);
             return null;
         }
 

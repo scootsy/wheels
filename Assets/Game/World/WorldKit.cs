@@ -60,6 +60,8 @@ namespace Tabletop.World
         }
 
         public IReadOnlyList<Transform> Billboards => _billboards;
+        /// <summary>The URP Lit material every generated material is derived from.</summary>
+        public Material BaseMaterial => _base;
 
         /// <summary>One material per color, derived from the referenced URP base material (keeps SRP batching).</summary>
         public Material Mat(Color c)
@@ -135,6 +137,104 @@ namespace Tabletop.World
             container.localScale = Vector3.one * s;
             fittedSize = b.size * s;
             return container;
+        }
+
+        private readonly Dictionary<Material, Material> _repaired = new Dictionary<Material, Material>();
+
+        /// <summary>
+        /// Places a pack prefab (D-033) at a local position, turned and uniformly scaled. Pack cameras/lights are
+        /// switched off, and any material whose shader cannot render in this pipeline is swapped for URP Lit with
+        /// the same texture and colour, so nothing ever shows up magenta.
+        /// </summary>
+        public GameObject PlacePrefab(GameObject prefab, Transform parent, Vector3 localPos, float yaw, float scale)
+        {
+            var go = Object.Instantiate(prefab, parent, false);
+            go.name = prefab.name;
+            go.transform.localPosition = localPos;
+            go.transform.localRotation = Quaternion.Euler(0, yaw, 0) * prefab.transform.localRotation;
+            go.transform.localScale = prefab.transform.localScale * scale;
+            foreach (var c in go.GetComponentsInChildren<Camera>(true)) c.enabled = false;
+            foreach (var l in go.GetComponentsInChildren<Light>(true)) l.enabled = false;
+            foreach (var a in go.GetComponentsInChildren<AudioSource>(true)) a.enabled = false;
+            RepairMaterials(go);
+            return go;
+        }
+
+        private readonly Dictionary<string, Material> _restyled = new Dictionary<string, Material>();
+
+        /// <summary>
+        /// Swaps every material under <paramref name="go"/> for URP Lit with the same base texture, tinted: used to
+        /// bring a pack's stylised shader (e.g. glowing rune rocks) in line with the rest of the world.
+        /// </summary>
+        public void Restyle(GameObject go, Color tint)
+        {
+            foreach (var r in go.GetComponentsInChildren<Renderer>(true))
+            {
+                var mats = r.sharedMaterials;
+                for (int i = 0; i < mats.Length; i++)
+                {
+                    var src = mats[i];
+                    if (src == null) continue;
+                    string key = src.name + "|" + ColorUtility.ToHtmlStringRGB(tint);
+                    if (!_restyled.TryGetValue(key, out var m))
+                    {
+                        m = _base != null ? new Material(_base) : new Material(Shader.Find("Universal Render Pipeline/Lit"));
+                        m.name = src.name + "_Restyled";
+                        Texture tex = null;
+                        foreach (var prop in new[] { "_BaseTexture", "_BaseMap", "_MainTex" })
+                            if (src.HasProperty(prop) && src.GetTexture(prop) != null) { tex = src.GetTexture(prop); break; }
+                        m.SetTexture("_BaseMap", tex);
+                        m.mainTexture = tex;
+                        m.SetColor("_BaseColor", tint);
+                        m.color = tint;
+                        if (m.HasProperty("_Smoothness")) m.SetFloat("_Smoothness", 0.1f);
+                        _restyled[key] = m;
+                    }
+                    mats[i] = m;
+                }
+                r.sharedMaterials = mats;
+            }
+        }
+
+        public void RepairMaterials(GameObject go)
+        {
+            foreach (var r in go.GetComponentsInChildren<Renderer>(true))
+            {
+                if (r.GetType().Name == "ParticleSystemRenderer") continue; // module not enabled in this project
+                var mats = r.sharedMaterials;
+                bool changed = false;
+                for (int i = 0; i < mats.Length; i++)
+                {
+                    var m = mats[i];
+                    if (m != null && m.shader != null && m.shader.isSupported && !m.shader.name.StartsWith("Hidden/InternalErrorShader")) continue;
+                    mats[i] = Repaired(m);
+                    changed = true;
+                }
+                if (changed) r.sharedMaterials = mats;
+            }
+        }
+
+        private Material Repaired(Material broken)
+        {
+            if (broken == null) return Mat(Palette.Stone);
+            if (_repaired.TryGetValue(broken, out var m)) return m;
+            m = _base != null ? new Material(_base) : new Material(Shader.Find("Universal Render Pipeline/Lit"));
+            m.name = broken.name + "_URP";
+            Texture tex = null;
+            foreach (var prop in new[] { "_BaseMap", "_MainTex", "_BaseColorMap", "_Albedo", "_Texture" })
+                if (broken.HasProperty(prop) && broken.GetTexture(prop) != null) { tex = broken.GetTexture(prop); break; }
+            var color = broken.HasProperty("_BaseColor") ? broken.GetColor("_BaseColor") : broken.HasProperty("_Color") ? broken.GetColor("_Color") : Color.white;
+            m.SetTexture("_BaseMap", tex);
+            m.mainTexture = tex;
+            m.SetColor("_BaseColor", tex != null ? Color.white : color);
+            if (broken.HasProperty("_Cutoff") || broken.name.ToLowerInvariant().Contains("leaf") || broken.name.ToLowerInvariant().Contains("foliage"))
+            {
+                m.SetFloat("_AlphaClip", 1f);
+                m.EnableKeyword("_ALPHATEST_ON");
+                m.SetFloat("_Cutoff", 0.4f);
+            }
+            _repaired[broken] = m;
+            return m;
         }
 
         /// <summary>Tight bounds of every mesh under <paramref name="root"/> in <paramref name="space"/>'s local space (skinned meshes as posed).</summary>

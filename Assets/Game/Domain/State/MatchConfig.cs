@@ -15,29 +15,85 @@ namespace Tabletop.Domain
         public static bool IsAi(string id) => id == AiLearner || id == AiStandard || id == AiExpert;
     }
 
+    /// <summary>
+    /// One-match head starts bought with charms (D-033). All zero by default. They only change the starting state,
+    /// through the simulation, and are part of the configuration (and so of every replay).
+    /// </summary>
+    public sealed class SideBoons
+    {
+        public static readonly SideBoons None = new SideBoons();
+
+        public SideBoons(Rank rankA = Rank.Bronze, Rank rankB = Rank.Bronze, int barrier = 0, int crownBonus = 0, int energyA = 0, int energyB = 0)
+        {
+            RankA = rankA;
+            RankB = rankB;
+            Barrier = barrier;
+            CrownBonus = crownBonus;
+            EnergyA = energyA;
+            EnergyB = energyB;
+        }
+
+        public Rank RankA { get; }
+        public Rank RankB { get; }
+        /// <summary>Starting Bulwark height.</summary>
+        public int Barrier { get; }
+        /// <summary>Added to the starting Crown (the hard cap still applies).</summary>
+        public int CrownBonus { get; }
+        public int EnergyA { get; }
+        public int EnergyB { get; }
+
+        public bool IsEmpty => RankA == Rank.Bronze && RankB == Rank.Bronze && Barrier == 0 && CrownBonus == 0 && EnergyA == 0 && EnergyB == 0;
+
+        public Rank RankOf(int slot) => slot == 0 ? RankA : RankB;
+        public int EnergyOf(int slot) => slot == 0 ? EnergyA : EnergyB;
+
+        public string Validate()
+        {
+            if (Barrier < 0 || Barrier > RulesConstants.MaxBarrier) return "Boon barrier out of range";
+            if (CrownBonus < 0 || RulesConstants.StartingCrown + CrownBonus > RulesConstants.HardCrownCap) return "Boon crown out of range";
+            if (EnergyA < 0 || EnergyB < 0 || EnergyA > 9 || EnergyB > 9) return "Boon energy out of range";
+            return null;
+        }
+
+        public string Encode() => (int)RankA + "." + (int)RankB + "." + Barrier + "." + CrownBonus + "." + EnergyA + "." + EnergyB;
+
+        public static SideBoons Decode(string text)
+        {
+            var p = text.Split('.');
+            if (p.Length != 6) throw new FormatException("Bad boons: " + text);
+            int I(int i) => int.Parse(p[i], System.Globalization.CultureInfo.InvariantCulture);
+            return new SideBoons((Rank)I(0), (Rank)I(1), I(2), I(3), I(4), I(5));
+        }
+    }
+
     public sealed class SideConfig
     {
-        public SideConfig(string controllerId, ReelTier reelTier, string unitA, string unitB)
+        public SideConfig(string controllerId, ReelTier reelTier, string unitA, string unitB, SideBoons boons = null)
         {
             ControllerId = controllerId;
             ReelTier = reelTier;
             UnitIds = new ReadOnlyCollection<string>(new[] { unitA, unitB });
+            Boons = boons ?? SideBoons.None;
         }
 
         public string ControllerId { get; }
         public ReelTier ReelTier { get; }
         /// <summary>[0] = Channel A / left, [1] = Channel B / right.</summary>
         public IReadOnlyList<string> UnitIds { get; }
+        /// <summary>Charm head starts for this side (D-033); <see cref="SideBoons.None"/> in plain matches.</summary>
+        public SideBoons Boons { get; }
 
-        public string Encode() => ControllerId + ":" + ((int)ReelTier) + ":" + UnitIds[0] + "," + UnitIds[1];
+        /// <summary>Boons are appended only when present, so older replays encode (and decode) unchanged.</summary>
+        public string Encode() => ControllerId + ":" + ((int)ReelTier) + ":" + UnitIds[0] + "," + UnitIds[1] + (Boons.IsEmpty ? "" : ":" + Boons.Encode());
 
         public static SideConfig Decode(string text)
         {
             var parts = text.Split(':');
-            if (parts.Length != 3) throw new FormatException("Bad side config: " + text);
+            if (parts.Length != 3 && parts.Length != 4) throw new FormatException("Bad side config: " + text);
             var units = parts[2].Split(',');
             if (units.Length != 2) throw new FormatException("Bad side units: " + text);
-            return new SideConfig(parts[0], (ReelTier)int.Parse(parts[1], System.Globalization.CultureInfo.InvariantCulture), units[0], units[1]);
+            return new SideConfig(parts[0], (ReelTier)int.Parse(parts[1], System.Globalization.CultureInfo.InvariantCulture), units[0], units[1],
+                parts.Length == 4 ? SideBoons.Decode(parts[3]) : null);
         }
     }
 
@@ -99,8 +155,12 @@ namespace Tabletop.Domain
                 var err = Scenario.Validate();
                 if (err != null) return Reject(RejectionCode.ConfigInvalid, err);
             }
-            if (Sides[0].ReelTier != Sides[1].ReelTier)
-                return Reject(RejectionCode.ConfigInvalid, "Both sides must use the same reel tier.");
+            // Each side brings its own fifth wheel (D-033): a bought wheel is the player's alone.
+            foreach (var side in Sides)
+            {
+                var err = side.Boons.Validate();
+                if (err != null) return Reject(RejectionCode.ConfigInvalid, err);
+            }
             return null;
         }
 

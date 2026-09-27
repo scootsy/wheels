@@ -95,9 +95,11 @@ namespace Tabletop.Presentation
             _table.Camera = boardCamera;
             _table.Material = boardMaterial;
             _table.Icons = icons;
+            _table.Figurines = figurines;
             if (boardMaterial == null) Debug.LogError("[Tabletop] No board material assigned; 3D pieces will not render in builds.");
             _table.Build();
             Presenter.EventImpact += e => _table.ShowDelta(e);
+            StartJourneyAudio();
 
             BuildCanvas();
             BuildSetupScreen();
@@ -114,6 +116,7 @@ namespace Tabletop.Presentation
             if (encounter != null)
             {
                 Session.Options.Encounter = encounter;
+                ApplyJourneyOptions();
                 Session.ContinueFromSetup();
                 ShowScreenFor(Session.State);
                 _lastRenderedState = Session.State;
@@ -264,7 +267,7 @@ namespace Tabletop.Presentation
             {
                 if (_cardButtons[i].gameObject == focused) { OpenInspectDefinition(_cardUnits[i], true); return; }
             }
-            SetStatus("Focus a unit (Tab / bumpers) to inspect it.");
+            SetStatus("Focus a figurine (Tab / bumpers) to inspect it.");
         }
 
         private void OnHelp()
@@ -363,10 +366,10 @@ namespace Tabletop.Presentation
             if (go == null) return "";
             foreach (var r in _playerReels)
                 if (r.Button.gameObject == go)
-                    return r.Description.Replace("Reel " + (r.Index + 1) + ",", "Reel " + (r.Index + 1) + ", " + (Presenter.Visual.Locked[0, r.Index] ? "locked," : "unlocked,"));
+                    return r.Description.Replace("Wheel " + (r.Index + 1) + ",", "Wheel " + (r.Index + 1) + ", " + (Presenter.Visual.Locked[0, r.Index] ? "locked," : "unlocked,"));
             foreach (var p in _unitPanels) if (p.Button.gameObject == go) return p.Description;
             if (go == _spinButton.gameObject && Session.Match != null)
-                return "Spin unlocked reels, " + (RulesConstants.SpinsPerRound - Presenter.Visual.SpinsUsed[0]) + " spins remaining.";
+                return "Spin unlocked wheels, " + (RulesConstants.SpinsPerRound - Presenter.Visual.SpinsUsed[0]) + " spins remaining.";
             var t = go.GetComponentInChildren<Text>();
             return t != null ? t.text.Replace("\n", " ") : go.name;
         }

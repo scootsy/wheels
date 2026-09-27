@@ -40,12 +40,26 @@ namespace Tabletop.World
             string sub;
             Color accent;
             Sprite emblem = null;
-            if (Encounter == null) { sub = (Title ?? "").ToUpperInvariant(); accent = Theme.TextDim; }
+            if (ShopId != null) { sub = (Title ?? "").ToUpperInvariant() + "  -  STALL"; accent = Theme.Gilt; emblem = kit != null ? kit.hammer : null; }
+            else if (Encounter == null) { var hint = ErrandHint(); sub = (Title ?? "").ToUpperInvariant() + hint; accent = hint.Length > 0 ? Theme.Gilt : Theme.TextDim; }
             else if (beaten) { sub = "BEATEN"; accent = new Color(0.55f, 0.8f, 0.55f); emblem = kit != null ? kit.uiDiamond : null; }
             else if (Encounter.IsChampion) { sub = "CHAMPION  -  CHALLENGE"; accent = Theme.Gilt; emblem = kit != null ? kit.crown : null; }
             else { sub = "CHALLENGER"; accent = Theme.Gilt; emblem = kit != null ? kit.uiDiamond : null; }
             Tag.Set(DisplayName, sub, emblem, accent);
-            if (Marker != null) Marker.gameObject.SetActive(Encounter != null && !beaten);
+            if (Marker != null) Marker.gameObject.SetActive(ShopId != null || (Encounter != null && !beaten));
+        }
+
+        /// <summary>"  -  HAS WORK" / "  -  DELIVERY HERE" when an errand involves this person (D-033).</summary>
+        private string ErrandHint()
+        {
+            foreach (var e in ErrandCatalog.All)
+            {
+                var st = GameFlow.ErrandState(e.Id);
+                if (e.IsDelivery && e.Receiver == DisplayName && st == ErrandStage.Active) return "  -  DELIVERY HERE";
+                if (e.Giver == DisplayName && st == ErrandStage.Found) return "  -  WAITING FOR YOU";
+                if (e.Giver == DisplayName && ErrandCatalog.Offerable(e)) return "  -  HAS WORK";
+            }
+            return "";
         }
 
         public void FaceTowards(Vector3 worldPos)
@@ -74,10 +88,15 @@ namespace Tabletop.World
 
         public float TagAlpha => _tagGroup != null ? _tagGroup.alpha : 1f;
 
+        /// <summary>The animated body (D-033), or null for a placeholder figure.</summary>
+        [System.NonSerialized] public CharacterRig Rig;
+        /// <summary>Stall this person keeps (D-033), or null.</summary>
+        public string ShopId;
+
         private void Update()
         {
-            // Gentle idle breathing so people read as alive.
-            if (Figure == null) return;
+            // Gentle idle breathing so placeholder people read as alive (real characters breathe by themselves).
+            if (Figure == null || Rig != null) return;
             _bobPhase += Time.deltaTime * 2f;
             Figure.localPosition = BaseOffset + new Vector3(0, Mathf.Abs(Mathf.Sin(_bobPhase)) * 0.03f, 0);
         }
@@ -101,8 +120,35 @@ namespace Tabletop.World
     {
         public Npc Champion;
         public Vector3 SeatPosition;
+        /// <summary>Centre of the table the camera frames while seated.</summary>
+        public Vector3 TableFocus;
         public override string Prompt => "Sit down at the table";
         public override void Interact(WorldApp app) => app.SitAt(this);
+    }
+
+    /// <summary>Something an errand asks you to find (D-033); only there while that errand is under way.</summary>
+    public sealed class Pickup : Interactable
+    {
+        public string PickupId;
+        [System.NonSerialized] public ErrandDefinition Errand;
+        public GameObject Visual;
+        private float _phase;
+
+        public override string Prompt => "Pick up " + (Errand != null ? Errand.ItemName : "it");
+        public override bool Available => Errand != null && GameFlow.ErrandState(Errand.Id) == ErrandStage.Active;
+        public override void Interact(WorldApp app) => app.PickUp(this);
+
+        private void Update()
+        {
+            bool on = Available;
+            if (Visual != null && Visual.activeSelf != on) Visual.SetActive(on);
+            if (on && Visual != null)
+            {
+                _phase += Time.deltaTime;
+                Visual.transform.localPosition = new Vector3(0, 0.15f + Mathf.Sin(_phase * 2.5f) * 0.08f, 0);
+                Visual.transform.localRotation = Quaternion.Euler(0, _phase * 60f, 0);
+            }
+        }
     }
 
     /// <summary>A readable sign.</summary>
@@ -120,12 +166,52 @@ namespace Tabletop.World
         private readonly List<Vector4> _rects = new List<Vector4>();   // xmin, xmax, zmin, zmax
         private readonly List<Vector3> _circles = new List<Vector3>(); // x, z, r
         private readonly List<(Vector2 a, Vector2 b, float r)> _capsules = new List<(Vector2, Vector2, float)>();
+        private readonly List<Vector4> _holes = new List<Vector4>();
 
         public void Rect(float xmin, float xmax, float zmin, float zmax) => _rects.Add(new Vector4(xmin, xmax, zmin, zmax));
         public void Circle(float x, float z, float r) => _circles.Add(new Vector3(x, z, r));
         public void Capsule(Vector2 a, Vector2 b, float r) => _capsules.Add((a, b, r));
+        /// <summary>A rectangle cut out of everything else (e.g. the stream either side of the bridge).</summary>
+        public void Hole(float xmin, float xmax, float zmin, float zmax) => _holes.Add(new Vector4(xmin, xmax, zmin, zmax));
 
         public bool Contains(float x, float z)
+        {
+            foreach (var h in _holes) if (x >= h.x && x <= h.y && z >= h.z && z <= h.w) return false;
+            return InsideShapes(x, z);
+        }
+
+        /// <summary>Distance to the nearest walkable shape (0 inside) and the closest walkable point (holes ignored).</summary>
+        public float Distance(float x, float z, out Vector2 nearest)
+        {
+            var p = new Vector2(x, z);
+            float best = float.MaxValue;
+            nearest = p;
+            foreach (var r in _rects)
+            {
+                var q = new Vector2(Mathf.Clamp(x, r.x, r.y), Mathf.Clamp(z, r.z, r.w));
+                float d = (q - p).magnitude;
+                if (d < best) { best = d; nearest = q; }
+            }
+            foreach (var c in _circles)
+            {
+                var center = new Vector2(c.x, c.y);
+                var off = p - center;
+                float d = Mathf.Max(0f, off.magnitude - c.z);
+                if (d < best) { best = d; nearest = d <= 0f ? p : center + off.normalized * c.z; }
+            }
+            foreach (var cap in _capsules)
+            {
+                var ab = cap.b - cap.a;
+                float t = Mathf.Clamp01(Vector2.Dot(p - cap.a, ab) / Mathf.Max(0.0001f, ab.sqrMagnitude));
+                var axis = cap.a + ab * t;
+                var off = p - axis;
+                float d = Mathf.Max(0f, off.magnitude - cap.r);
+                if (d < best) { best = d; nearest = d <= 0f ? p : axis + off.normalized * cap.r; }
+            }
+            return best;
+        }
+
+        private bool InsideShapes(float x, float z)
         {
             foreach (var r in _rects) if (x >= r.x && x <= r.y && z >= r.z && z <= r.w) return true;
             foreach (var c in _circles) if ((x - c.x) * (x - c.x) + (z - c.y) * (z - c.y) <= c.z * c.z) return true;
@@ -162,6 +248,8 @@ namespace Tabletop.World
         public bool Grounded => _height <= 0f && _vertical <= 0f;
 
         public bool Seated { get; private set; }
+        /// <summary>Walking pace this frame (0 standing, 1 walking, ~1.8 sprinting); drives footsteps.</summary>
+        public float LastSpeed { get; private set; }
         public float DistanceWalked { get; private set; }
 
         private void Awake()
@@ -173,10 +261,13 @@ namespace Tabletop.World
             _yaw = transform.eulerAngles.y;
         }
 
+        /// <summary>The animated body, when the player is a real character (D-033); null for the placeholder figure.</summary>
+        [System.NonSerialized] public CharacterRig Rig;
+
         public void Teleport(Vector3 pos, float yaw)
         {
             _cc.enabled = false;
-            transform.position = new Vector3(pos.x, 0, pos.z);
+            transform.position = WorldGround.OnGround(pos.x, pos.z);
             _height = 0;
             _vertical = 0;
             _yaw = yaw;
@@ -197,9 +288,10 @@ namespace Tabletop.World
             if (seated)
             {
                 Teleport(seat, yaw);
-                if (Figure != null) Figure.localPosition = new Vector3(0, -0.35f, 0);
+                if (Figure != null) Figure.localPosition = Rig != null ? Vector3.zero : new Vector3(0, -0.35f, 0);
             }
             else if (Figure != null) Figure.localPosition = Vector3.zero;
+            if (Rig != null) Rig.Sit(seated);
         }
 
         /// <summary>
@@ -240,7 +332,7 @@ namespace Tabletop.World
                     else p = new Vector3(before.x, 0, before.z);
                 }
                 DistanceWalked += (p - before).magnitude;
-                p.y = _height;
+                p.y = WorldGround.Walk(p.x, p.z) + _height;
                 SetPosition(p);
                 if (!faceYaw.HasValue)
                 {
@@ -252,10 +344,18 @@ namespace Tabletop.World
             else
             {
                 _walkPhase = 0;
-                if (!Mathf.Approximately(transform.position.y, _height))
-                    SetPosition(new Vector3(transform.position.x, _height, transform.position.z));
+                float y = WorldGround.Walk(transform.position.x, transform.position.z) + _height;
+                if (!Mathf.Approximately(transform.position.y, y))
+                    SetPosition(new Vector3(transform.position.x, y, transform.position.z));
             }
-            if (Figure != null && !Seated)
+            float speed = delta.sqrMagnitude > 0.000001f && dt > 0 ? input.magnitude * (sprint ? SprintMultiplier : 1f) : 0f;
+            LastSpeed = speed;
+            if (Rig != null)
+            {
+                Rig.SetMove(speed, !Grounded);
+                if (Figure != null && !Seated) Figure.localPosition = Vector3.zero;
+            }
+            else if (Figure != null && !Seated)
                 Figure.localPosition = new Vector3(0, Mathf.Abs(Mathf.Sin(_walkPhase)) * 0.12f, 0);
         }
     }

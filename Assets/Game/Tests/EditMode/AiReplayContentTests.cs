@@ -229,8 +229,11 @@ namespace Tabletop.Tests.EditMode
             Assert.AreEqual(RejectionCode.ConfigInvalid, Reject(MatchConfig.Standard(MatchConfig.MaxSeed + 1, Striker, Caster)).Code);
             Assert.AreEqual(RejectionCode.ConfigInvalid, Reject(new MatchConfig("0.0.9", 1,
                 new SideConfig(ControllerIds.Human, ReelTier.Copper, Striker, Caster), new SideConfig(ControllerIds.AiStandard, ReelTier.Copper, Striker, Caster))).Code);
+            // Mixed wheel tiers are legal since D-033 (a bought wheel is the player's alone).
+            Assert.IsNotNull(Match.Start(new MatchConfig(RulesConstants.RulesVersion, 1,
+                new SideConfig(ControllerIds.Human, ReelTier.Copper, Striker, Caster), new SideConfig(ControllerIds.AiStandard, ReelTier.Gold, Striker, Caster)), cat, out _));
             Assert.AreEqual(RejectionCode.ConfigInvalid, Reject(new MatchConfig(RulesConstants.RulesVersion, 1,
-                new SideConfig(ControllerIds.Human, ReelTier.Copper, Striker, Caster), new SideConfig(ControllerIds.AiStandard, ReelTier.Gold, Striker, Caster))).Code);
+                new SideConfig(ControllerIds.Human, ReelTier.Copper, Striker, Caster, new SideBoons(barrier: 9)), new SideConfig(ControllerIds.AiStandard, ReelTier.Copper, Striker, Caster))).Code);
             Assert.AreEqual(RejectionCode.ConfigInvalid, Reject(new MatchConfig(RulesConstants.RulesVersion, 1,
                 new SideConfig("robot", ReelTier.Copper, Striker, Caster), new SideConfig(ControllerIds.AiStandard, ReelTier.Copper, Striker, Caster))).Code);
             Assert.IsNotNull(Match.Start(MatchConfig.Standard(1, Striker, Striker, allowDuplicateUnits: true), cat, out _));

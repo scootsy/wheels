@@ -1,0 +1,343 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c3994928c9b28324c8999795e059295c, type: 3}
+  m_Name: WorldLook
+  m_EditorClassIdentifier: Tabletop.World::Tabletop.World.WorldLook
+  grass: {fileID: 8574412962073106934, guid: 59fffa68da21f2043a59d6f82037ab26, type: 2}
+  meadow: {fileID: 8574412962073106934, guid: 0e3bfc85950423545b6051a63b7d4802, type: 2}
+  dirt: {fileID: 8574412962073106934, guid: 9522acfbebf2f41449480e170a6c0434, type: 2}
+  stone: {fileID: 8574412962073106934, guid: 983258d262ca09342b475b32c5b5c6f2, type: 2}
+  rock: {fileID: 8574412962073106934, guid: 2ff04decca67c7a49b4d7d09adde1505, type: 2}
+  terrainMaterial: {fileID: 2100000, guid: a950525fc76cf9f4190f6fe796b93774, type: 2}
+  skybox: {fileID: 2100000, guid: afb5bfe45052946489c952467b0ce32b, type: 2}
+  postProcessing: {fileID: 11400000, guid: aa9783cf45f3ec342b01fc2652ba89da, type: 2}
+  prefabs:
+  - key: Preset_Blacksmith_01
+    prefab: {fileID: 6867230511921462333, guid: aa5f157ce2952db48aa1e29e6ebead66, type: 3}
+  - key: Preset_Church_01_A
+    prefab: {fileID: 5869222771844578050, guid: f8dfd399e56b91a4ba3304205ddc240f, type: 3}
+  - key: Preset_House_01_A
+    prefab: {fileID: 6444491342075891683, guid: c09994bbecd7f694fadd2cff0c67e21b, type: 3}
+  - key: Preset_House_02_A
+    prefab: {fileID: 8855453902491110609, guid: 2e806296d67386e40b3491033ea8a2ee, type: 3}
+  - key: Preset_House_02_B
+    prefab: {fileID: 8434175106782334562, guid: 236d74badf5f6244b9ca58b26ed6c760, type: 3}
+  - key: Preset_House_02_C
+    prefab: {fileID: 1201181435006239814, guid: beab5e1a429de734bb3a84f21f4edca5, type: 3}
+  - key: Preset_House_03
+    prefab: {fileID: 8968518291546476622, guid: 9e8535b938800284f917d2bc8945c48c, type: 3}
+  - key: Preset_House_04
+    prefab: {fileID: 2881828063702649773, guid: 5152de8af9c78cd438354f7327a6b4f0, type: 3}
+  - key: Preset_House_09_A
+    prefab: {fileID: 8809840059073621671, guid: 619ef8990b38d274699276722fe6e014, type: 3}
+  - key: Preset_House_09_B
+    prefab: {fileID: 3624532513411241364, guid: f35571e3d3ee760458b6e7e77bbc4b70, type: 3}
+  - key: Preset_House_Archway_01
+    prefab: {fileID: 2630156932498656936, guid: a535ca2a1aa39a142a6acf3fed707d04, type: 3}
+  - key: Preset_House_Windmill_01
+    prefab: {fileID: 3691617977064382238, guid: 0437548c4838e944e86a3cb79118beca, type: 3}
+  - key: Preset_Hut_01
+    prefab: {fileID: 4315383594838360843, guid: 8958ccd6f21591148a4dbc6c7f79c749, type: 3}
+  - key: Preset_Hut_02
+    prefab: {fileID: 7847626944221979017, guid: aa345783d2791124e806dc4e512f412d, type: 3}
+  - key: Preset_Shelter_01
+    prefab: {fileID: 5143503800495112627, guid: c96e583bb4ae5b541b424f3050fa0475, type: 3}
+  - key: Preset_Shelter_02
+    prefab: {fileID: 2497314702848235828, guid: 297071f5025b4b946a7b2246af88eadf, type: 3}
+  - key: Preset_Stables_01
+    prefab: {fileID: 6582069844930494763, guid: 933c708c44d14c445aa46ad332a19fdd, type: 3}
+  - key: Preset_Tavern_01
+    prefab: {fileID: 2472354545006939643, guid: 85eea41e7ca1f9a4db9696bd5f169c72, type: 3}
+  - key: Preset_Tower_01
+    prefab: {fileID: 6595936298938454941, guid: 3340bf52c22476a44b1a097d9e968587, type: 3}
+  - key: Bush_02
+    prefab: {fileID: 2340083741320509213, guid: c565d144099c3c044b4af30329e47a9e, type: 3}
+  - key: SM_Env_Bush_01
+    prefab: {fileID: 1845186741148988, guid: cf8caeea3d1893e4aaa47bd95d17bb2a, type: 3}
+  - key: SM_Env_Bush_02
+    prefab: {fileID: 1552224900272642, guid: 8fdf76bb00590644187149f7a1e30ae9, type: 3}
+  - key: SM_Env_Bush_04
+    prefab: {fileID: 1018210154189776, guid: 5bb911c7a3c3adb43ab25808fc465829, type: 3}
+  - key: SM_Env_Bush_05
+    prefab: {fileID: 1844745117547158, guid: b512242e1bb7cba419b004a8d930b563, type: 3}
+  - key: SM_Env_Bush_Cluster_03
+    prefab: {fileID: 1410392598601386, guid: c2510d402c00b8d4ea3e1ed4b7838ed2, type: 3}
+  - key: SM_Env_Bush_Cluster_04
+    prefab: {fileID: 1661032390668868, guid: 9f3159be1e4814744a51a1a31aeb72e3, type: 3}
+  - key: SM_Env_Tree_Large_01
+    prefab: {fileID: 1905605002707554, guid: c5fa94f9ebb29bd478295e8701712698, type: 3}
+  - key: SM_Env_Tree_Round_02
+    prefab: {fileID: 1246221467480138, guid: 47a80870cceb48b408dd661a8f1a7764, type: 3}
+  - key: SM_Env_Tree_Round_03
+    prefab: {fileID: 1549144012402266, guid: 1ebc3d54345802648ae7650eedc41770, type: 3}
+  - key: SM_Env_Tree_Round_04
+    prefab: {fileID: 1686506873377366, guid: 1fc2b8687d6d20349b9e8b89981a3991, type: 3}
+  - key: SM_Env_Tree_Thin_01
+    prefab: {fileID: 1242553701839910, guid: af8a3b23c35a0794ebbde20b219374b1, type: 3}
+  - key: SM_Env_Tree_Thin_03
+    prefab: {fileID: 1480767256909110, guid: bcb591b1428330b4abc0c035a3372be3, type: 3}
+  - key: SM_Env_Tree_Thin_05
+    prefab: {fileID: 1538585341311756, guid: 03c9e2a98e695684782bd34bc0bc19b0, type: 3}
+  - key: SmallTreeRound_01
+    prefab: {fileID: 8248081684066243797, guid: 8a867a8b626df894289340194957fa45, type: 3}
+  - key: SmallTreeRound_02
+    prefab: {fileID: 106883666090965949, guid: 2fcb466c0572c624e95289ed69220f15, type: 3}
+  - key: SmallTreeRound_03
+    prefab: {fileID: 3268206020646968839, guid: 6e6b65e1d3301bb4c9233359b0529560, type: 3}
+  - key: TreeLargeStylized_01
+    prefab: {fileID: 4315908698932101776, guid: 5af1d10ee41bf2d45a61b62bbe4eefa1, type: 3}
+  - key: TreePine_VarA
+    prefab: {fileID: 6996386398228375342, guid: bcf48f638168fa643b5ed9fd912d595b, type: 3}
+  - key: TreePine_VarB
+    prefab: {fileID: 7622913565504388027, guid: 2d48a5bd75444114ba8f039c794690fd, type: 3}
+  - key: TreePine_VarC
+    prefab: {fileID: 8949061082402899093, guid: d16aca71e24fdd04ebc6d90a727f1288, type: 3}
+  - key: Village_Scatter_01
+    prefab: {fileID: 919132149155446097, guid: 55e52b6b5c5aa9047a5ed94d86b29527, type: 3}
+  - key: Village_Scatter_02
+    prefab: {fileID: 919132149155446097, guid: 358c7bb9e293de949824cf64b82bbd99, type: 3}
+  - key: Village_Scatter_03
+    prefab: {fileID: 919132149155446097, guid: 38f8633dc4f66064a966e3a98e49d4cc, type: 3}
+  - key: Village_Scatter_04
+    prefab: {fileID: 919132149155446097, guid: 9ccc4eda7c4c80b4d8b77187c571ca51, type: 3}
+  - key: Village_Scatter_05
+    prefab: {fileID: 919132149155446097, guid: 73ec104f76358f442aa73f8ab7691a38, type: 3}
+  - key: Village_Scatter_06
+    prefab: {fileID: 919132149155446097, guid: bbac400172c298f438e9ac20976ad16f, type: 3}
+  - key: Village_Scatter_07
+    prefab: {fileID: 919132149155446097, guid: a7cbc1af901f8bb428f0d9823bde9752, type: 3}
+  - key: Village_Scatter_08
+    prefab: {fileID: 919132149155446097, guid: a7d29bc2f2e53034f9dbb2e2a82b9b36, type: 3}
+  - key: Village_Scatter_09
+    prefab: {fileID: 919132149155446097, guid: e0d327d7bc733a048b5744bb64d0a5c4, type: 3}
+  - key: Village_Scatter_10
+    prefab: {fileID: 919132149155446097, guid: 5adba0801226354469c5b7f8c18ac0e8, type: 3}
+  - key: Village_Scatter_11
+    prefab: {fileID: 919132149155446097, guid: fd03c5eae7708164b9f51a83208f60f5, type: 3}
+  - key: Village_Scatter_12
+    prefab: {fileID: 919132149155446097, guid: 1b2056cafd7423a4fb1b146cf7e88324, type: 3}
+  - key: Village_Scatter_13
+    prefab: {fileID: 919132149155446097, guid: 51b77e287cb40a54c8c95760f30f6d5b, type: 3}
+  - key: Village_Scatter_14
+    prefab: {fileID: 919132149155446097, guid: 4b1ba5573684d184588443642a98eaf5, type: 3}
+  - key: Village_Scatter_15
+    prefab: {fileID: 919132149155446097, guid: 152fb3f2ea349074b909016a73059992, type: 3}
+  - key: Village_Scatter_16
+    prefab: {fileID: 919132149155446097, guid: 0e1f4d56fabbd854ca6a00f8ddd719b8, type: 3}
+  - key: PT_Poppy_02
+    prefab: {fileID: 6444807355431749394, guid: f593bc20677ebf14abd27a4853408c68, type: 3}
+  - key: PT_Generic_Rock_01
+    prefab: {fileID: 4140774597986965270, guid: 58cd8dc8c2359174baa15aa31e302c8b, type: 3}
+  - key: PT_Menhir_Rock_02
+    prefab: {fileID: 2804321427668277467, guid: 0f3d14a9a6b2ceb469c15d151552a614, type: 3}
+  - key: PT_Ore_Rock_01
+    prefab: {fileID: 1813357942169304022, guid: 3dd97330b2ebd884e9f796894e026064, type: 3}
+  - key: PT_Generic_Shrub_01_green
+    prefab: {fileID: 5153741093904279990, guid: ef8374d642969b14baa54045236c5fb0, type: 3}
+  - key: PT_Fruit_Tree_01_apples
+    prefab: {fileID: 5935278547815300987, guid: e05ae677c7b3bc546bd36b488586fb0c, type: 3}
+  - key: PT_Fruit_Tree_01_green
+    prefab: {fileID: 5361428799875542787, guid: c31bf8ec8e29cd74f9fb9a970fde7a53, type: 3}
+  - key: PT_Fruit_Tree_01_pears
+    prefab: {fileID: 2479184009378418726, guid: b62637568d07eb141b948ab45ea8c3d4, type: 3}
+  - key: PT_Fruit_Tree_01_plums
+    prefab: {fileID: 7296054959696050501, guid: 367ab66e2689a8345a8fb8fd14a4f90c, type: 3}
+  - key: PT_Pine_Tree_03_green
+    prefab: {fileID: 6117071349010126079, guid: d250af4848f51154f9a2bf6a85b60ac2, type: 3}
+  - key: PT_Pine_Tree_03_logs
+    prefab: {fileID: 3010216212467657930, guid: 244ce2af788c0c346b86cbc0473811b0, type: 3}
+  - key: PT_Modular_Fence_Wood_01
+    prefab: {fileID: 5381386135662024661, guid: 21a364ddeffc797439f2a5721660b0e6, type: 3}
+  - key: Book_03
+    prefab: {fileID: 1374066556545141855, guid: 34cb1c74dfab02341a0f95d3b7c4144f, type: 3}
+  - key: Clock_03
+    prefab: {fileID: 159809222931260317, guid: 585f379b507df1944adb8132189409c9, type: 3}
+  - key: Light_05
+    prefab: {fileID: 8956110632830419108, guid: c9516886c16020d48a2a84c8ea6fd8c7, type: 3}
+  - key: Picture_17
+    prefab: {fileID: 3562544897262551006, guid: e6aab48ea5b2f5f4ca2dd54159db663b, type: 3}
+  - key: Picture_21
+    prefab: {fileID: 4228434065792105259, guid: 669c1fa1d656f47469dc8145b944f851, type: 3}
+  - key: Armchair_18
+    prefab: {fileID: 1315755215366512931, guid: 1a7ca4ae1867e824d852f488df629700, type: 3}
+  - key: Barbarian
+    prefab: {fileID: 919132149155446097, guid: 1c890e2386aa5364ab62da240e5a269a, type: 3}
+  - key: Knight
+    prefab: {fileID: 919132149155446097, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Mage
+    prefab: {fileID: 919132149155446097, guid: b61b54862d3ea004589568b848e5d3c7, type: 3}
+  - key: Rogue
+    prefab: {fileID: 919132149155446097, guid: 8f67b0b6ad49dd64597ff8167147bdbe, type: 3}
+  - key: RogueHooded
+    prefab: {fileID: 919132149155446097, guid: 85bf72d0285dfcb48a55fb2f48d2eee9, type: 3}
+  clips:
+  - key: 1H_Melee_Attack_Chop
+    clip: {fileID: 3963595363326709879, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: 1H_Melee_Attack_Slice_Diagonal
+    clip: {fileID: 7624655660056751624, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: 1H_Melee_Attack_Slice_Horizontal
+    clip: {fileID: 1543802850930067805, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: 1H_Melee_Attack_Stab
+    clip: {fileID: 2217827441429648498, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: 1H_Ranged_Aiming
+    clip: {fileID: 6681107633666205930, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: 1H_Ranged_Reload
+    clip: {fileID: -9094171797971621119, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: 1H_Ranged_Shoot
+    clip: {fileID: -1964166982296019383, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: 1H_Ranged_Shooting
+    clip: {fileID: 1961167861953118154, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: 2H_Melee_Attack_Chop
+    clip: {fileID: 4057375184749903609, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: 2H_Melee_Attack_Slice
+    clip: {fileID: -6055188709596948769, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: 2H_Melee_Attack_Spin
+    clip: {fileID: 7331867130290663325, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: 2H_Melee_Attack_Spinning
+    clip: {fileID: 2525151342886339185, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: 2H_Melee_Attack_Stab
+    clip: {fileID: -5510326698207484139, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: 2H_Melee_Idle
+    clip: {fileID: -7009279140402340920, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: 2H_Ranged_Aiming
+    clip: {fileID: -2767709846786070005, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: 2H_Ranged_Reload
+    clip: {fileID: -1954687964646988558, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: 2H_Ranged_Shoot
+    clip: {fileID: 7083891485487361019, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: 2H_Ranged_Shooting
+    clip: {fileID: 7184730524187122830, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Block
+    clip: {fileID: -6801083763907307519, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Block_Attack
+    clip: {fileID: -2841374645993759435, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Block_Hit
+    clip: {fileID: 3319484248351831561, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Blocking
+    clip: {fileID: -6757986481916104768, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Cheer
+    clip: {fileID: 7769419075285740307, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Death_A
+    clip: {fileID: -1923750366902163184, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Death_A_Pose
+    clip: {fileID: -1764627894708832522, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Death_B
+    clip: {fileID: 3311174667178009610, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Death_B_Pose
+    clip: {fileID: 2926267936692278293, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Dodge_Backward
+    clip: {fileID: 650242174318006946, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Dodge_Forward
+    clip: {fileID: -3851722262833059593, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Dodge_Left
+    clip: {fileID: -8338831036711338807, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Dodge_Right
+    clip: {fileID: 2188323905074769703, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Dualwield_Melee_Attack_Chop
+    clip: {fileID: 3276804324984143531, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Dualwield_Melee_Attack_Slice
+    clip: {fileID: -5698863656139880434, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Dualwield_Melee_Attack_Stab
+    clip: {fileID: 5812068982650959540, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Hit_A
+    clip: {fileID: 2825485217256495706, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Hit_B
+    clip: {fileID: 5929533664354034034, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Idle
+    clip: {fileID: -3100369314251171874, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Interact
+    clip: {fileID: 1701519168366769839, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Jump_Full_Long
+    clip: {fileID: -8358797001615306126, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Jump_Full_Short
+    clip: {fileID: 1683828920807373193, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Jump_Idle
+    clip: {fileID: 5069180758234724613, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Jump_Land
+    clip: {fileID: 3282281275607961068, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Jump_Start
+    clip: {fileID: -6402709644054655732, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Lie_Down
+    clip: {fileID: -6400525968468801866, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Lie_Idle
+    clip: {fileID: 1569655004370500264, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Lie_Pose
+    clip: {fileID: 334914874836495494, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Lie_StandUp
+    clip: {fileID: -6781150235111872194, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: PickUp
+    clip: {fileID: 4787742288682755051, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Running_A
+    clip: {fileID: 3543698089625107784, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Running_B
+    clip: {fileID: -1640158340307531623, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Running_Strafe_Left
+    clip: {fileID: -1640272175068026219, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Running_Strafe_Right
+    clip: {fileID: -6877218540166537120, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Sit_Chair_Down
+    clip: {fileID: 3145453540645391641, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Sit_Chair_Idle
+    clip: {fileID: 7779023693546330386, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Sit_Chair_Pose
+    clip: {fileID: -6504270679737740119, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Sit_Chair_StandUp
+    clip: {fileID: -5731682596848902973, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Sit_Floor_Down
+    clip: {fileID: -134765771845422922, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Sit_Floor_Idle
+    clip: {fileID: 1789385927864635141, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Sit_Floor_Pose
+    clip: {fileID: 8107589994703704115, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Sit_Floor_StandUp
+    clip: {fileID: 2401692041250751285, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Spellcast_Long
+    clip: {fileID: -6505363248513697278, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Spellcast_Raise
+    clip: {fileID: 5352130994113808372, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Spellcast_Shoot
+    clip: {fileID: 5237015913805051347, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Spellcasting
+    clip: {fileID: -6008979419217260773, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: T-Pose
+    clip: {fileID: -8312538846858333772, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Throw
+    clip: {fileID: -6185155371445809522, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Unarmed_Idle
+    clip: {fileID: -6277497387356478362, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Unarmed_Melee_Attack_Kick
+    clip: {fileID: -9092174892689370499, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Unarmed_Melee_Attack_Punch_A
+    clip: {fileID: 5420517045014120221, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Unarmed_Melee_Attack_Punch_B
+    clip: {fileID: -7262739606813465908, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Unarmed_Pose
+    clip: {fileID: 2097348424113216073, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Use_Item
+    clip: {fileID: 7417917891377754313, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Walking_A
+    clip: {fileID: 7060811993321468294, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Walking_B
+    clip: {fileID: 3174661419259135242, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Walking_Backwards
+    clip: {fileID: -6411013857362534180, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  - key: Walking_C
+    clip: {fileID: 455867200774271528, guid: 4630441672a625f45bd3c97e75f2b39e, type: 3}
+  textures:
+  - key: knight
+    texture: {fileID: 2800000, guid: dddd6a754d4fc0a4c93484f5f80a024d, type: 3}
+  - key: barbarian
+    texture: {fileID: 2800000, guid: 35dca19fff922f449b06d80296ec2aa8, type: 3}
+  - key: mage
+    texture: {fileID: 2800000, guid: d5435cefa552e0e4fa6ae652ae562ac1, type: 3}
+  - key: rogue
+    texture: {fileID: 2800000, guid: 28450a3af36bc75489aba24e29bfcd42, type: 3}

@@ -473,7 +473,7 @@ namespace Tabletop.Presentation
                         SetPhase(BoardPhase.Reveal);
                         OpponentRevealed = true;
                         _stateTimer = 0;
-                        Banner = "REVEAL: both sides' final reels.";
+                        Banner = "REVEAL: both sides' final wheels.";
                         AddLog(Banner);
                     }
                     _stateTimer += dt;

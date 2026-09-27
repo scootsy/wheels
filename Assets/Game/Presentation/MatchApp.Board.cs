@@ -151,10 +151,10 @@ namespace Tabletop.Presentation
             L("LegendTitle", bg.transform, "WHAT THE SYMBOLS DO", 17, TextAnchor.UpperLeft, Theme.Focus, FontStyle.Bold).rectTransform.Place(12, 6, 396, 22);
             var rows = new[]
             {
-                (icons != null ? icons.energyA : null, Theme.ChannelA, "A gem: energy for your A unit"),
-                (icons != null ? icons.energyB : null, Theme.ChannelB, "B gem: energy for your B unit"),
-                (icons != null ? icons.hammer : null, Theme.Hammer, "Hammer: builds your wall"),
-                (icons != null ? icons.xp : null, Theme.Xp, "Star: +1 XP to that unit"),
+                (icons != null ? icons.energyA : null, Theme.ChannelA, "Square: energy for your left figurine"),
+                (icons != null ? icons.energyB : null, Theme.ChannelB, "Diamond: energy for your right figurine"),
+                (icons != null ? icons.hammer : null, Theme.Hammer, "Hammer: builds your Bulwark"),
+                (icons != null ? icons.xp : null, Theme.Xp, "Star: +1 XP to that figurine"),
             };
             for (int i = 0; i < rows.Length; i++)
             {
@@ -188,6 +188,7 @@ namespace Tabletop.Presentation
             bool result = state == UxState.MatchResult;
             if (result && !_resultOverlay.activeSelf)
             {
+                SettleIfNeeded();
                 RenderResult();
                 _resultReplay.text = "";
                 _resultOverlay.SetActive(true);
@@ -230,7 +231,7 @@ namespace Tabletop.Presentation
                 bool won = (side == 0 && m.Winner == Winner.Player) || (side == 1 && m.Winner == Winner.Opponent);
                 _resultCards[side].color = won ? new Color(0.2f, 0.13f, 0.05f, 0.97f) : new Color(0.09f, 0.05f, 0.035f, 0.95f);
             }
-            _resultBody.text = p.ReelTier + " reels   \u00b7   " + AiName(o.ControllerId) + "   \u00b7   seed " + m.Seed;
+            _resultBody.text = SettlementLine() ?? (p.ReelTier + " wheel   \u00b7   " + AiName(o.ControllerId) + "   \u00b7   seed " + m.Seed);
             _resultSameSeed.gameObject.SetActive(Session.Options.DeveloperMode);
         }
 
@@ -262,8 +263,8 @@ namespace Tabletop.Presentation
             var eDefs = m.ReelDefinitions(SideId.Opponent);
             string nameA = m.UnitDefinition(SideId.Player, 0).DisplayName, nameB = m.UnitDefinition(SideId.Player, 1).DisplayName;
             string enemyA = m.UnitDefinition(SideId.Opponent, 0).DisplayName, enemyB = m.UnitDefinition(SideId.Opponent, 1).DisplayName;
-            _legendText[0].text = "A gem: energy for your " + nameA;
-            _legendText[1].text = "B gem: energy for your " + nameB;
+            _legendText[0].text = "Square: energy for your " + nameA;
+            _legendText[1].text = "Diamond: energy for your " + nameB;
             for (int r = 0; r < 5; r++)
             {
                 var face = v.Face[0, r];
@@ -280,8 +281,8 @@ namespace Tabletop.Presentation
             // Legacy text readouts (hidden): still generated for accessibility/tests.
             _enemyCrown.text = CrownText("ENEMY CROWN", v.Crown[1]);
             _playerCrown.text = CrownText("YOUR CROWN", v.Crown[0]);
-            _enemyBarrier.text = "WALL " + v.Barrier[1];
-            _playerBarrier.text = "WALL " + v.Barrier[0];
+            _enemyBarrier.text = "BULWARK " + v.Barrier[1];
+            _playerBarrier.text = "BULWARK " + v.Barrier[0];
             foreach (var p in _unitPanels)
             {
                 bool acting = cur != null && cur.Side == p.Side && cur.Slot == p.Slot && cur.Stage > 0;
@@ -298,7 +299,7 @@ namespace Tabletop.Presentation
             _spinButton.gameObject.SetActive(!presentation);
             _speedButton.gameObject.SetActive(presentation);
             _spinButton.interactable = Session.CanSpinOrConfirm && !AnyModalOpen;
-            _spinButton.SetText(Session.CanFinalize ? "LOCK IN" : state == UxState.SpinDecision ? "SPIN UNLOCKED REELS" : state == UxState.MatchResult ? "MATCH OVER" : "SPIN");
+            _spinButton.SetText(Session.CanFinalize ? "LOCK IN" : state == UxState.SpinDecision ? "SPIN UNLOCKED WHEELS" : state == UxState.MatchResult ? "MATCH OVER" : "SPIN");
             _speedButton.SetText(Presenter.Accelerated ? "SPEED x4" : "HOLD TO SPEED UP");
             _spinsText.text = "SPINS USED " + v.SpinsUsed[0] + " / 3";
             UpdateNavigation(state);
@@ -377,7 +378,7 @@ namespace Tabletop.Presentation
         /// <summary>Short feedback: rejections, and the few statuses the table can't show by itself.</summary>
         private void RenderToast(UxState state)
         {
-            const string finalize = "All five reels locked. Pull the lever to lock in, or unlock one to keep spinning.";
+            const string finalize = "All five wheels locked. Pull the lever to lock in, or unlock one to keep spinning.";
             string msg = _statusOverride;
             _statusOverride = null;
             // Each rejection is shown once (it stays in LastRejection until the next command).
@@ -428,7 +429,7 @@ namespace Tabletop.Presentation
             }
             if (Presenter.OpponentRevealed && (state == UxState.Reveal || state == UxState.Resolving))
                 return "FINAL TOTALS   YOU: " + Totals(m, v, 0) + "\nENEMY: " + Totals(m, v, 1);
-            if (state == UxState.RoundReady) return "Your reels are unlocked. The first spin rolls all five.";
+            if (state == UxState.RoundReady) return "Your wheels are unlocked. The first spin rolls all five.";
             return "";
         }
 
@@ -439,7 +440,7 @@ namespace Tabletop.Presentation
             for (int r = 0; r < 5; r++) if (v.Face[side, r] >= 0) faces.Add(defs[r].Faces[v.Face[side, r]]);
             var t = SymbolEvaluator.Evaluate(faces);
             return "A x" + t.ChannelA + " -> +" + t.Energy(Channel.A) + " energy,  B x" + t.ChannelB + " -> +" + t.Energy(Channel.B)
-                + " energy,  Hammers x" + t.Hammer + " -> +" + t.BarrierGain + " Wall,  XP A+" + t.XpA + " B+" + t.XpB;
+                + " energy,  Hammers x" + t.Hammer + " -> +" + t.BarrierGain + " Bulwark,  XP A+" + t.XpA + " B+" + t.XpB;
         }
 
         /// <summary>Key-cap prompts for what can be done right now (rebuilt only when that changes).</summary>
@@ -458,7 +459,7 @@ namespace Tabletop.Presentation
             }
             else if (st == UxState.SpinDecision)
             {
-                items.Add((pad ? B("UI", "Submit") : B("Match", "LockSlot1") + "-" + B("Match", "LockSlot5"), "Lock reel"));
+                items.Add((pad ? B("UI", "Submit") : B("Match", "LockSlot1") + "-" + B("Match", "LockSlot5"), "Lock wheel"));
                 items.Add((B("Match", "Spin"), Session.CanFinalize ? "Lock in" : "Spin again"));
                 items.Add((B("Match", "Inspect"), "Inspect"));
             }

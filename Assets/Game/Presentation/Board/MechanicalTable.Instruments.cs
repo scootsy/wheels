@@ -230,7 +230,7 @@ namespace Tabletop.Presentation
             float stripZ = -SignDepth / 2f + 0.06f + stripDepth / 2f;
             var strip = FlatCanvas("Steps", bed, new Vector3(0, 0.1f, stripZ), SignWidth - 0.16f, 790f, 790f * stripDepth / (SignWidth - 0.16f));
             float h = strip.sizeDelta.y;
-            string[] steps = { "XP", "WALL", "ENERGY", "ACTIONS" };
+            string[] steps = { "XP", "BULWARK", "ENERGY", "ACTIONS" };
             const float gap = 8f;
             float w = (790f - gap * 5f) / 4f;
             for (int i = 0; i < 4; i++)
@@ -356,15 +356,15 @@ namespace Tabletop.Presentation
                     title = f.CanConfirm ? "LOCK IT IN?" : "LOCK OR SPIN";
                     sub = f.CanConfirm ? "ALL FIVE LOCKED  -  PULL TO CONFIRM" : (3 - f.SpinsUsed) + (3 - f.SpinsUsed == 1 ? " SPIN LEFT" : " SPINS LEFT");
                     break;
-                case UxState.AiCommit: title = "OPPONENT"; sub = "CHOOSING THEIR REELS"; break;
+                case UxState.AiCommit: title = "OPPONENT"; sub = "CHOOSING THEIR WHEELS"; break;
                 case UxState.MatchResult: title = "MATCH OVER"; sub = ""; break;
                 default:
                     switch (f.Phase)
                     {
-                        case BoardPhase.Reveal: title = "REVEAL"; sub = "BOTH SIDES SHOW THEIR REELS"; break;
-                        case BoardPhase.Xp: title = "XP"; sub = "STARS GO TO THEIR PIECES"; break;
-                        case BoardPhase.Wall: title = "WALL"; sub = "HAMMERS BUILD THE WALL"; break;
-                        case BoardPhase.Energy: title = "ENERGY"; sub = "GEMS CHARGE THEIR PIECES"; break;
+                        case BoardPhase.Reveal: title = "REVEAL"; sub = "BOTH SIDES SHOW THEIR WHEELS"; break;
+                        case BoardPhase.Xp: title = "XP"; sub = "STARS GO TO THEIR FIGURINES"; break;
+                        case BoardPhase.Wall: title = "BULWARK"; sub = "HAMMERS BUILD THE BULWARK"; break;
+                        case BoardPhase.Energy: title = "ENERGY"; sub = "SQUARES AND DIAMONDS CHARGE THEIR FIGURINES"; break;
                         case BoardPhase.Actions:
                             title = "ACTIONS";
                             int n = f.ActionOrder != null ? f.ActionOrder.Count : 0;
@@ -487,7 +487,7 @@ namespace Tabletop.Presentation
                     n.TallyPlus[i].enabled = has && i >= 2;
                 }
                 string result;
-                if (sym == 0) result = "<color=#B89A76>3 GEMS = +1</color>";
+                if (sym == 0) result = "<color=#B89A76>3 SYMBOLS = +1</color>";
                 else if (preview.EnergyGain == 0) result = "<color=#B89A76>" + OutcomePreview.SymbolsToNextPoint(sym) + " MORE = +1</color>";
                 else result = "+" + preview.EnergyGain + " ENERGY";
                 if (preview.Wasted > 0) result = "<color=#FF5548>+" + preview.EnergyGain + "  (" + preview.Wasted + " WASTED)</color>";

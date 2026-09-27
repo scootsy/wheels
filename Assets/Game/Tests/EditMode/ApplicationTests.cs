@@ -94,7 +94,7 @@ namespace Tabletop.Tests.EditMode
             var hash = s.Match.StateHash();
             Assert.IsFalse(s.RequestToggleLock(0));
             Assert.AreEqual(RejectionCode.FirstSpinRequired, s.LastRejection.Code);
-            Assert.AreEqual("Spin all reels before locking.", s.LastStatus);
+            Assert.AreEqual("Spin all wheels before locking.", s.LastStatus);
             s.SetPaused(true);
             Assert.IsFalse(s.RequestSpin());
             Assert.AreEqual(hash, s.Match.StateHash());

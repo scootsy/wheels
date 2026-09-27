@@ -25,7 +25,7 @@ namespace Tabletop.Application
                 case MatchEventType.ReelsSpun:
                     return (e.Side == 0 ? "You spin" : "Enemy spins") + " (spin " + e.SpinNumber + " of 3).";
                 case MatchEventType.ReelLockChanged:
-                    return (e.Side == 0 ? "You " : "Enemy ") + (e.Amount == 1 ? "lock" : "unlock") + " reel " + (e.Slot + 1) + ".";
+                    return (e.Side == 0 ? "You " : "Enemy ") + (e.Amount == 1 ? "lock" : "unlock") + " wheel " + (e.Slot + 1) + ".";
                 case MatchEventType.SpinFinalized:
                     return (e.Side == 0 ? "Your" : "Enemy") + " result is final (" + e.Note + ").";
                 case MatchEventType.PanelXpGranted:
@@ -37,7 +37,7 @@ namespace Tabletop.Application
                 case MatchEventType.BombQueued:
                     return unit + " is Gold at 6 XP: a BOMB is armed (XP resets to 0).";
                 case MatchEventType.BarrierBuilt:
-                    return SideName(e.Side) + " Wall +" + e.Amount + " (" + e.Before + " -> " + e.After + ")"
+                    return SideName(e.Side) + " Bulwark +" + e.Amount + " (" + e.Before + " -> " + e.After + ")"
                         + (e.Note == "unit build" ? " from " + unit : " from hammers") + (e.Wasted > 0 ? " [" + e.Wasted + " CAPPED]" : "") + ".";
                 case MatchEventType.EnergyGranted:
                     return unit + " energy +" + e.Amount + " (" + e.Before + " -> " + e.After + ")"
@@ -49,18 +49,18 @@ namespace Tabletop.Application
                     return unit + " ACTS" + (e.Source == EnergySource.Priest ? " (blessing energy)" : "") + ".";
                 case MatchEventType.ProjectileResolved:
                     return unit + " shot " + (e.ProjectileIndex + 1) + " at height " + e.Height
-                        + (e.TargetIsCrown ? " clears Wall " + e.Before + " -> hits the Crown." : " is blocked by Wall " + e.Before + ".");
+                        + (e.TargetIsCrown ? " clears Bulwark " + e.Before + " -> hits the Crown." : " is blocked by Bulwark " + e.Before + ".");
                 case MatchEventType.CrownDamaged:
                     if (e.Note == "self") return unit + " takes " + e.Amount + " self-damage (" + e.Before + " -> " + e.After + ").";
                     return SideName(e.TargetSide) + " Crown -" + e.Amount + " (" + e.Before + " -> " + e.After + ")"
-                        + (e.Note == "bomb" ? " from a BOMB (ignores Wall)" : e.Note == "direct" ? " direct hit" : "") + ".";
+                        + (e.Note == "bomb" ? " from a BOMB (ignores the Bulwark)" : e.Note == "direct" ? " direct hit" : "") + ".";
                 case MatchEventType.BarrierDamaged:
-                    return SideName(e.TargetSide) + " Wall -" + e.Amount + " (" + e.Before + " -> " + e.After + ")"
+                    return SideName(e.TargetSide) + " Bulwark -" + e.Amount + " (" + e.Before + " -> " + e.After + ")"
                         + (e.Wasted > 0 ? " [" + e.Wasted + " absorbed, no spill]" : "") + ".";
                 case MatchEventType.CrownHealed:
                     return SideName(e.Side) + " Crown +" + e.Amount + " (" + e.Before + " -> " + e.After + ")" + waste + ".";
                 case MatchEventType.BombLaunched:
-                    return unit + " BOMB flies over the Wall!";
+                    return unit + " BOMB flies over the Bulwark!";
                 case MatchEventType.RoundEnded:
                     return "Round " + e.Round + " resolved.";
                 case MatchEventType.MatchEnded:

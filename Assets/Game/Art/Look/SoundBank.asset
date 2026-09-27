@@ -1,0 +1,252 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5b24e4fcd67c0a4b8b1dc00757d122d, type: 3}
+  m_Name: SoundBank
+  m_EditorClassIdentifier: Tabletop.Presentation::Tabletop.Presentation.SoundBank
+  entries:
+  - key: music/village
+    clip: {fileID: 8300000, guid: 15fa04553ea4db4428463b1592a88fec, type: 3}
+    volume: 1
+  - key: music/town
+    clip: {fileID: 8300000, guid: 15fa04553ea4db4428463b1592a88fec, type: 3}
+    volume: 1
+  - key: music/road
+    clip: {fileID: 8300000, guid: 9a1c86de1c8c69d4bb0e27be5ce60ff4, type: 3}
+    volume: 1
+  - key: music/outpost
+    clip: {fileID: 8300000, guid: 9a1c86de1c8c69d4bb0e27be5ce60ff4, type: 3}
+    volume: 1
+  - key: music/hall
+    clip: {fileID: 8300000, guid: 2374ae167d8f0e842bad2693a4fa3646, type: 3}
+    volume: 1
+  - key: music/table
+    clip: {fileID: 8300000, guid: 65a917f7db3c9bf4c91eac28f7a38ffb, type: 3}
+    volume: 0.85
+  - key: amb/village_calm
+    clip: {fileID: 8300000, guid: d1cfccbe18b722240b08830430e5451f, type: 3}
+    volume: 0.8
+  - key: amb/village_busy
+    clip: {fileID: 8300000, guid: 4d46a3a8556e89642b178c94a7f8b4c8, type: 3}
+    volume: 0.7
+  - key: amb/forest
+    clip: {fileID: 8300000, guid: eebc33ea809df4644a80d7bc4f678064, type: 3}
+    volume: 0.9
+  - key: amb/wind
+    clip: {fileID: 8300000, guid: 6a7b3715bbe6068468e93b0f44cc5a65, type: 3}
+    volume: 0.7
+  - key: sfx/click
+    clip: {fileID: 8300000, guid: d3eea25a4e838f948b658a19983d4452, type: 3}
+    volume: 0.6
+  - key: sfx/click
+    clip: {fileID: 8300000, guid: 69980dcae977cd24facbfe6c5c3c3708, type: 3}
+    volume: 0.6
+  - key: sfx/click
+    clip: {fileID: 8300000, guid: 476030cd11e6e0f41af36b064749f83b, type: 3}
+    volume: 0.6
+  - key: sfx/click
+    clip: {fileID: 8300000, guid: e64a91828e4a799418d387bd14d8cde9, type: 3}
+    volume: 0.6
+  - key: sfx/click
+    clip: {fileID: 8300000, guid: 5cc860cc17b4bc647b8356f388508aa3, type: 3}
+    volume: 0.6
+  - key: sfx/coins
+    clip: {fileID: 8300000, guid: 42c0f6b65f8167b4c99ee0c877970141, type: 3}
+    volume: 1
+  - key: sfx/coins
+    clip: {fileID: 8300000, guid: 5a60142a4cd3e644fae7bb813db2ade9, type: 3}
+    volume: 1
+  - key: sfx/chips
+    clip: {fileID: 8300000, guid: 950aba909a038f24ba20fbe2b7b8c985, type: 3}
+    volume: 1
+  - key: sfx/chips
+    clip: {fileID: 8300000, guid: ed68cc3307fd8514e9e638085cf466a7, type: 3}
+    volume: 1
+  - key: sfx/chips
+    clip: {fileID: 8300000, guid: 7377e94a5c650c14e97b609fbb447cc7, type: 3}
+    volume: 1
+  - key: sfx/chips
+    clip: {fileID: 8300000, guid: a1150fa4d76aa714fb192c9f5a6a7871, type: 3}
+    volume: 1
+  - key: sfx/chips
+    clip: {fileID: 8300000, guid: 6d376dc196f6ffb4d8db29eaba20f479, type: 3}
+    volume: 1
+  - key: sfx/chips
+    clip: {fileID: 8300000, guid: e68ae38d04adf1f42a3cf9c8a17d5a13, type: 3}
+    volume: 1
+  - key: sfx/pickup
+    clip: {fileID: 8300000, guid: ab368345522a3094996bfa942469e526, type: 3}
+    volume: 1
+  - key: sfx/pickup
+    clip: {fileID: 8300000, guid: a695fe0cc7bfb9d4ca0a8438c3b5e2b8, type: 3}
+    volume: 1
+  - key: sfx/page
+    clip: {fileID: 8300000, guid: 7bc4e70d309df5a458cbd40e706c4c23, type: 3}
+    volume: 1
+  - key: sfx/page
+    clip: {fileID: 8300000, guid: 347769d82cc1cde45b3a409c1d78f727, type: 3}
+    volume: 1
+  - key: sfx/page
+    clip: {fileID: 8300000, guid: 722f9705c1bf3874db2b77606aa4c755, type: 3}
+    volume: 1
+  - key: sfx/door
+    clip: {fileID: 8300000, guid: 5b8e7e9aa7599694e88e4249b52769b9, type: 3}
+    volume: 1
+  - key: sfx/door
+    clip: {fileID: 8300000, guid: fb1ea4b04d3473545b43e3813c86d1ca, type: 3}
+    volume: 1
+  - key: step/grass
+    clip: {fileID: 8300000, guid: a0507befc8d21db42bfbcba6102e2ad7, type: 3}
+    volume: 1
+  - key: step/grass
+    clip: {fileID: 8300000, guid: 49980084de316384fbc30ccd5f363f4d, type: 3}
+    volume: 1
+  - key: step/grass
+    clip: {fileID: 8300000, guid: 4763a043bbbfb8e47a52969f659ab49d, type: 3}
+    volume: 1
+  - key: step/grass
+    clip: {fileID: 8300000, guid: b69af906557fd0c46b3c2401bf019c95, type: 3}
+    volume: 1
+  - key: step/grass
+    clip: {fileID: 8300000, guid: bd293aec34ad0144aae073aa178bba6a, type: 3}
+    volume: 1
+  - key: step/grass
+    clip: {fileID: 8300000, guid: d05833410431e3c4ba1321d9c6a392e9, type: 3}
+    volume: 1
+  - key: step/grass
+    clip: {fileID: 8300000, guid: eb87b16dd5f4e36428387f3f2d8bc197, type: 3}
+    volume: 1
+  - key: step/grass
+    clip: {fileID: 8300000, guid: 03273a9bd45bb674bbdc88d7dde7b67f, type: 3}
+    volume: 1
+  - key: step/grass
+    clip: {fileID: 8300000, guid: 07fb31b6eaefd8048892f237272b0d6e, type: 3}
+    volume: 1
+  - key: step/grass
+    clip: {fileID: 8300000, guid: 5bffdc117d7a886479c92a466ca399e6, type: 3}
+    volume: 1
+  - key: step/stone
+    clip: {fileID: 8300000, guid: c1982b6afa4a5c34f9b0850041433df1, type: 3}
+    volume: 0.6
+  - key: step/stone
+    clip: {fileID: 8300000, guid: 6b98fc45b924c7d498a4e5421c9e17a3, type: 3}
+    volume: 0.6
+  - key: step/stone
+    clip: {fileID: 8300000, guid: d9463996d59b64a4aa3b062bbea9eb9f, type: 3}
+    volume: 0.6
+  - key: step/stone
+    clip: {fileID: 8300000, guid: f60194ab353bbea42a40040245b11ed9, type: 3}
+    volume: 0.6
+  - key: step/stone
+    clip: {fileID: 8300000, guid: 88e864568cabc6d47a52739eaf2dbbb7, type: 3}
+    volume: 0.6
+  - key: sfx/spin
+    clip: {fileID: 8300000, guid: 96a6803628a8d4f4895512ca870919f2, type: 3}
+    volume: 1
+  - key: sfx/spin
+    clip: {fileID: 8300000, guid: 57296c6084ace7b48aca467d68016213, type: 3}
+    volume: 1
+  - key: sfx/spin
+    clip: {fileID: 8300000, guid: 1f3a258bb167478459a0b87a3e555bd0, type: 3}
+    volume: 1
+  - key: sfx/lock
+    clip: {fileID: 8300000, guid: 63ec82883ff2cab4a9da9a1a39f646ab, type: 3}
+    volume: 1
+  - key: sfx/lever
+    clip: {fileID: 8300000, guid: b69a1b72d72ef89459d718daedafb0d0, type: 3}
+    volume: 1
+  - key: sfx/activate
+    clip: {fileID: 8300000, guid: 39d4d7ad5fee5f947b095258c8a9806a, type: 3}
+    volume: 1
+  - key: sfx/activate
+    clip: {fileID: 8300000, guid: b90bfd6d65f48a54882016ec10b6c102, type: 3}
+    volume: 1
+  - key: sfx/activate
+    clip: {fileID: 8300000, guid: c8cf16102701fcb41a44d487c4c3062a, type: 3}
+    volume: 1
+  - key: sfx/crown_hit
+    clip: {fileID: 8300000, guid: eaf6a9f0fd934154295be962f0a73e40, type: 3}
+    volume: 1
+  - key: sfx/bulwark_hit
+    clip: {fileID: 8300000, guid: 262322785259320468a1b457267105d9, type: 3}
+    volume: 1
+  - key: sfx/bulwark_hit
+    clip: {fileID: 8300000, guid: 34b21a638eca2e74e9abab4b1e82362b, type: 3}
+    volume: 1
+  - key: sfx/bulwark_hit
+    clip: {fileID: 8300000, guid: 5456e980bc2475e41bac77c41e1016bd, type: 3}
+    volume: 1
+  - key: sfx/build
+    clip: {fileID: 8300000, guid: 53e7b7ae5956a9b44ba94052f7e124fd, type: 3}
+    volume: 1
+  - key: sfx/build
+    clip: {fileID: 8300000, guid: e747adf660904b74eb515face12d8d91, type: 3}
+    volume: 1
+  - key: sfx/build
+    clip: {fileID: 8300000, guid: 1a35745922816ab48bc18511883ad570, type: 3}
+    volume: 1
+  - key: sfx/build
+    clip: {fileID: 8300000, guid: 4f5801d57451d1049b433877a53a9395, type: 3}
+    volume: 1
+  - key: sfx/build
+    clip: {fileID: 8300000, guid: f121ff1342f1bce4e9eb1488470038be, type: 3}
+    volume: 1
+  - key: sfx/build
+    clip: {fileID: 8300000, guid: ea18a9c2de7e3174ea8a07f49afcd8cd, type: 3}
+    volume: 1
+  - key: sfx/rankup
+    clip: {fileID: 8300000, guid: e1c446d6ec5777644bde7d7b571b9734, type: 3}
+    volume: 1
+  - key: sfx/heal
+    clip: {fileID: 8300000, guid: dc1fdd014604df84399e368ecaceec74, type: 3}
+    volume: 1
+  - key: sfx/bomb
+    clip: {fileID: 8300000, guid: 262322785259320468a1b457267105d9, type: 3}
+    volume: 1
+  - key: sfx/energy
+    clip: {fileID: 8300000, guid: af48298a112077d48b832a611c6e2fab, type: 3}
+    volume: 0.5
+  - key: sfx/energy
+    clip: {fileID: 8300000, guid: e1c446d6ec5777644bde7d7b571b9734, type: 3}
+    volume: 0.5
+  - key: sfx/energy
+    clip: {fileID: 8300000, guid: d9bc2dfc465d841439d912689effc90d, type: 3}
+    volume: 0.5
+  - key: sfx/energy
+    clip: {fileID: 8300000, guid: 2dc87b3accd640849acbab4b96add59b, type: 3}
+    volume: 0.5
+  - key: sfx/energy
+    clip: {fileID: 8300000, guid: 1df1d8040ee9dcc4e9b72d7571d4d19d, type: 3}
+    volume: 0.5
+  - key: sfx/energy
+    clip: {fileID: 8300000, guid: d39fea4ebde3d6444ae7071cb042d981, type: 3}
+    volume: 0.5
+  - key: sfx/energy
+    clip: {fileID: 8300000, guid: c1cc68f2278b796428aba65e3b3e9014, type: 3}
+    volume: 0.5
+  - key: sfx/energy
+    clip: {fileID: 8300000, guid: e3ce10f99b0a0024a995b3312e36c076, type: 3}
+    volume: 0.5
+  - key: sfx/energy
+    clip: {fileID: 8300000, guid: e5624da9e9411e940897b96f116c4ff0, type: 3}
+    volume: 0.5
+  - key: sfx/energy
+    clip: {fileID: 8300000, guid: d8ca14240db169f419e5716dbd6ea0c3, type: 3}
+    volume: 0.5
+  - key: sfx/energy
+    clip: {fileID: 8300000, guid: fdcf662ca554bae4583087da7a1535ce, type: 3}
+    volume: 0.5
+  - key: sfx/win
+    clip: {fileID: 8300000, guid: 5a60142a4cd3e644fae7bb813db2ade9, type: 3}
+    volume: 1
+  - key: sfx/lose
+    clip: {fileID: 8300000, guid: 8c0d6862b784da949bc14052660938dd, type: 3}
+    volume: 1
