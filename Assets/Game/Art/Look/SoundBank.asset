@@ -31,6 +31,12 @@ MonoBehaviour:
   - key: music/table
     clip: {fileID: 8300000, guid: 65a917f7db3c9bf4c91eac28f7a38ffb, type: 3}
     volume: 0.85
+  - key: music/hollow
+    clip: {fileID: 8300000, guid: 9a1c86de1c8c69d4bb0e27be5ce60ff4, type: 3}
+    volume: 0.8
+  - key: music/tournament
+    clip: {fileID: 8300000, guid: 2374ae167d8f0e842bad2693a4fa3646, type: 3}
+    volume: 1
   - key: amb/village_calm
     clip: {fileID: 8300000, guid: d1cfccbe18b722240b08830430e5451f, type: 3}
     volume: 0.8
@@ -43,6 +49,9 @@ MonoBehaviour:
   - key: amb/wind
     clip: {fileID: 8300000, guid: 6a7b3715bbe6068468e93b0f44cc5a65, type: 3}
     volume: 0.7
+  - key: amb/lake
+    clip: {fileID: 8300000, guid: 6153b0589f4b86344bf9bcaf3530e1af, type: 3}
+    volume: 0.8
   - key: sfx/click
     clip: {fileID: 8300000, guid: d3eea25a4e838f948b658a19983d4452, type: 3}
     volume: 0.6

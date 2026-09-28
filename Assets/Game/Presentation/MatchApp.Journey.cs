@@ -54,7 +54,8 @@ namespace Tabletop.Presentation
         {
             if (!InEncounter || _lastSettlement == null) return null;
             var enc = Session.Options.Encounter;
-            string stake = GameFlow.PendingStakeMode == StakeMode.Friendly ? "Friendly game" : GameFlow.PendingStakeMode == StakeMode.Favour ? "Played for a favour" : "Stake " + enc.Stake;
+            string stake = enc.Tournament ? (enc.TournamentRound == EncounterCatalog.TournamentRounds ? "Grand Tournament final" : "Grand Tournament, round " + enc.TournamentRound)
+                : GameFlow.PendingStakeMode == StakeMode.Friendly ? "Friendly game" : GameFlow.PendingStakeMode == StakeMode.Favour ? "Played for a favour" : "Stake " + enc.Stake;
             string what = _lastSettlement.Describe();
             return stake + (what.Length > 0 ? "   ·   " + what : "") + "   ·   Coins: " + GameFlow.Coins;
         }

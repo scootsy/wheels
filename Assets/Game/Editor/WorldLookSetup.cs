@@ -276,11 +276,14 @@ namespace Tabletop.EditorTools
             Add("music/outpost", Music + "The_Bards_Tale.mp3", 1f, true);
             Add("music/hall", Music + "Kings_Feast_0.mp3", 1f, true);
             Add("music/table", Music + "The_Old_Tower_Inn.mp3", 0.85f, true);
+            Add("music/hollow", Music + "The_Bards_Tale.mp3", 0.8f, true);
+            Add("music/tournament", Music + "Kings_Feast_0.mp3", 1f, true);
             // Ambience (Fantasy Kingdom pack, the creative director's licence).
             Add("amb/village_calm", Fk + "03_amb/village_calm.wav", 0.8f, true);
             Add("amb/village_busy", Fk + "03_amb/village_busy.wav", 0.7f, true);
             Add("amb/forest", Fk + "03_amb/birdforest_amb.wav", 0.9f, true);
             Add("amb/wind", Fk + "03_amb/skywind_1.wav", 0.7f, true);
+            Add("amb/lake", Fk + "03_amb/watershore_amb.wav", 0.8f, true);
             // Effects (Kenney, CC0; stone steps from Fantasy Kingdom).
             AddAll("sfx/click", Kenney + "ui", "click", 0.6f);
             AddAll("sfx/coins", Kenney + "rpg", "handleCoins");

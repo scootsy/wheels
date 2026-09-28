@@ -51,6 +51,9 @@ namespace Tabletop.Application
         public const string BronzeWheel = "wheel_bronze";
         public const string SilverWheel = "wheel_silver";
         public const string GoldWheel = "wheel_gold";
+        public const string DiamondWheel = "wheel_diamond";
+        /// <summary>The Grand Tournament's prize (D-038); never sold.</summary>
+        public const string PlatinumWheel = "wheel_platinum";
 
         public static readonly IReadOnlyList<ItemDefinition> All = new ReadOnlyCollection<ItemDefinition>(new List<ItemDefinition>
         {
@@ -62,6 +65,8 @@ namespace Tabletop.Application
             new ItemDefinition(BronzeWheel, "Bronze Wheel", "A better fifth wheel: adds a double hammer. Yours to keep.", 35, ItemKind.Wheel, wheel: ReelTier.Bronze),
             new ItemDefinition(SilverWheel, "Silver Wheel", "A fifth wheel with more energy and an XP face. Yours to keep.", 90, ItemKind.Wheel, wheel: ReelTier.Silver),
             new ItemDefinition(GoldWheel, "Gold Wheel", "The finest wheel a stonemason can cut. Yours to keep.", 200, ItemKind.Wheel, wheel: ReelTier.Gold),
+            new ItemDefinition(DiamondWheel, "Diamond Wheel", "Cast in bell-bronze and set with cut stones. Yours to keep.", 400, ItemKind.Wheel, wheel: ReelTier.Diamond),
+            new ItemDefinition(PlatinumWheel, "Platinum Wheel", "The Grand Champion's own wheel. Won, never sold.", 0, ItemKind.Wheel, wheel: ReelTier.Platinum),
         });
 
         public static ItemDefinition Find(string id)
@@ -95,6 +100,8 @@ namespace Tabletop.Application
     {
         public const string AdasStall = "ada";
         public const string Forge = "anvara";
+        public const string LanternStall = "maudie";
+        public const string Bellfoundry = "oskar";
 
         public static readonly IReadOnlyList<ShopDefinition> All = new ReadOnlyCollection<ShopDefinition>(new List<ShopDefinition>
         {
@@ -105,6 +112,13 @@ namespace Tabletop.Application
                 "Wheels cut from mountain stone and bound in iron. Nothing finer this side of the capital.",
                 ItemCatalog.Tonic, ItemCatalog.Mortar, ItemCatalog.Flint, ItemCatalog.SquareMedal, ItemCatalog.DiamondMedal,
                 ItemCatalog.BronzeWheel, ItemCatalog.SilverWheel, ItemCatalog.GoldWheel),
+            new ShopDefinition(LanternStall, "Old Maudie", "Maudie's Lanterns",
+                "Lanterns, lamp oil, and a few charms the lake folk swear by. Mind the wicks.",
+                ItemCatalog.Tonic, ItemCatalog.Mortar, ItemCatalog.Flint, ItemCatalog.SquareMedal, ItemCatalog.DiamondMedal),
+            new ShopDefinition(Bellfoundry, "Oskar Bell", "The Bellfoundry",
+                "Bells, gears and the best wheels this side of Crownhold. The Diamond wheel rings true, every time.",
+                ItemCatalog.Tonic, ItemCatalog.Mortar, ItemCatalog.Flint, ItemCatalog.SquareMedal, ItemCatalog.DiamondMedal,
+                ItemCatalog.GoldWheel, ItemCatalog.DiamondWheel),
         });
 
         public static ShopDefinition Find(string id)
@@ -249,6 +263,54 @@ namespace Tabletop.Application
                 "Fire ore glows orange among the rocks in the quarry pit.",
                 pickupId: "anvara_ore", foundLine: "A fist-sized lump of ore, still warm, veined with glowing orange.",
                 thanksLine: "That's good ore. It'll make a fine wheel. Here."),
+
+            // ---- Lanternmere (D-038)
+            new ErrandDefinition("maudie_oil", Areas.Lanternmere, "A jar of lamp oil", "Old Maudie", "a jar of lamp oil", 14,
+                new[] { "Finn borrowed my good jar of lamp oil for his tar pot and left it in the boathouse, the scoundrel.", "Fetch it back for me?" },
+                "The boathouse is on the east shore, past Finn's boats.",
+                pickupId: "maudie_oil", foundLine: "A heavy clay jar of lamp oil, smelling faintly of tar.",
+                thanksLine: "My oil! A hundred lanterns thank you. Here."),
+            new ErrandDefinition("pim_boat", Areas.Lanternmere, "Pim's toy boat", "Pim", "a little toy boat", 9,
+                new[] { "My boat sailed away! The wind took it right across the water.", "It always ends up in the reeds on the far side, by the big rocks. Can you get it?" },
+                "Across the lake, in the reeds on the west shore by the big rocks.",
+                pickupId: "pim_boat", foundLine: "A little carved boat with a paper sail, beached in the reeds.",
+                thanksLine: "My boat! You're the best. Here, it's all my fishing money."),
+            new ErrandDefinition("finn_rope", Areas.Lanternmere, "Tarred rope for Tobin", "Finn Harrow", "a coil of tarred rope", 14,
+                new[] { "Tobin Reed down in Brindlecross ordered a coil of my tarred rope for his nets.", "Carry it down to him? He's good for the coin." },
+                "Tobin Reed fishes in Brindlecross, on the east side of the plaza.",
+                receiver: "Tobin Reed", deliverLine: "Finn's rope! Best on the water. Here, take this for the walk."),
+
+            // ---- Duskhollow (D-038)
+            new ErrandDefinition("hob_axe", Areas.Duskhollow, "Hob's axe head", "Hob", "Hob's axe head", 16,
+                new[] { "My axe head flew off the haft and into the woods. Somewhere up the slope, west of the hollow.", "I'd look, but the owls up there don't like me. Would you?" },
+                "Up the wooded slope west of the hollow. Look for the fallen pines.",
+                pickupId: "hob_axe", foundLine: "An axe head, bitten deep into a fallen pine.",
+                thanksLine: "There she is! Back to work, then. Here's for your trouble."),
+            new ErrandDefinition("agathe_caps", Areas.Duskhollow, "A basket of silvercaps", "Grey Agathe", "a basket of silvercaps", 15,
+                new[] { "Silvercaps only grow under the great tree, and my knees won't bend that low any more.", "Pick me a basket? They're the ones that shine." },
+                "Under the great tree on the north side of the hollow.",
+                pickupId: "agathe_caps", foundLine: "A basket's worth of pale mushrooms that shine faintly, like moonlight.",
+                thanksLine: "Beautiful. Don't ask what they're for. Here."),
+            new ErrandDefinition("moth_tea", Areas.Duskhollow, "Tea for the infirmary", "Moth", "a packet of dreamleaf tea", 18,
+                new[] { "Sister Halvey in Brindlecross can't get dreamleaf anywhere else. It helps her patients sleep.", "Would you take her a packet?" },
+                "Sister Halvey runs the infirmary on the west side of Brindlecross.",
+                receiver: "Sister Halvey", deliverLine: "Dreamleaf from Moth! My patients will sleep tonight. Bless you, and take this."),
+
+            // ---- Ironbell (D-038)
+            new ErrandDefinition("rusk_rope", Areas.Ironbell, "The lost bell rope", "Captain Rusk", "a coil of bell rope", 18,
+                new[] { "THE WIND TOOK THE SPARE BELL ROPE!", "IT'LL BE OUT ON THE MOOR, BY THE OLD STANDING STONES SOUTH OF TOWN! FETCH IT, WOULD YOU?" },
+                "Out on the moor south of Ironbell, by the old standing stones.",
+                pickupId: "rusk_rope", foundLine: "A long coil of bell rope, snagged on a standing stone.",
+                thanksLine: "THAT'S THE ONE! HERE! FOR YOUR TROUBLE!"),
+            new ErrandDefinition("tilda_spring", Areas.Ironbell, "A runaway mainspring", "Tilda Brass", "a brass mainspring", 16,
+                new[] { "A mainspring got away from me. They do that. It bounced off the wall and down the bell road.", "It's shiny. You'll see it. Would you?" },
+                "Somewhere along the bell road, west of town, where it climbs the hill.",
+                pickupId: "tilda_spring", foundLine: "A coiled brass spring, gleaming in the heather beside the road.",
+                thanksLine: "Got it! Twelve turns per minute, exactly. Here, you've earned these."),
+            new ErrandDefinition("oskar_ingot", Areas.Ironbell, "Bell-bronze for the forge", "Oskar Bell", "an ingot of bell-bronze", 22,
+                new[] { "Anvara at the Stonemasons' Outpost wants bell-bronze for her wheels. Best bronze there is.", "The moor track runs north from here straight to the Outpost. Take her this ingot?" },
+                "The moor track runs north from Ironbell to the Stonemasons' Outpost. Anvara keeps the forge there.",
+                receiver: "Anvara", deliverLine: "Bell-bronze! Oskar keeps his word. Here, this is yours."),
         });
 
         public static ErrandDefinition Find(string id)

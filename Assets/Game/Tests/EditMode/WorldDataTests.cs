@@ -18,9 +18,11 @@ namespace Tabletop.Tests.EditMode
         {
             var ids = EncounterCatalog.All.Select(e => e.Id).ToList();
             CollectionAssert.AllItemsAreUnique(ids);
-            // One champion per town (D-033): Brindlecross and the Stonemasons' Outpost.
-            Assert.AreEqual(1, EncounterCatalog.All.Count(e => e.IsChampion && e.Area != Areas.Outpost), "one champion in the valley");
-            Assert.AreEqual(1, EncounterCatalog.All.Count(e => e.IsChampion && e.Area == Areas.Outpost), "one champion at the Outpost");
+            // One champion per town (D-033, D-038), each holding a different figurine.
+            foreach (var town in new[] { Areas.Brindlecross, Areas.Outpost, Areas.Lanternmere, Areas.Duskhollow, Areas.Ironbell })
+                Assert.AreEqual(1, EncounterCatalog.TownChampions.Count(e => Areas.Town(e.Area) == town), "one champion in " + town);
+            CollectionAssert.AllItemsAreUnique(EncounterCatalog.TownChampions.Select(e => e.PrizeUnit));
+            Assert.AreEqual(EncounterCatalog.TournamentRounds, EncounterCatalog.All.Count(e => e.Tournament), "one opponent per tournament round");
             foreach (var e in EncounterCatalog.All)
             {
                 var cfg = MatchConfig.Standard(42, ReferenceContent.Striker, ReferenceContent.Caster, e.UnitA, e.UnitB, e.Tier, e.AiProfile);
@@ -88,6 +90,11 @@ namespace Tabletop.Tests.EditMode
             var prizes = new System.Collections.Generic.List<string>();
             foreach (var e in EncounterCatalog.All)
             {
+                if (e.Tournament)
+                {
+                    Assert.IsNull(e.PrizeUnit, e.Id + ": the tournament pays purses, not figurines");
+                    continue;
+                }
                 if (e.IsChampion)
                 {
                     Assert.IsNotNull(e.PrizeUnit, e.Id);
@@ -97,12 +104,13 @@ namespace Tabletop.Tests.EditMode
                 else
                 {
                     Assert.IsNull(e.PrizeUnit, e.Id);
-                    // The valley plays the practice pair; the Outpost's stonemasons bring an Archer or play on better wheels (D-033).
-                    if (e.Area != Areas.Outpost)
+                    // The valley plays the practice pair; further afield people bring won figurines and better wheels (D-033, D-038).
+                    if (e.Area == Areas.Hearthmoor || e.Area == Areas.NorthRoad || e.Area == Areas.Brindlecross)
                         CollectionAssert.AreEquivalent(EncounterCatalog.StartingUnits, new[] { e.UnitA, e.UnitB }, e.Id + " plays the town's practice pair");
                 }
             }
-            CollectionAssert.AreEqual(new[] { ReferenceContent.Ranger, ReferenceContent.Mason }, prizes, "Brindlecross holds the Archer, the Outpost the Engineer");
+            CollectionAssert.AreEqual(new[] { ReferenceContent.Ranger, ReferenceContent.Mason, ReferenceContent.Mender, ReferenceContent.Shade, ReferenceContent.Hexer }, prizes,
+                "Brindlecross holds the Archer, the Outpost the Engineer, Lanternmere the Priest, Duskhollow the Assassin, Ironbell the Warlock");
         }
 
         [Test]
@@ -188,6 +196,11 @@ namespace Tabletop.Tests.EditMode
             Assert.IsFalse(area.Contains(-30f, 62f), "the stream away from the bridge");
             Assert.IsFalse(area.Contains(40f, 80f), "deep woods");
             Assert.IsFalse(area.Contains(0, 175f), "behind the hall");
+            // D-038: the new places and the paths to them.
+            foreach (var path in new[] { WorldBuilder.StreamPath, WorldBuilder.HollowPath, WorldBuilder.BellRoad, WorldBuilder.MoorTrack, WorldBuilder.TourneyRoad })
+                foreach (var p in path) Assert.IsTrue(area.Contains(p.x, p.y), "path point " + p);
+            foreach (var t in new[] { WorldBuilder.PierTable, WorldBuilder.StoneTable, WorldBuilder.BellTable, WorldBuilder.TourneyTable })
+                Assert.IsTrue(area.Contains(t.x, t.y - 2.1f), "the chair at the table at " + t);
         }
 
         /// <summary>Builds only the walkable-area description (no GameObjects) by replaying the layout rules.</summary>

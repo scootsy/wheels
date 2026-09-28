@@ -1,9 +1,9 @@
 # Implementation Status
 
-**Current authorized target:** W3 (D-033, `WORLD_SPEC.md`): coins, stakes and favours, errands, stalls, charms and wheels, pack art and sound, the source's names, and the Stonemasons' Outpost. Then stop for the creative director to play it.  
-**Last updated:** 2026-09-26  
+**Current authorized target:** W4 (D-038, `WORLD_SPEC.md`): Lanternmere, Duskhollow and Ironbell with the champions who hold the Priest, the Assassin and the Warlock; the Grand Tournament at Crownhold; free wandering off the paths. Then stop for the creative director to play it.  
+**Last updated:** 2026-09-28  
 
-**W3 COMPLETE - waiting for the creative director to play it.** Nothing beyond `WORLD_SPEC.md` is authorized.
+**W4 COMPLETE - waiting for the creative director to play it.** Nothing beyond `WORLD_SPEC.md` is authorized.
 
 | Stage | Status | Verification |
 |---|---|---|
@@ -15,7 +15,9 @@
 | W1 playtest stop | Passed | Creative director played W1 and asked for W2 / W3 |
 | W2 journey + table (D-027..D-032) | Complete | Save/continue, first person, deck, 3D table, iOS builds, touch pad |
 | W3 journey economy, look, sound, Outpost (D-033) | Complete | 136/136 EditMode, 40/40 PlayMode; Windows build self-check (world + table screenshots, 20/20 animated people, no unsupported shaders) |
-| W3 playtest stop | **ACTIVE** | Waiting for the creative director to play W3 |
+| W3 playtest stop | Passed | Creative director asked for the rest of the journey (D-038) |
+| W4 rest of the journey + Grand Tournament + wandering (D-038) | Complete | 150/150 EditMode, 49/49 PlayMode; Windows build self-check with screenshots of every new place |
+| W4 playtest stop | **ACTIVE** | Waiting for the creative director to play W4 |
 | M2 progression | Not authorized | Untouched |
 | M3 tiny world (beyond W1) | Not authorized | Untouched |
 | M4 production presentation | Not authorized | Untouched |
@@ -234,6 +236,40 @@ Known defects: the enemy crown's back spike clips the top corner of enemy reel 3
   readable); table figures are still primitive miniatures. (Excluded models' textures erased from Git
   history on 2026-09-25, D-031.)
 Gate status: PLAYTEST STOP ACTIVE (waiting for the creative director).
+```
+
+## Update 2026-09-28 — the rest of the journey, the Grand Tournament, wandering (D-038)
+
+```text
+Date/time: 2026-09-28 10:30 MDT
+Milestone: W4 (authorized by the creative director)
+Completed:
+  Lanternmere on Mirrorwater (Stream Path): Mother Seraphine Vell holds the Priest (pier table), 3 challengers,
+    Maudie's Lanterns stall, 3 errands. Duskhollow (Hollow Path): Silas Thorne, the Nightjar, holds the Assassin
+    (ring of stones), 3 challengers, 3 errands, darker fog. Ironbell on the moor (Bell Road, Moor Track to the
+    Outpost): Magister Orlan Vey holds the Warlock (under the great bell), 3 challengers, the Bellfoundry (Diamond
+    wheel 400), 3 errands. Every figurine can now be won.
+  Crownhold and the Grand Tournament: Herald Aubrey enters a champion of all five towns; three rounds in a row
+    (Ottilie Frane, Casimir Vane, Grand Champion Aldric Mourne with a changing pair and a Platinum wheel); purses
+    60/90/250; a loss restarts from round one; winning gives the Platinum Wheel and an epilogue. Saved (version 3).
+  Wandering: no invisible walls off the paths; only water, ground over 34 degrees, the map's edge and solid things
+    (buildings, walls, fences, tree trunks, big rocks, people) stop the player. Feet follow the land; the camera
+    rises over hills; trees/buildings in front of the player become shadow-only.
+Fixes found on the way: hidden creases in the land where two paths' influence met (felt like invisible walls once
+  walkable); the lake's first shore was a cliff (now a beach).
+Tests: EditMode 150/150 (new RestOfJourneyTests: prizes, tournament rules, saves, shops, wandering, land has no
+  hidden steps, place names); PlayMode 49/49 (new RestOfJourneyWorldTests: new champions' tables, Herald entry,
+  winning a tournament round at the real table, walking off the road, trees see-through).
+Console/build: Windows and iOS builds succeeded, 0 errors (warnings are third-party pack shader deprecations);
+  self-check world renderers=10216, unsupportedShader=0, animatedPeople=44/44, every screenshot spot walkable,
+  PLAYER PROBLEMS: none.
+Screenshots/build path: Docs/Screenshots/World/world_9*..world_13* (real player); Builds/TabletopReels-Windows.zip,
+  Builds/TabletopReels-iOS-Xcode.zip
+Known defects: music reuses the four existing tracks; the tournament arena and Ironbell square are plain;
+  the Grand Champion ending is dialogue pages, not a cutscene; faint ridge lines where two hills meet.
+Blockers: none
+Next authorized work: fixes only, until the creative director plays W4.
+Gate status: W4 PLAYTEST STOP ACTIVE.
 ```
 
 ## Active blockers

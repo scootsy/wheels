@@ -8,7 +8,14 @@ namespace Tabletop.World
     /// <summary>Result of building the world: what the app needs to run it.</summary>
     public sealed class WorldLayout
     {
+        public WorldLayout() { Roam = new RoamArea(Walkable); }
+
+        /// <summary>Paths, villages, bridges, piers and interiors: the level ground (and what shapes the land).</summary>
         public readonly WalkableArea Walkable = new WalkableArea();
+        /// <summary>Where the player can actually go (D-038): the paths plus the open land around them.</summary>
+        public readonly RoamArea Roam;
+        /// <summary>Trees and buildings the overhead camera looks through when they stand in the way (D-038).</summary>
+        public readonly List<Occluder> Occluders = new List<Occluder>();
         public readonly List<Interactable> Interactables = new List<Interactable>();
         public readonly List<Npc> Npcs = new List<Npc>();
         public readonly List<Pickup> Pickups = new List<Pickup>();
@@ -22,6 +29,15 @@ namespace Tabletop.World
         public Chair ChampionChair;
         /// <summary>The Outpost champion's chair (the table on the ledge).</summary>
         public Chair OutpostChair;
+        /// <summary>D-038: the pier at Lanternmere, the stones at Duskhollow, the great bell at Ironbell.</summary>
+        public Chair LakeChair;
+        public Chair HollowChair;
+        public Chair BellChair;
+        /// <summary>The Grand Tournament's table at Crownhold; its opponent changes with the round (D-038).</summary>
+        public Chair TournamentChair;
+        /// <summary>Where the current round's opponent sits at the tournament table.</summary>
+        public Vector3 TournamentSeat;
+        public Npc Herald;
         public Vector3 TableFocus;
         public Door HallDoor;
         public Door HallExit;
@@ -44,11 +60,21 @@ namespace Tabletop.World
         /// <summary>Area name for a position (shown when the player moves between places).</summary>
         public static string AreaAt(Vector3 p)
         {
-            if (p.x > 150) return Areas.Hall;
-            if (p.x > 58) return Areas.Outpost;
-            if (p.x > 24 && p.z > 110) return Areas.QuarryPath;
-            if (p.z < 22) return Areas.Hearthmoor;
-            if (p.z < 113) return Areas.NorthRoad;
+            if (p.x > WorldGround.InteriorThreshold) return Areas.Hall;
+            var q = new Vector2(p.x, p.z);
+            if (Vector2.Distance(q, new Vector2(-84f, 90f)) < 34f) return Areas.Lanternmere;
+            if (Vector2.Distance(q, new Vector2(-62f, 215f)) < 30f) return Areas.Duskhollow;
+            if (p.z > 210f && p.x > -36f && p.x < 36f) return Areas.Crownhold;
+            if (p.x > 64f && p.z < 108f) return Areas.Ironbell;
+            if (p.x > 64f && p.z < 146f) return Areas.MoorTrack;
+            if (p.x > 58f) return Areas.Outpost;
+            if (p.z > 159f && p.x > -16f && p.x < 45f) return Areas.TourneyRoad;
+            if (p.x > 24f && p.z > 110f) return Areas.QuarryPath;
+            if (p.z > 159f && p.x <= -16f) return Areas.HollowPath;
+            if (p.x > 20f && p.z > 40f && p.z < 110f) return Areas.BellRoad;
+            if (p.x < -12f && p.z > 64f && p.z < 112f) return Areas.StreamPath;
+            if (p.z < 22f) return Areas.Hearthmoor;
+            if (p.z < 113f) return Areas.NorthRoad;
             return Areas.Brindlecross;
         }
     }
@@ -58,7 +84,7 @@ namespace Tabletop.World
     /// Champion's Hall, and up the Quarry Path to the Stonemasons' Outpost. North is +z, the highlands are +x.
     /// Uses the art in <see cref="WorldLook"/> where it exists and primitive placeholders where it does not.
     /// </summary>
-    public sealed class WorldBuilder
+    public sealed partial class WorldBuilder
     {
         public const float InteriorX = 200f;
         public const string PlayerKey = "Player";
@@ -135,6 +161,11 @@ namespace Tabletop.World
             BuildInterior();
             BuildQuarryPath();
             BuildOutpost();
+            BuildStreamPath();
+            BuildLanternmere();
+            BuildDuskhollow();
+            BuildIronbell();
+            BuildCrownhold();
             BuildPickups();
             Scatter();
             return _layout;
@@ -160,6 +191,7 @@ namespace Tabletop.World
             w.Circle(WorldGround.PitCenter.x, WorldGround.PitCenter.y, 7.5f);
             w.Capsule(new Vector2(96, 171), new Vector2(99.5f, 171), 1.8f); // up the lookout knoll
             w.Circle(WorldGround.KnollCenter.x, WorldGround.KnollCenter.y, 3.2f);
+            DefineNewWalkable(w);
         }
 
         // ------------------------------------------------------------------ terrain paint
@@ -185,12 +217,22 @@ namespace Tabletop.World
             float meadow = Mathf.Clamp01((Mathf.PerlinNoise(x * 0.05f + 3.1f, z * 0.05f + 7.7f) - 0.45f) * 2.2f);
             float dirt = Band(DistToPolyline(p, RoadPoints), 1.9f, 1.4f);
             dirt = Mathf.Max(dirt, Band(DistToPolyline(p, QuarryPath), 1.8f, 1.2f));
+            foreach (var path in NewPaths) dirt = Mathf.Max(dirt, Band(DistToPolyline(p, path), 1.8f, 1.2f));
+            float lakeD = Vector2.Distance(p, WorldGround.LakeCenter);
+            dirt = Mathf.Max(dirt, Band(lakeD, WorldGround.LakeRadius + 2.5f, 2f) * (1f - Band(lakeD, WorldGround.LakeRadius - 4f, 2f))); // beach
+            dirt = Mathf.Max(dirt, Band(Vector2.Distance(p, new Vector2(-62, 211)), 12f, 5f) * 0.3f);         // Duskhollow floor
             dirt = Mathf.Max(dirt, Band(Vector2.Distance(p, new Vector2(0, 4)), 7.5f, 2f));        // Hearthmoor square
             dirt = Mathf.Max(dirt, Band(Vector2.Distance(p, new Vector2(-10, 44)), 4f, 2f));       // Wren's camp
             dirt = Mathf.Max(dirt, Band(Mathf.Abs(z - 44) + Mathf.Max(0, Mathf.Abs(x + 4) - 3f), 1.2f, 1f));
             float stone = Band(Vector2.Distance(p, new Vector2(0, 134)), 11.5f, 1.5f);                // Brindlecross plaza
+            stone = Mathf.Max(stone, Band(Vector2.Distance(p, new Vector2(92, 79)), 12f, 2f));        // Ironbell square
+            stone = Mathf.Max(stone, x > -4.5f && x < 4.5f && z > 214 && z < 232 ? 0.9f : 0f);        // Crownhold: gate to the ring
+            stone = Mathf.Max(stone, Band(Vector2.Distance(p, new Vector2(0, 240)), 11f, 1.5f) * 0.8f);  // around the arena
+            stone = Mathf.Max(stone, Band(Vector2.Distance(p, new Vector2(-62, 225)), 6.5f, 1f));     // the ring of stones
             stone = Mathf.Max(stone, x > -3 && x < 3 && z > 140 && z < 160 ? 1f : 0f);                // the avenue to the hall
             float plateau = x > 61 && x < 101 && z > 149 && z < 194 ? 1f : 0f;
+            float moor = x > 62 && z < 146 ? WorldGround.Smooth01((x - 62f) / 8f) : 0f;
+            meadow = Mathf.Max(meadow, moor * 0.8f); // heather on the eastern moor
             // Quarry dust: packed earth with stone chips.
             dirt = Mathf.Max(dirt, plateau * (0.55f + 0.45f * Mathf.PerlinNoise(x * 0.15f, z * 0.15f)));
             stone = Mathf.Max(stone, plateau * 0.5f * Mathf.PerlinNoise(x * 0.11f + 5f, z * 0.11f + 9f));
@@ -207,9 +249,12 @@ namespace Tabletop.World
         private void BuildWater()
         {
             float y = WorldGround.WaterLevel;
-            var water = _kit.Box("Stream", _static, new Vector3(-50, y, WorldGround.StreamZ), new Vector3(150, 0.05f, 5.2f), new Color(0.2f, 0.38f, 0.44f));
+            var water = _kit.Box("Stream", _static, new Vector3(-24.5f, y, WorldGround.StreamZ), new Vector3(99, 0.05f, 5.2f), new Color(0.2f, 0.38f, 0.44f));
             var m = water.GetComponent<Renderer>().sharedMaterial;
             if (m.HasProperty("_Smoothness")) m.SetFloat("_Smoothness", 0.92f);
+            // Mirrorwater, the lake at Lanternmere (D-038).
+            float d = (WorldGround.LakeRadius + 1.5f) * 2f;
+            _kit.Prim(PrimitiveType.Cylinder, "Lake", _static, new Vector3(WorldGround.LakeCenter.x, y, WorldGround.LakeCenter.y), new Vector3(d, 0.025f, d), new Color(0.2f, 0.38f, 0.44f));
         }
 
         // ------------------------------------------------------------------ buildings, trees, props
@@ -246,6 +291,7 @@ namespace Tabletop.World
             holder.localPosition = pos;
             holder.localRotation = Quaternion.Euler(0, yaw, 0);
             var go = _kit.PlacePrefab(pf, holder, Vector3.zero, 0, scale);
+            AddOccluder(go);
             // Solid above ground (the stone foundations go below it).
             var b = WorldKit.LocalBounds(go.transform, holder);
             var box = holder.gameObject.AddComponent<BoxCollider>();
@@ -296,6 +342,7 @@ namespace Tabletop.World
                 foreach (var k in Props) yield return k;
                 foreach (var set in new[] { BroadleafTrees, PineTrees, FruitTrees, Bushes }) foreach (var k in set) yield return k;
                 for (int i = 1; i <= PlantVariants; i++) yield return "Village_Scatter_" + i.ToString("00");
+                foreach (var k in NewPrefabKeys) yield return k;
             }
         }
 
@@ -309,7 +356,40 @@ namespace Tabletop.World
             if (pf == null) { WorldPieces.Tree(_kit, _static, new Vector3(x, y, z), scale * (0.9f + Rand() * 0.5f), (int)(x * 7 + z)); return; }
             bool polytope = pf.name.StartsWith("PT_");
             float s = scale * (polytope ? 1.1f : 0.62f) * (0.8f + Rand() * 0.45f);
-            _kit.PlacePrefab(pf, _models, new Vector3(x, y - 0.2f, z), Rand() * 360f, s);
+            var go = _kit.PlacePrefab(pf, _models, new Vector3(x, y - 0.2f, z), Rand() * 360f, s);
+            foreach (var c in go.GetComponentsInChildren<Collider>()) Object.Destroy(c);
+            Solid(x, y, z, 0.4f, 3f);
+            AddOccluder(go);
+        }
+
+        /// <summary>An invisible blocker (tree trunk, rock, stone) so wandering players walk around things (D-038).</summary>
+        private void Solid(float x, float y, float z, float radius, float height)
+        {
+            if (_solids == null)
+            {
+                _solids = new GameObject("Solids").transform;
+                _solids.SetParent(_layout.Root, false);
+            }
+            var go = new GameObject("Solid");
+            go.transform.SetParent(_solids, false);
+            go.transform.localPosition = new Vector3(x, y, z);
+            var cap = go.AddComponent<CapsuleCollider>();
+            cap.radius = radius;
+            cap.height = Mathf.Max(height, radius * 2f);
+            cap.center = new Vector3(0, cap.height / 2f, 0);
+        }
+
+        private Transform _solids;
+
+        /// <summary>Remembers something tall the overhead camera may need to see through.</summary>
+        private void AddOccluder(GameObject go)
+        {
+            var rs = go.GetComponentsInChildren<Renderer>();
+            if (rs.Length == 0) return;
+            var b = rs[0].bounds;
+            foreach (var r in rs) b.Encapsulate(r.bounds);
+            if (b.size.y < 2.5f) return;
+            _layout.Occluders.Add(new Occluder { Renderers = rs, Bounds = b });
         }
 
         private void Bush(float x, float z, float scale = 1f)
@@ -328,6 +408,7 @@ namespace Tabletop.World
             float s = pf.name.Contains("Menhir") ? size * 0.9f : size * 7f;
             var go = _kit.PlacePrefab(pf, _models, new Vector3(x, y - 0.15f * size, z), Rand() * 360f, s);
             _kit.Restyle(go, new Color(0.66f, 0.63f, 0.58f)); // warm grey stone, no glowing runes
+            if (size >= 0.55f) Solid(x, y, z, 0.45f * size, 1.2f * size);
         }
 
         private void Plants(float x, float z)
@@ -349,9 +430,17 @@ namespace Tabletop.World
         private void Fence(Vector2 a, Vector2 b)
         {
             var pf = P("PT_Modular_Fence_Wood_01");
-            if (pf == null) { WorldPieces.Fence(_kit, _static, G(a.x, a.y), G(b.x, b.y)); return; }
             var dir = b - a;
             float len = dir.magnitude;
+            // A fence is a real barrier (D-038): one thin blocker along its length.
+            var bar = new GameObject("FenceBlock");
+            bar.transform.SetParent(_layout.Root, false);
+            bar.transform.localPosition = G((a.x + b.x) / 2f, (a.y + b.y) / 2f);
+            bar.transform.localRotation = Quaternion.Euler(0, Mathf.Atan2(dir.x, dir.y) * Mathf.Rad2Deg, 0);
+            var box = bar.AddComponent<BoxCollider>();
+            box.center = new Vector3(0, 1f, 0);
+            box.size = new Vector3(0.3f, 2f, len);
+            if (pf == null) { WorldPieces.Fence(_kit, _static, G(a.x, a.y), G(b.x, b.y)); return; }
             int n = Mathf.Max(1, Mathf.RoundToInt(len / 2.2f));
             float yaw = Mathf.Atan2(dir.x, dir.y) * Mathf.Rad2Deg - 90f;
             for (int i = 0; i < n; i++)
@@ -785,6 +874,13 @@ namespace Tabletop.World
             { "mira_wax", new Vector2(-22.6f, 118f) },
             { "bask_chisels", new Vector2(80f, 208f) },
             { "anvara_ore", new Vector2(89.5f, 206f) },
+            // D-038: several are off the paths, for wandering.
+            { "maudie_oil", new Vector2(-60.5f, 80.5f) },
+            { "pim_boat", new Vector2(-103.5f, 70f) },
+            { "hob_axe", new Vector2(-86f, 214f) },
+            { "agathe_caps", new Vector2(-63f, 233.5f) },
+            { "rusk_rope", new Vector2(97.5f, 44f) },
+            { "tilda_spring", new Vector2(40f, 87f) },
         };
 
         public static IReadOnlyDictionary<string, Vector2> Pickups => PickupSpots;
@@ -794,9 +890,10 @@ namespace Tabletop.World
             foreach (var errand in ErrandCatalog.All)
             {
                 if (errand.PickupId == null || !PickupSpots.TryGetValue(errand.PickupId, out var at)) continue;
+                _clear.Add(new Vector3(at.x, at.y, 2.5f));
                 var pickup = new GameObject("Pickup_" + errand.PickupId).AddComponent<Pickup>();
                 pickup.transform.SetParent(_dynamic, false);
-                pickup.transform.localPosition = G(at.x, at.y);
+                pickup.transform.localPosition = new Vector3(at.x, _layout.Roam.Feet(at.x, at.y), at.y);
                 pickup.PickupId = errand.PickupId;
                 pickup.Errand = errand;
                 pickup.Radius = 1.8f;
@@ -816,7 +913,7 @@ namespace Tabletop.World
         private bool Blocked(float x, float z)
         {
             foreach (var c in _clear) if ((x - c.x) * (x - c.x) + (z - c.y) * (z - c.y) < c.z * c.z) return true;
-            return WorldGround.StreamMask(x, z) > 0.2f;
+            return WorldGround.StreamMask(x, z) > 0.2f || WorldGround.LakeMask(x, z) > 0.05f;
         }
 
         private void Scatter()
@@ -829,11 +926,13 @@ namespace Tabletop.World
                 {
                     float px = x + (Rand() - 0.5f) * step * 0.9f;
                     float pz = z + (Rand() - 0.5f) * step * 0.9f;
-                    if (px > 140f) continue;
+                    if (px > ext.xMax - 6f) continue;
                     float d = walk.Distance(px, pz, out var nearest);
                     if (d < 2.4f || d > 46f || Blocked(px, pz)) continue;
                     bool inFront = nearest.y - pz > 1.5f; // between the camera and the path: keep it low
                     bool highland = WorldGround.Highland(px) > 0.5f;
+                    bool moor = px > 62f && pz < 146f;
+                    bool hollow = Vector2.Distance(new Vector2(px, pz), new Vector2(-62f, 212f)) < 55f;
                     float r = Rand();
                     if (inFront && d < 20f)
                     {
@@ -842,6 +941,23 @@ namespace Tabletop.World
                         continue;
                     }
                     if (d > 32f && r < 0.35f) continue; // thinner far away
+                    if (moor)
+                    {
+                        // Open moor: heather, stones and the odd wind-bent pine.
+                        if (r < 0.14f) Tree(px, pz, PineTrees, 0.9f);
+                        else if (r < 0.4f) Boulder(px, pz, 0.5f + Rand() * 0.8f);
+                        else if (r < 0.75f) Bush(px, pz, 0.9f);
+                        continue;
+                    }
+                    if (hollow)
+                    {
+                        // The old pinewood around Duskhollow: dense and dark, with dead trees and mushrooms.
+                        if (r < 0.62f) Tree(px, pz, PineTrees, 1.2f);
+                        else if (r < 0.74f) Tree(px, pz, DeadTrees, 1f);
+                        else if (r < 0.86f) Mushrooms(px, pz);
+                        else Bush(px, pz);
+                        continue;
+                    }
                     if (highland)
                     {
                         if (r < 0.62f) Tree(px, pz, PineTrees, 1.1f);
@@ -932,7 +1048,7 @@ namespace Tabletop.World
         private Npc AddNpc(string name, string title, Vector2 at, float yaw, CharacterLook cl, PersonLook fallback, EncounterDefinition encounter,
             string[] lines, string shopId = null, bool seated = false)
         {
-            var pos = at.x > 150f ? new Vector3(at.x, 0, at.y) : G(at.x, at.y);
+            var pos = at.x > WorldGround.InteriorThreshold ? new Vector3(at.x, 0, at.y) : G(at.x, at.y);
             _clear.Add(new Vector3(at.x, at.y, 2.5f));
             var person = Person(name, pos, yaw, cl, fallback, out float height, out var rig);
             var npc = person.gameObject.AddComponent<Npc>();

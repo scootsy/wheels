@@ -91,7 +91,7 @@ namespace Tabletop.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator Player_CannotWalkOutOfTheVillage()
+        public IEnumerator Player_IsStoppedByTheVillageFence()
         {
             yield return Begin();
             World.Player.Teleport(new Vector3(-19.5f, 0, -7.5f), 270);
@@ -101,7 +101,8 @@ namespace Tabletop.Tests.PlayMode
             Release(Kb.aKey);
             yield return null;
             var p = World.Player.transform.position;
-            Assert.IsTrue(World.Layout.Walkable.Contains(p.x, p.z), "player stays on walkable ground, at " + p);
+            Assert.IsTrue(World.Layout.Roam.CanStand(p.x, p.z), "player stays on walkable ground, at " + p);
+            Assert.Greater(p.x, -22f, "the fence around Hearthmoor holds (a real barrier, D-038)");
         }
 
         [UnityTest]

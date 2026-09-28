@@ -135,6 +135,7 @@ namespace Tabletop.World
             RefreshControls();
 
             if (worldCamera == null) worldCamera = Camera.main;
+            RefreshTournament();
             ApplyMood();
             PlaceAfterLoad();
             ApplyView();
@@ -163,7 +164,7 @@ namespace Tabletop.World
             go.transform.SetParent(transform, false);
             go.AddComponent<CharacterController>();
             Player = go.AddComponent<PlayerController>();
-            Player.Walkable = Layout.Walkable;
+            Player.Roam = Layout.Roam;
             var slot = art != null ? art.Person(WorldBuilder.PlayerKey) : null;
             Transform person;
             if (slot != null)
@@ -267,7 +268,7 @@ namespace Tabletop.World
             if (GameFlow.HasReturnPoint)
             {
                 var p = new Vector3(GameFlow.ReturnX, 0, GameFlow.ReturnZ);
-                Player.Teleport(p, p.x > 150 ? 0 : 180);
+                Player.Teleport(p, p.x > WorldGround.InteriorThreshold ? 0 : 180);
                 _fpYaw = Player.transform.eulerAngles.y;
                 GameFlow.ConsumeReturnPoint();
             }
@@ -308,6 +309,7 @@ namespace Tabletop.World
         {
             GameFlow.Reset();
             GameFlow.TitleShown = true;
+            RefreshTournament();
             Player.Teleport(Layout.Spawn, Layout.SpawnYaw);
             _fpYaw = Layout.SpawnYaw;
             CurrentArea = WorldLayout.AreaAt(Player.transform.position);
@@ -324,8 +326,9 @@ namespace Tabletop.World
         {
             if (!SaveGame.TryLoad(out var data)) { BeginJourney(); return; }
             SaveGame.Apply(data);
+            RefreshTournament();
             var p = new Vector3(data.x, 0, data.z);
-            if (!Layout.Walkable.Contains(p.x, p.z)) p = Layout.Spawn; // saves from an older layout
+            if (!Layout.Roam.CanStand(p.x, p.z)) p = Layout.Spawn; // saves from an older layout
             Player.Teleport(p, data.yaw);
             _fpYaw = data.yaw;
             CurrentArea = WorldLayout.AreaAt(Player.transform.position);
@@ -358,8 +361,13 @@ namespace Tabletop.World
                 pages.Add(("", "You lost " + (-outcome.CoinDelta) + " coins. You have " + GameFlow.Coins + " left.", icons != null ? icons.crown : null));
             if (outcome.FavourOwed)
                 pages.Add(("A FAVOUR", "You owe " + npc.DisplayName + " a favour. " + enc.FavourChore, null));
-            if (outcome.PlayerWon && enc.IsChampion)
-                pages.Add(("", "You are now the Wheels Champion of " + (enc.Area == Areas.Outpost ? "the Outpost" : "Brindlecross") + "!", icons != null ? icons.crown : null));
+            if (enc.Tournament) TournamentPages(outcome, pages);
+            else if (outcome.PlayerWon && enc.IsChampion)
+            {
+                pages.Add(("", "You are now the Wheels " + ChampionTitle(enc) + "! (" + GameFlow.ChampionTitles + " of " + GameFlow.ChampionTitlesNeeded + " champion titles)", icons != null ? icons.crown : null));
+                if (GameFlow.TournamentQualified && GameFlow.TournamentAttempts == 0 && !GameFlow.IsGrandChampion)
+                    pages.Add(("THE GRAND TOURNAMENT", "You hold every champion title in the realm. The Grand Tournament at Crownhold is open to you: take the Tourney Road north from Brindlecross, past the Champion's Hall, and speak to the Herald.", icons != null ? icons.crown : null));
+            }
             else if (outcome.PlayerWon)
                 pages.Add(("", "You beat " + npc.DisplayName + "! (" + GameFlow.Wins + " of " + EncounterCatalog.All.Count + " players beaten)", icons != null ? icons.xp : null));
             if (outcome.UnlockedUnit != null && ReferenceContent.Catalog.TryGetUnit(outcome.UnlockedUnit, out var won))
@@ -367,10 +375,49 @@ namespace Tabletop.World
                     + "Open your deck with " + Input.Binding("Match", "Inspect") + ".", icons != null ? icons.Unit(won.Id) : null));
             if (outcome.PlayerWon) npc.Rig?.Play("Hit_A");
             if (outcome.CoinDelta != 0) _audio?.Sfx("sfx/coins");
+            if (outcome.Tournament == TournamentResult.Won) { Player.Rig?.Play("Cheer"); Layout.Herald?.Rig?.Play("Cheer"); }
             OpenDialogue(pages, null, () => npc.FaceHome());
             _talkingTo = npc;
             if (outcome.FavourOwed) StartCoroutine(FavourFade());
         }
+
+        /// <summary>"Champion of Lanternmere" from "the Nightjar, Champion of Duskhollow" and the like.</summary>
+        public static string ChampionTitle(EncounterDefinition e)
+        {
+            int i = e.Title.IndexOf("Champion of", StringComparison.Ordinal);
+            return i >= 0 ? e.Title.Substring(i) : "Champion of " + Areas.Town(e.Area);
+        }
+
+        /// <summary>What the Herald and the crowd say after a tournament match (D-038).</summary>
+        private void TournamentPages(EncounterOutcome outcome, List<(string, string, Sprite)> pages)
+        {
+            var crown = icons != null ? icons.crown : null;
+            var herald = Layout.Herald != null ? Layout.Herald.DisplayName : "THE HERALD";
+            switch (outcome.Tournament)
+            {
+                case TournamentResult.Advanced:
+                    var next = GameFlow.CurrentTournamentOpponent;
+                    pages.Add((herald, "Round " + (GameFlow.TournamentRound - 1) + " goes to the challenger! "
+                        + (next != null ? next.Name + " takes the table for " + (next.TournamentRound == EncounterCatalog.TournamentRounds ? "the final" : "round " + next.TournamentRound)
+                            + ", playing the " + UnitName(next.UnitA) + " and the " + UnitName(next.UnitB) + ". Take your seat when you're ready." : ""), crown));
+                    break;
+                case TournamentResult.Eliminated:
+                    pages.Add((herald, "The challenger is out of the tournament! Speak to me whenever you want to enter again: you'll start from the first round.", crown));
+                    break;
+                case TournamentResult.Won:
+                    pages.Add(("GRAND CHAMPION", "You are the Grand Champion of the Realm!", crown));
+                    if (GameFlow.ItemCount(ItemCatalog.PlatinumWheel) > 0)
+                        pages.Add(("THE PLATINUM WHEEL", "Aldric hands you his Platinum Wheel, the finest there is. You'll bring it to every table from now on.", icons != null ? icons.uiRing : null));
+                    pages.Add(("", "Word travels fast. In Hearthmoor, Gran Oddly tells everyone she taught you. In Brindlecross, Corvin Vale hangs your portrait in the hall. Up at the Outpost, Dorran Hale laughs for the first time in a year.", crown));
+                    pages.Add(("", "Every table in the realm is still open to you, and you can defend your title at Crownhold whenever you like. Thank you for playing.", crown));
+                    break;
+                default:
+                    if (outcome.Winner == Winner.Tie) pages.Add((herald, "A tie! The round is played again. Take your seat when you're ready.", crown));
+                    break;
+            }
+        }
+
+        private static string UnitName(string id) => ReferenceContent.Catalog.TryGetUnit(id, out var u) ? u.DisplayName : id;
 
         /// <summary>A short fade while the favour is done (time passes; nothing else changes).</summary>
         private IEnumerator FavourFade()
@@ -401,6 +448,8 @@ namespace Tabletop.World
             // A connected controller replaces the on-screen pad (D-037).
             _touchPad?.SetVisible(!Busy && _seatedAt == null && !_touchPad.RealGamepadConnected);
             UpdateCamera(dt);
+            UpdateOccluders();
+            UpdateMood(dt);
             _kit.FaceCamera(worldCamera);
             Ui.Tick(dt);
 
@@ -416,8 +465,8 @@ namespace Tabletop.World
 
             Nearest = Busy || _seatedAt != null ? null : FindNearest();
             Ui.SetPrompt(Nearest != null ? "[" + Input.Binding("WorldReserved", "Interact") + "]  " + Nearest.Prompt : "");
-            bool champion = GameFlow.HasDefeated(EncounterCatalog.Champion) || GameFlow.HasDefeated(EncounterCatalog.OutpostChampion);
-            Ui.SetHud(CurrentArea.ToUpperInvariant() + (champion ? "   ★ CHAMPION" : "")
+            int titles = GameFlow.ChampionTitles;
+            Ui.SetHud(CurrentArea.ToUpperInvariant() + (GameFlow.IsGrandChampion ? "   ★ GRAND CHAMPION" : titles > 0 ? "   ★ CHAMPION x" + titles : "")
                       + "\nCoins: " + GameFlow.Coins + "     Wins: " + GameFlow.Wins + " / " + EncounterCatalog.All.Count);
             var me = Player.transform.position;
             foreach (var n in Layout.Npcs)
@@ -432,6 +481,7 @@ namespace Tabletop.World
             foreach (var chair in Layout.Chairs)
             {
                 var champ = chair.Champion;
+                if (champ == null) continue;
                 bool here = _seatedAt == chair;
                 if (champ.Tag != null) champ.Tag.Canvas.enabled = !here;
                 if (champ.Marker != null && here) champ.Marker.gameObject.SetActive(false);
@@ -489,11 +539,73 @@ namespace Tabletop.World
             }
             Vector3 target, offset;
             if (_seatedAt != null) { target = _seatedAt.TableFocus; offset = SeatedOffset; }
-            else { target = Player.transform.position + new Vector3(0, 1f, 0); offset = CameraOffset; }
+            else { target = Player.transform.position + new Vector3(0, 1f, 0); offset = CameraOffset + new Vector3(0, TerrainLift(Player.transform.position + new Vector3(0, 1f, 0)), 0); }
             float k = 1f - Mathf.Exp(-6f * dt);
             worldCamera.transform.position = Vector3.Lerp(worldCamera.transform.position, target + offset, k);
             var rot = Quaternion.LookRotation(target - (target + offset));
             worldCamera.transform.rotation = Quaternion.Slerp(worldCamera.transform.rotation, rot, k);
+        }
+
+        /// <summary>
+        /// How much higher the overhead camera must sit so a hill between it and the player never hides them (D-038):
+        /// the player can now wander into the hills, where the land is no longer kept low on the camera side.
+        /// </summary>
+        public float TerrainLift(Vector3 target)
+        {
+            if (target.x > WorldGround.InteriorThreshold) return 0f;
+            float lift = 0f;
+            for (int i = 1; i <= 8; i++)
+            {
+                float t = i / 8f;
+                var p = target + CameraOffset * t;
+                float ground = WorldGround.Terrain(p.x, p.z, Layout.Walkable) + 1.2f;
+                float need = ground - p.y;
+                if (need > 0f) lift = Mathf.Max(lift, need / t);
+            }
+            return Mathf.Min(lift, 20f);
+        }
+
+        /// <summary>
+        /// Trees and buildings between the overhead camera and the player keep only their shadow, so wandering behind
+        /// them never loses the player (D-038).
+        /// </summary>
+        private void UpdateOccluders()
+        {
+            if (worldCamera == null) return;
+            bool active = !FirstPerson && _seatedAt == null;
+            var head = Player.transform.position + new Vector3(0, 1.2f, 0);
+            var cam = worldCamera.transform.position;
+            foreach (var o in Layout.Occluders)
+            {
+                bool hide = false;
+                if (active)
+                {
+                    var c = o.Bounds.center;
+                    float dx = c.x - head.x, dz = c.z - head.z;
+                    if (dx * dx + dz * dz < 30f * 30f)
+                    {
+                        var b = o.Bounds;
+                        b.Expand(new Vector3(0.6f, 0f, 0.6f));
+                        var dir = head - cam;
+                        float len = dir.magnitude;
+                        hide = b.IntersectRay(new Ray(cam, dir / len), out float hit) && hit < len - 0.3f && !b.Contains(head);
+                    }
+                }
+                o.SetHidden(hide);
+            }
+        }
+
+        /// <summary>Darker, closer fog in the pinewood of Duskhollow; the usual valley haze everywhere else.</summary>
+        private void UpdateMood(float dt)
+        {
+            if (!RenderSettings.fog) return;
+            bool dusk = CurrentArea == Areas.Duskhollow || CurrentArea == Areas.HollowPath;
+            var colour = dusk ? new Color(0.42f, 0.48f, 0.5f) : new Color(0.74f, 0.82f, 0.9f);
+            float start = dusk ? 18f : 60f, end = dusk ? 120f : 260f;
+            float k = 1f - Mathf.Exp(-1.5f * dt);
+            RenderSettings.fogColor = Color.Lerp(RenderSettings.fogColor, colour, k);
+            RenderSettings.fogStartDistance = Mathf.Lerp(RenderSettings.fogStartDistance, start, k);
+            RenderSettings.fogEndDistance = Mathf.Lerp(RenderSettings.fogEndDistance, end, k);
         }
 
         public void SnapCamera()
@@ -505,7 +617,7 @@ namespace Tabletop.World
                 return;
             }
             var target = _seatedAt != null ? _seatedAt.TableFocus : Player.transform.position + new Vector3(0, 1f, 0);
-            var offset = _seatedAt != null ? SeatedOffset : CameraOffset;
+            var offset = _seatedAt != null ? SeatedOffset : CameraOffset + new Vector3(0, TerrainLift(target), 0);
             worldCamera.transform.position = target + offset;
             worldCamera.transform.rotation = Quaternion.LookRotation(-offset);
         }
@@ -540,6 +652,15 @@ namespace Tabletop.World
                 case Areas.Hall: return ("music/hall", null);
                 case Areas.QuarryPath: return ("music/road", "amb/wind");
                 case Areas.Outpost: return ("music/outpost", "amb/wind");
+                case Areas.StreamPath: return ("music/road", "amb/forest");
+                case Areas.Lanternmere: return ("music/village", "amb/lake");
+                case Areas.HollowPath: return ("music/road", "amb/forest");
+                case Areas.Duskhollow: return ("music/hollow", "amb/forest");
+                case Areas.BellRoad: return ("music/road", "amb/wind");
+                case Areas.Ironbell: return ("music/outpost", "amb/wind");
+                case Areas.MoorTrack: return ("music/road", "amb/wind");
+                case Areas.TourneyRoad: return ("music/road", "amb/forest");
+                case Areas.Crownhold: return ("music/tournament", "amb/village_busy");
                 default: return ("music/village", "amb/village_calm");
             }
         }
@@ -559,7 +680,7 @@ namespace Tabletop.World
             if (_stepDistance < StepLength) return;
             _stepDistance = 0;
             var p = Player.transform.position;
-            bool stone = CurrentArea == Areas.Hall || CurrentArea == Areas.Outpost
+            bool stone = CurrentArea == Areas.Hall || CurrentArea == Areas.Outpost || CurrentArea == Areas.Crownhold || CurrentArea == Areas.Ironbell
                          || (CurrentArea == Areas.Brindlecross && Vector2.Distance(new Vector2(p.x, p.z), new Vector2(0, 134)) < 12f);
             _audio.Sfx(stone ? "step/stone" : "step/grass", 0.28f, 0.12f);
         }
@@ -669,7 +790,8 @@ namespace Tabletop.World
             + "   Menu: " + Input.Binding("Match", "Pause") + "\n\n"
             + "People with a golden marker over their heads play Wheels. Most play for coins: win and take their stake, lose and pay yours. "
             + "Short of coins? They'll play you for a favour instead. Villagers pay coins for errands, and stalls sell charms "
-            + "(one per match) and better wheels. Each town's Champion holds a new figurine.\n"
+            + "(one per match) and better wheels. Each town's Champion holds a new figurine; hold all five champion titles and the "
+            + "Grand Tournament at Crownhold opens to you. Wander wherever the land lets you: off the paths, over the hills.\n"
             + "Your journey saves itself as you go.";
 
         private void RefreshControls()
@@ -687,6 +809,7 @@ namespace Tabletop.World
         /// <summary>The label for sitting down at this person's table (shows what is at stake).</summary>
         public static string PlayLabel(EncounterDefinition e)
         {
+            if (e != null && e.Tournament) return e.TournamentRound == EncounterCatalog.TournamentRounds ? "PLAY THE FINAL" : "PLAY ROUND " + e.TournamentRound;
             switch (GameFlow.StakeModeFor(e))
             {
                 case StakeMode.Friendly: return "PLAY (FREE)";
@@ -743,6 +866,18 @@ namespace Tabletop.World
                 return;
             }
 
+            if (npc.Role == "herald") { HeraldTalk(npc, portrait); return; }
+            if (npc.Encounter != null && npc.Encounter.Tournament)
+            {
+                var enc = npc.Encounter;
+                var lines = new List<(string, string, Sprite)> { (npc.DisplayName, GameFlow.HasDefeated(enc.Id) ? enc.RematchLine : enc.Intro[0], portrait) };
+                lines.Add((npc.DisplayName, GameFlow.TournamentRound > 0 && GameFlow.TournamentRound < enc.TournamentRound
+                    ? "Win your round first. Then we'll talk."
+                    : "We only play at the tournament table, and only in our round. The Herald will enter you.", portrait));
+                OpenDialogue(lines, null, () => npc.FaceHome());
+                return;
+            }
+
             if (npc.ShopId != null)
             {
                 var shop = ShopCatalog.Find(npc.ShopId);
@@ -782,6 +917,91 @@ namespace Tabletop.World
                 }
             }
             OpenDialogue(pages, choices, () => npc.FaceHome());
+        }
+
+        /// <summary>The Herald enters champions in the Grand Tournament (D-038).</summary>
+        private void HeraldTalk(Npc npc, Sprite portrait)
+        {
+            var crown = icons != null ? icons.crown : null;
+            var pages = new List<(string, string, Sprite)>();
+            IList<(string, Action)> choices = null;
+            if (GameFlow.TournamentRound > 0)
+            {
+                var opp = GameFlow.CurrentTournamentOpponent;
+                pages.Add((npc.DisplayName, "You're in the tournament, champion. " + (opp.TournamentRound == EncounterCatalog.TournamentRounds ? "The final" : "Round " + opp.TournamentRound)
+                    + " is waiting: " + opp.Name + " is at the table with the " + UnitName(opp.UnitA) + " and the " + UnitName(opp.UnitB) + ". Take the empty chair.", crown));
+            }
+            else if (!GameFlow.TournamentQualified)
+            {
+                pages.Add((npc.DisplayName, "Hear ye! The Grand Tournament of Crownhold: three rounds, one after another, for the title of Grand Champion of the Realm.", crown));
+                var missing = new List<string>();
+                foreach (var c in EncounterCatalog.TownChampions) if (!GameFlow.HasDefeated(c.Id)) missing.Add(c.Name + " (" + Areas.Town(c.Area) + ")");
+                pages.Add((npc.DisplayName, "Only a champion of all five towns may enter. You hold " + GameFlow.ChampionTitles + " of " + GameFlow.ChampionTitlesNeeded
+                    + " titles. Still to beat: " + string.Join(", ", missing) + ".", crown));
+            }
+            else
+            {
+                pages.Add((npc.DisplayName, GameFlow.IsGrandChampion
+                    ? "The Grand Champion returns! Will you defend your title? Three rounds again, from the first."
+                    : "Five titles! You may enter the Grand Tournament. Three rounds, one after another. Lose once and you start again from the first round. Win them all and you are the Grand Champion of the Realm.", crown));
+                choices = new List<(string, Action)>
+                {
+                    ("ENTER THE TOURNAMENT", () => { if (MarkClick()) EnterTournament(npc); }),
+                    ("NOT NOW", () => { if (MarkClick()) CloseDialogue(); }),
+                };
+            }
+            OpenDialogue(pages, choices, () => npc.FaceHome());
+        }
+
+        public void EnterTournament(Npc herald)
+        {
+            CloseDialogue(false);
+            if (!GameFlow.EnterTournament()) return;
+            RefreshTournament();
+            SaveNow();
+            _audio?.Sfx("sfx/chips");
+            var opp = GameFlow.CurrentTournamentOpponent;
+            OpenDialogue(new List<(string, string, Sprite)>
+            {
+                (herald != null ? herald.DisplayName : "THE HERALD", "The challenger enters the Grand Tournament! Round one: " + opp.Name + ", with the " + UnitName(opp.UnitA) + " and the " + UnitName(opp.UnitB)
+                    + ". Take the empty chair at the table in the ring.", icons != null ? icons.crown : null),
+            }, null, () => herald?.FaceHome());
+        }
+
+        /// <summary>
+        /// Seats the player's next tournament opponent at the table and sends the others back to the edge of the ring;
+        /// the Grand Champion's figurines follow the current entry (D-038).
+        /// </summary>
+        public void RefreshTournament()
+        {
+            if (Layout == null || Layout.TournamentChair == null) return;
+            var current = GameFlow.CurrentTournamentOpponent;
+            Npc seated = null;
+            foreach (var n in Layout.Npcs)
+            {
+                if (n.Encounter == null || !n.Encounter.Tournament) continue;
+                if (n.Encounter.Id == EncounterCatalog.GrandChampion)
+                    n.Encounter = EncounterCatalog.TournamentOpponent(EncounterCatalog.TournamentRounds, Mathf.Max(1, GameFlow.TournamentAttempts));
+                bool due = current != null && current.Id == n.Encounter.Id;
+                if (due)
+                {
+                    seated = n;
+                    n.transform.position = Layout.TournamentSeat;
+                    n.HomeYaw = 180;
+                }
+                else n.transform.position = n.HomePosition;
+                if (n.Seated != due)
+                {
+                    n.Seated = due;
+                    if (n.Rig != null) n.Rig.Sit(due);
+                    else if (n.Figure != null) n.Figure.localPosition = n.BaseOffset = due ? new Vector3(0, -0.35f, 0) : Vector3.zero;
+                }
+                if (!due) n.HomeYaw = n.StandingYaw;
+                n.Radius = due ? 0f : 2.4f;
+                n.FaceHome();
+                n.RefreshTag();
+            }
+            Layout.TournamentChair.Champion = seated;
         }
 
         private List<(string, Action)> ErrandChoices(Npc npc, ErrandDefinition errand) => new List<(string, Action)>
@@ -846,14 +1066,20 @@ namespace Tabletop.World
             var enc = champ.Encounter;
             var portrait = Portrait(champ);
             var pages = new List<(string, string, Sprite)>();
-            if (GameFlow.HasDefeated(enc.Id)) pages.Add((champ.DisplayName, enc.RematchLine, portrait));
+            if (enc.Tournament)
+            {
+                foreach (var l in enc.Intro) pages.Add((champ.DisplayName, l, portrait));
+                pages.Insert(0, ("GRAND TOURNAMENT", (enc.TournamentRound == EncounterCatalog.TournamentRounds ? "THE FINAL" : "ROUND " + enc.TournamentRound + " OF " + EncounterCatalog.TournamentRounds)
+                    + ": " + enc.Name + ", with the " + UnitName(enc.UnitA) + " and the " + UnitName(enc.UnitB) + ", on a " + enc.Tier + " wheel.", icons != null ? icons.crown : null));
+            }
+            else if (GameFlow.HasDefeated(enc.Id)) pages.Add((champ.DisplayName, enc.RematchLine, portrait));
             else
             {
                 foreach (var l in enc.Intro) pages.Add((champ.DisplayName, l, portrait));
-                bool outpost = enc.Area == Areas.Outpost;
+                var town = Areas.Town(enc.Area);
                 int beaten = 0;
                 foreach (var e in EncounterCatalog.All)
-                    if (!e.IsChampion && (e.Area == Areas.Outpost) == outpost && GameFlow.HasDefeated(e.Id)) beaten++;
+                    if (!e.IsChampion && Areas.Town(e.Area) == town && GameFlow.HasDefeated(e.Id)) beaten++;
                 if (beaten > 0) pages.Insert(1, (champ.DisplayName, "You've already beaten " + beaten + (beaten == 1 ? " player" : " players") + " on the way here. Let's see if it was luck.", portrait));
             }
             var choices = new List<(string, Action)>
@@ -888,7 +1114,8 @@ namespace Tabletop.World
             rows.Add(new ListOverlay.Row { Name = "No charm", Detail = "Keep your charms for another table.", Action = "JUST PLAY", OnPress = () => Challenge(npc, null) });
             var enc = npc.Encounter;
             var mode = GameFlow.StakeModeFor(enc);
-            string stake = mode == StakeMode.Coins ? enc.Stake + " coins a side" : mode == StakeMode.Friendly ? "a friendly game" : "a favour";
+            string stake = enc.Tournament ? "round " + enc.TournamentRound + " of the Grand Tournament"
+                : mode == StakeMode.Coins ? enc.Stake + " coins a side" : mode == StakeMode.Friendly ? "a friendly game" : "a favour";
             Select(_list.Show("BRING A CHARM?", "Against " + enc.Name + ", for " + stake + ". One charm per match; it is used up when the match ends.",
                 rows, "Coins: " + GameFlow.Coins, "NOT NOW", () =>
                 {
@@ -1127,11 +1354,18 @@ namespace Tabletop.World
                          ("world_2_bridge", new Vector3(-5.5f, 0, 55f)), ("world_2b_camp", new Vector3(-10.5f, 0, 39.5f)), ("world_3_brindlecross", new Vector3(0, 0, 124f)),
                          ("world_3b_inn", new Vector3(10f, 0, 136f)), ("world_4_hall_outside", new Vector3(0, 0, 152f)), ("world_7_quarry_path", new Vector3(44f, 0, 131f)),
                          ("world_8_outpost", new Vector3(78f, 0, 166f)), ("world_8b_quarry", new Vector3(84f, 0, 196f)), ("world_8c_ledge", new Vector3(66f, 0, 170f)),
+                         ("world_9_stream_path", new Vector3(-30f, 0, 73f)), ("world_9b_lanternmere", new Vector3(-84f, 0, 100f)), ("world_9c_pier", new Vector3(-85f, 0, 88f)),
+                         ("world_10_duskhollow", new Vector3(-60f, 0, 206f)), ("world_10b_stones", new Vector3(-62f, 0, 219f)),
+                         ("world_11_bell_road", new Vector3(40f, 0, 83f)), ("world_11b_ironbell", new Vector3(92f, 0, 74f)), ("world_11c_moor", new Vector3(90f, 0, 50f)),
+                         ("world_12_tourney_road", new Vector3(21f, 0, 184f)), ("world_12b_crownhold", new Vector3(0f, 0, 226f)),
+                         ("world_13_wander_hills", new Vector3(-30f, 0, 100f)), ("world_13b_wander_woods", new Vector3(-32f, 0, 42f)),
                      })
             {
                 Player.Teleport(pos, 0);
+                CurrentArea = WorldLayout.AreaAt(Player.transform.position);
                 SnapCamera();
                 yield return new WaitForSeconds(0.8f);
+                if (!Layout.Roam.CanStand(pos.x, pos.z)) Debug.LogWarning("[Tabletop] SelfCheck spot " + name + " is not walkable");
                 yield return Capture(folder, name);
             }
             Player.Teleport(new Vector3(0, 0, 118f), 0);

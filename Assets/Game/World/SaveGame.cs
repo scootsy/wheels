@@ -27,6 +27,9 @@ namespace Tabletop.World
         public List<int> itemCounts = new List<int>();
         public List<string> errandIds = new List<string>();
         public List<int> errandStages = new List<int>();
+        // Version 3 (D-038): the Grand Tournament run.
+        public int tournamentRound;
+        public int tournamentAttempts;
     }
 
     /// <summary>
@@ -36,7 +39,7 @@ namespace Tabletop.World
     /// </summary>
     public static class SaveGame
     {
-        public const int Version = 2;
+        public const int Version = 3;
         public const string FileName = "journey.json";
 
         /// <summary>Tests and the build self-check point this at a scratch folder so they never touch a real save.</summary>
@@ -62,6 +65,8 @@ namespace Tabletop.World
             d.coins = GameFlow.Coins;
             foreach (var i in GameFlow.Items) { d.itemIds.Add(i.Key); d.itemCounts.Add(i.Value); }
             foreach (var e in GameFlow.Errands) { d.errandIds.Add(e.Key); d.errandStages.Add((int)e.Value); }
+            d.tournamentRound = GameFlow.TournamentRound;
+            d.tournamentAttempts = GameFlow.TournamentAttempts;
             return d;
         }
 
@@ -113,7 +118,7 @@ namespace Tabletop.World
             // Journeys saved before coins existed (version 1) start with the usual purse.
             int coins = data.version >= 2 ? data.coins : GameFlow.StartingCoins;
             GameFlow.Restore(data.defeated, losses, data.unlocked, data.firstPerson,
-                id => ReferenceContent.Catalog.TryGetUnit(id, out _), coins, items, errands);
+                id => ReferenceContent.Catalog.TryGetUnit(id, out _), coins, items, errands, data.tournamentRound, data.tournamentAttempts);
         }
 
         public static void Delete()

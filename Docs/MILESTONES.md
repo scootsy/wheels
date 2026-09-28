@@ -100,6 +100,16 @@ Exit: EditMode and PlayMode suites pass (including walking, talking, challenging
 
 **Status:** Authorized. Save/resume, name fade, first person, sprint/jump, piece progression with the deck screen, and the 3D table in the source's art style with animated pieces.
 
+## W3: Journey economy, look, sound and the Outpost (approved 2026-09-26, D-033)
+
+**Status:** Complete. Coins, stakes and favours, errands, stalls, charms and wheels, pack art and sound, the source's names, and the Stonemasons' Outpost.
+
+## W4: The rest of the journey and the Grand Tournament (approved 2026-09-28, D-038)
+
+**Status:** Authorized by explicit creative-director instruction: "flesh out the rest of the game ... areas/bosses to acquire all the final champion pieces, and then the grand tournament", and remove invisible walls except at true boundaries. Scope is `WORLD_SPEC.md` (W4 sections): Lanternmere (Priest), Duskhollow (Assassin), Ironbell (Warlock), the Moor Track, and the Grand Tournament at Crownhold; free roaming within reach of the paths.
+
+Exit: EditMode and PlayMode suites pass (including the tournament run and wandering), the Windows build passes `Tools/selfcheck_build.sh` with inspected screenshots of every new place. Then **stop and wait for the creative director to play W4**.
+
 ## M3: Tiny world wrapper
 
 **Status:** Not authorized beyond W1.

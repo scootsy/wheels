@@ -25,6 +25,8 @@ MonoBehaviour:
     prefab: {fileID: 6867230511921462333, guid: aa5f157ce2952db48aa1e29e6ebead66, type: 3}
   - key: Preset_Church_01_A
     prefab: {fileID: 5869222771844578050, guid: f8dfd399e56b91a4ba3304205ddc240f, type: 3}
+  - key: Preset_Church_01_B
+    prefab: {fileID: 2397063036118327321, guid: 84d90733c770df34f84373be8f51f2d7, type: 3}
   - key: Preset_House_01_A
     prefab: {fileID: 6444491342075891683, guid: c09994bbecd7f694fadd2cff0c67e21b, type: 3}
   - key: Preset_House_02_A
@@ -37,10 +39,24 @@ MonoBehaviour:
     prefab: {fileID: 8968518291546476622, guid: 9e8535b938800284f917d2bc8945c48c, type: 3}
   - key: Preset_House_04
     prefab: {fileID: 2881828063702649773, guid: 5152de8af9c78cd438354f7327a6b4f0, type: 3}
+  - key: Preset_House_05
+    prefab: {fileID: 3450013729315539820, guid: 96c7f67d225dfaf488c59d99092b4b89, type: 3}
+  - key: Preset_House_06
+    prefab: {fileID: 7503593018567755042, guid: c96a9c3206c761f4a8a45ae02ad70d2d, type: 3}
+  - key: Preset_House_07
+    prefab: {fileID: 5825228609323786597, guid: 810110b025e66a046aaea132e458bd8b, type: 3}
+  - key: Preset_House_08
+    prefab: {fileID: 6228524412084741729, guid: 4d581c8f105845f4d84475abfcfda0fa, type: 3}
   - key: Preset_House_09_A
     prefab: {fileID: 8809840059073621671, guid: 619ef8990b38d274699276722fe6e014, type: 3}
   - key: Preset_House_09_B
     prefab: {fileID: 3624532513411241364, guid: f35571e3d3ee760458b6e7e77bbc4b70, type: 3}
+  - key: Preset_House_09_C
+    prefab: {fileID: 7058789035532897222, guid: 3d849c4cf48be674f95c99f023d2bf56, type: 3}
+  - key: Preset_House_09_D
+    prefab: {fileID: 8608079933664747626, guid: e8654265811b2424792f646ce1b790aa, type: 3}
+  - key: Preset_House_10
+    prefab: {fileID: 7309583943565571940, guid: 935010ea40b19174d8c562ff219dc072, type: 3}
   - key: Preset_House_Archway_01
     prefab: {fileID: 2630156932498656936, guid: a535ca2a1aa39a142a6acf3fed707d04, type: 3}
   - key: Preset_House_Windmill_01
@@ -49,6 +65,8 @@ MonoBehaviour:
     prefab: {fileID: 4315383594838360843, guid: 8958ccd6f21591148a4dbc6c7f79c749, type: 3}
   - key: Preset_Hut_02
     prefab: {fileID: 7847626944221979017, guid: aa345783d2791124e806dc4e512f412d, type: 3}
+  - key: Preset_Outhouse_01
+    prefab: {fileID: 1857288287595185595, guid: f1edee8ba4c7c314982b571f26b0198a, type: 3}
   - key: Preset_Shelter_01
     prefab: {fileID: 5143503800495112627, guid: c96e583bb4ae5b541b424f3050fa0475, type: 3}
   - key: Preset_Shelter_02
@@ -75,6 +93,8 @@ MonoBehaviour:
     prefab: {fileID: 1661032390668868, guid: 9f3159be1e4814744a51a1a31aeb72e3, type: 3}
   - key: SM_Env_Tree_Large_01
     prefab: {fileID: 1905605002707554, guid: c5fa94f9ebb29bd478295e8701712698, type: 3}
+  - key: SM_Env_Tree_Large_02
+    prefab: {fileID: 1777103653922412, guid: abdd014ec4473fb4f8c8584b6cef940e, type: 3}
   - key: SM_Env_Tree_Round_02
     prefab: {fileID: 1246221467480138, guid: 47a80870cceb48b408dd661a8f1a7764, type: 3}
   - key: SM_Env_Tree_Round_03
@@ -101,6 +121,16 @@ MonoBehaviour:
     prefab: {fileID: 7622913565504388027, guid: 2d48a5bd75444114ba8f039c794690fd, type: 3}
   - key: TreePine_VarC
     prefab: {fileID: 8949061082402899093, guid: d16aca71e24fdd04ebc6d90a727f1288, type: 3}
+  - key: SM_Env_Waterlily_01
+    prefab: {fileID: 848411610276386095, guid: d0f3751edcf33014295dcfacc7b1c09d, type: 3}
+  - key: SM_Env_Waterlily_02
+    prefab: {fileID: 2888942100746285530, guid: 7cf501ef90591084d960fc155523f14a, type: 3}
+  - key: SM_Env_Waterlily_03
+    prefab: {fileID: 995705826970190691, guid: 2721d158ad7fc0447bd84280c2560928, type: 3}
+  - key: SM_Env_Waterlily_04
+    prefab: {fileID: 1095729035697293881, guid: 1c54c062b9b12e04ea22db13205c9f66, type: 3}
+  - key: SM_Env_Waterlily_05
+    prefab: {fileID: 4115352778964441302, guid: 2122352a03677cc43ad20a1996a50c10, type: 3}
   - key: Village_Scatter_01
     prefab: {fileID: 919132149155446097, guid: 55e52b6b5c5aa9047a5ed94d86b29527, type: 3}
   - key: Village_Scatter_02
@@ -135,22 +165,34 @@ MonoBehaviour:
     prefab: {fileID: 919132149155446097, guid: 0e1f4d56fabbd854ca6a00f8ddd719b8, type: 3}
   - key: PT_Poppy_02
     prefab: {fileID: 6444807355431749394, guid: f593bc20677ebf14abd27a4853408c68, type: 3}
+  - key: PT_Caesars_Mushroom_01
+    prefab: {fileID: 5984911598340929997, guid: 5228c984e5be7284d8d83c18096254dd, type: 3}
   - key: PT_Generic_Rock_01
     prefab: {fileID: 4140774597986965270, guid: 58cd8dc8c2359174baa15aa31e302c8b, type: 3}
   - key: PT_Menhir_Rock_02
     prefab: {fileID: 2804321427668277467, guid: 0f3d14a9a6b2ceb469c15d151552a614, type: 3}
   - key: PT_Ore_Rock_01
     prefab: {fileID: 1813357942169304022, guid: 3dd97330b2ebd884e9f796894e026064, type: 3}
+  - key: PT_River_Rock_Pile_02
+    prefab: {fileID: 2549054593802932585, guid: bee651b89d6b3ef48b19cfe8a4c9fa42, type: 3}
+  - key: PT_Generic_Shrub_01_dead
+    prefab: {fileID: 3708295212793361695, guid: 8cf2966042f7c2f44ac97cda7cc59eff, type: 3}
   - key: PT_Generic_Shrub_01_green
     prefab: {fileID: 5153741093904279990, guid: ef8374d642969b14baa54045236c5fb0, type: 3}
   - key: PT_Fruit_Tree_01_apples
     prefab: {fileID: 5935278547815300987, guid: e05ae677c7b3bc546bd36b488586fb0c, type: 3}
+  - key: PT_Fruit_Tree_01_dead
+    prefab: {fileID: 1215182899609276316, guid: c6a512d95615f534cbe31aba1aaa354c, type: 3}
   - key: PT_Fruit_Tree_01_green
     prefab: {fileID: 5361428799875542787, guid: c31bf8ec8e29cd74f9fb9a970fde7a53, type: 3}
   - key: PT_Fruit_Tree_01_pears
     prefab: {fileID: 2479184009378418726, guid: b62637568d07eb141b948ab45ea8c3d4, type: 3}
   - key: PT_Fruit_Tree_01_plums
     prefab: {fileID: 7296054959696050501, guid: 367ab66e2689a8345a8fb8fd14a4f90c, type: 3}
+  - key: PT_Pine_Tree_03_dead
+    prefab: {fileID: 1932841404346126693, guid: c7827efbbf7212f42803476ce3f9d082, type: 3}
+  - key: PT_Pine_Tree_03_dead_cut
+    prefab: {fileID: 3611794222474779789, guid: 53e1939cdeda3f04caaa240bfd830e5e, type: 3}
   - key: PT_Pine_Tree_03_green
     prefab: {fileID: 6117071349010126079, guid: d250af4848f51154f9a2bf6a85b60ac2, type: 3}
   - key: PT_Pine_Tree_03_logs

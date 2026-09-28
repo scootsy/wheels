@@ -42,11 +42,19 @@ namespace Tabletop.World
             Sprite emblem = null;
             if (ShopId != null) { sub = (Title ?? "").ToUpperInvariant() + "  -  STALL"; accent = Theme.Gilt; emblem = kit != null ? kit.hammer : null; }
             else if (Encounter == null) { var hint = ErrandHint(); sub = (Title ?? "").ToUpperInvariant() + hint; accent = hint.Length > 0 ? Theme.Gilt : Theme.TextDim; }
+            else if (Encounter.Tournament)
+            {
+                bool due = GameFlow.TournamentRound == Encounter.TournamentRound;
+                sub = (Encounter.TournamentRound == EncounterCatalog.TournamentRounds ? "THE FINAL" : "ROUND " + Encounter.TournamentRound) + (due ? "  -  YOUR NEXT MATCH" : beaten ? "  -  BEATEN" : "");
+                accent = due ? Theme.Gilt : Theme.TextDim;
+                emblem = kit != null ? kit.crown : null;
+            }
             else if (beaten) { sub = "BEATEN"; accent = new Color(0.55f, 0.8f, 0.55f); emblem = kit != null ? kit.uiDiamond : null; }
             else if (Encounter.IsChampion) { sub = "CHAMPION  -  CHALLENGE"; accent = Theme.Gilt; emblem = kit != null ? kit.crown : null; }
             else { sub = "CHALLENGER"; accent = Theme.Gilt; emblem = kit != null ? kit.uiDiamond : null; }
             Tag.Set(DisplayName, sub, emblem, accent);
-            if (Marker != null) Marker.gameObject.SetActive(ShopId != null || (Encounter != null && !beaten));
+            bool challenge = Encounter != null && (Encounter.Tournament ? GameFlow.TournamentRound == Encounter.TournamentRound : !beaten);
+            if (Marker != null) Marker.gameObject.SetActive(ShopId != null || challenge || (Role == "herald" && GameFlow.TournamentQualified && GameFlow.TournamentRound == 0));
         }
 
         /// <summary>"  -  HAS WORK" / "  -  DELIVERY HERE" when an errand involves this person (D-033).</summary>
@@ -102,6 +110,29 @@ namespace Tabletop.World
         }
 
         public override void Interact(WorldApp app) => app.TalkTo(this);
+
+        /// <summary>A special part in the story (D-038): "herald" enters the player in the Grand Tournament.</summary>
+        public string Role;
+        /// <summary>Where this person stands when not seated at a table (tournament opponents move to the table on their round).</summary>
+        [System.NonSerialized] public Vector3 HomePosition;
+        [System.NonSerialized] public bool Seated;
+        [System.NonSerialized] public float StandingYaw;
+    }
+
+    /// <summary>Something tall (a tree, a building) that the overhead camera sees through when it hides the player (D-038).</summary>
+    public sealed class Occluder
+    {
+        public Renderer[] Renderers;
+        public Bounds Bounds;
+        public bool Hidden;
+
+        public void SetHidden(bool hidden)
+        {
+            if (hidden == Hidden) return;
+            Hidden = hidden;
+            var mode = hidden ? UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly : UnityEngine.Rendering.ShadowCastingMode.On;
+            foreach (var r in Renderers) if (r != null) r.shadowCastingMode = mode;
+        }
     }
 
     /// <summary>A door that moves the player somewhere else (e.g. into the Champion's Hall).</summary>
@@ -119,6 +150,9 @@ namespace Tabletop.World
     public sealed class Chair : Interactable
     {
         public Npc Champion;
+        /// <summary>The Grand Tournament's table (D-038): only open while the player is in the tournament.</summary>
+        public bool TournamentTable;
+        public override bool Available => !TournamentTable || (GameFlow.TournamentRound > 0 && Champion != null);
         public Vector3 SeatPosition;
         /// <summary>Centre of the table the camera frames while seated.</summary>
         public Vector3 TableFocus;
@@ -226,7 +260,53 @@ namespace Tabletop.World
         }
     }
 
-    /// <summary>Walks the player on the ground plane with the Move action; blocked by buildings and the walkable area.</summary>
+    /// <summary>
+    /// Where the player may go (D-038): anywhere on the land within reach of the paths and villages, except real
+    /// barriers: water (bridges and piers excepted), ground too steep to climb or drop down, and the edge of the map.
+    /// Paths, villages, bridges, piers and interiors are always fine. Buildings, trees, rocks, fences and people block
+    /// with their own colliders.
+    /// </summary>
+    public sealed class RoamArea
+    {
+        /// <summary>Steepest ground you can walk up or down, in degrees.</summary>
+        public const float MaxSlope = 34f;
+        /// <summary>How far from the nearest path or village you can wander (the map is a small sandbox).</summary>
+        public const float Reach = 40f;
+        /// <summary>Kept clear of the terrain's edge.</summary>
+        public const float EdgeMargin = 14f;
+        /// <summary>A single step may not rise or drop more than this per metre (a ledge, not a slope).</summary>
+        public const float MaxStepGradient = 1.4f;
+
+        public RoamArea(WalkableArea paths) { Paths = paths; }
+
+        /// <summary>The paths, villages, bridges and interiors: level ground, always walkable.</summary>
+        public WalkableArea Paths { get; }
+
+        public float Feet(float x, float z) => WorldGround.Feet(x, z, Paths);
+
+        public bool CanStand(float x, float z)
+        {
+            if (Paths.Contains(x, z)) return true;
+            if (x > WorldGround.InteriorThreshold) return false;
+            var e = WorldGround.Extent;
+            if (x < e.xMin + EdgeMargin || x > e.xMax - EdgeMargin || z < e.yMin + EdgeMargin || z > e.yMax - EdgeMargin) return false;
+            if (WorldGround.WaterAt(x, z)) return false;
+            if (Paths.Distance(x, z, out _) > Reach) return false;
+            return WorldGround.SlopeDegrees(x, z, Paths) <= MaxSlope;
+        }
+
+        /// <summary>Can the player move from one spot to the next (no stepping off a ledge the slope test missed)?</summary>
+        public bool CanStep(Vector3 from, Vector3 to)
+        {
+            if (!CanStand(to.x, to.z)) return false;
+            if (Paths.Contains(to.x, to.z) && Paths.Contains(from.x, from.z)) return true;
+            float run = new Vector2(to.x - from.x, to.z - from.z).magnitude;
+            if (run < 0.0001f) return true;
+            return Mathf.Abs(Feet(to.x, to.z) - Feet(from.x, from.z)) <= Mathf.Max(0.25f, run * MaxStepGradient);
+        }
+    }
+
+    /// <summary>Walks the player over the land with the Move action; blocked by buildings, trees and the roam area.</summary>
     [RequireComponent(typeof(CharacterController))]
     public sealed class PlayerController : MonoBehaviour
     {
@@ -236,7 +316,7 @@ namespace Tabletop.World
         public float JumpSpeed = 7.5f;
         public float Gravity = 26f;
         public Transform Figure;
-        [System.NonSerialized] public WalkableArea Walkable;
+        [System.NonSerialized] public RoamArea Roam;
         private CharacterController _cc;
         private float _walkPhase;
         private float _yaw;
@@ -267,13 +347,15 @@ namespace Tabletop.World
         public void Teleport(Vector3 pos, float yaw)
         {
             _cc.enabled = false;
-            transform.position = WorldGround.OnGround(pos.x, pos.z);
+            transform.position = new Vector3(pos.x, Ground(pos.x, pos.z), pos.z);
             _height = 0;
             _vertical = 0;
             _yaw = yaw;
             transform.rotation = Quaternion.Euler(0, yaw, 0);
             _cc.enabled = true;
         }
+
+        private float Ground(float x, float z) => Roam != null ? Roam.Feet(x, z) : WorldGround.Walk(x, z);
 
         private void SetPosition(Vector3 p)
         {
@@ -322,17 +404,17 @@ namespace Tabletop.World
                 _cc.Move(delta);
                 var p = transform.position;
                 p.y = 0;
-                if (Walkable != null && !Walkable.Contains(p.x, p.z))
+                if (Roam != null && !Roam.CanStep(before, p))
                 {
-                    // Slide along whichever axis is still inside the walkable area.
+                    // Slide along whichever axis can still be walked.
                     var tryX = new Vector3(p.x, 0, before.z);
                     var tryZ = new Vector3(before.x, 0, p.z);
-                    if (Walkable.Contains(tryX.x, tryX.z)) p = tryX;
-                    else if (Walkable.Contains(tryZ.x, tryZ.z)) p = tryZ;
+                    if (Roam.CanStep(before, tryX)) p = tryX;
+                    else if (Roam.CanStep(before, tryZ)) p = tryZ;
                     else p = new Vector3(before.x, 0, before.z);
                 }
                 DistanceWalked += (p - before).magnitude;
-                p.y = WorldGround.Walk(p.x, p.z) + _height;
+                p.y = Ground(p.x, p.z) + _height;
                 SetPosition(p);
                 if (!faceYaw.HasValue)
                 {
@@ -344,7 +426,7 @@ namespace Tabletop.World
             else
             {
                 _walkPhase = 0;
-                float y = WorldGround.Walk(transform.position.x, transform.position.z) + _height;
+                float y = Ground(transform.position.x, transform.position.z) + _height;
                 if (!Mathf.Approximately(transform.position.y, y))
                     SetPosition(new Vector3(transform.position.x, y, transform.position.z));
             }

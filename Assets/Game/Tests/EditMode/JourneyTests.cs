@@ -256,7 +256,7 @@ namespace Tabletop.Tests.EditMode
                 }
                 if (e.Requires != null) Assert.IsNotNull(ErrandCatalog.Find(e.Requires), e.Id);
             }
-            foreach (var area in new[] { Areas.Hearthmoor, Areas.Brindlecross, Areas.Outpost })
+            foreach (var area in new[] { Areas.Hearthmoor, Areas.Brindlecross, Areas.Outpost, Areas.Lanternmere, Areas.Duskhollow, Areas.Ironbell })
                 Assert.GreaterOrEqual(ErrandCatalog.All.Count(e => e.Area == area), 3, area);
         }
 
@@ -309,10 +309,15 @@ namespace Tabletop.Tests.EditMode
             Assert.AreEqual(0f, WorldGround.Walk(0, 0), 0.01f, "Hearthmoor");
             Assert.AreEqual(2.5f, WorldGround.Walk(0, 134), 0.01f, "Brindlecross");
             Assert.AreEqual(WorldGround.OutpostLevel, WorldGround.Walk(80, 170), 0.01f, "the Outpost plateau");
+            Assert.AreEqual(1.2f, WorldGround.Walk(-85, 100), 0.01f, "Lanternmere");
+            Assert.AreEqual(0.2f, WorldGround.Walk(-62, 212), 0.01f, "Duskhollow, sunk into the wood");
+            Assert.AreEqual(WorldGround.OutpostLevel, WorldGround.Walk(92, 79), 0.01f, "Ironbell on the moor");
+            Assert.AreEqual(6.5f, WorldGround.Walk(0, 240), 0.01f, "Crownhold on its hill");
+            Assert.AreEqual(6.5f, WorldGround.Walk(25, 218), 0.05f, "Crownhold is level to its walls");
             Assert.AreEqual(0f, WorldGround.Walk(WorldBuilder.InteriorX, 0), 0.01f, "inside the hall");
             Assert.Less(WorldGround.Walk(WorldGround.PitCenter.x, WorldGround.PitCenter.y), WorldGround.OutpostLevel - 3f, "the quarry pit is sunk");
             // Walking the road and the quarry path in half-metre steps never climbs a wall.
-            foreach (var path in new[] { WorldBuilder.RoadPoints, WorldBuilder.QuarryPath })
+            foreach (var path in new[] { WorldBuilder.RoadPoints, WorldBuilder.QuarryPath, WorldBuilder.StreamPath, WorldBuilder.HollowPath, WorldBuilder.BellRoad, WorldBuilder.MoorTrack, WorldBuilder.TourneyRoad })
                 for (int i = 0; i < path.Length - 1; i++)
                     for (float t = 0; t < 1f; t += 0.02f)
                     {
@@ -338,7 +343,8 @@ namespace Tabletop.Tests.EditMode
             Assert.IsTrue(area.Contains(80, 170), "plateau");
             Assert.IsTrue(area.Contains(WorldGround.PitCenter.x, WorldGround.PitCenter.y), "quarry pit");
             Assert.IsTrue(area.Contains(WorldGround.KnollCenter.x, WorldGround.KnollCenter.y), "lookout knoll");
-            foreach (var spot in WorldBuilder.Pickups) Assert.IsTrue(area.Contains(spot.Value.x, spot.Value.y), "pickup " + spot.Key + " is reachable");
+            var roam = new RoamArea(area);
+            foreach (var spot in WorldBuilder.Pickups) Assert.IsTrue(roam.CanStand(spot.Value.x, spot.Value.y), "pickup " + spot.Key + " is reachable");
             Assert.AreEqual(Areas.QuarryPath, WorldLayout.AreaAt(new Vector3(44, 0, 131)));
             Assert.AreEqual(Areas.Outpost, WorldLayout.AreaAt(new Vector3(80, 0, 170)));
         }

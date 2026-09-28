@@ -409,6 +409,34 @@ This log records decisions that affect rules, player experience, architecture, s
 - **Not changed:** no touch camera-look in first-person view yet (use VIEW for the overhead camera).
 - **Files updated:** `Docs/TECHNICAL_ARCHITECTURE.md`, `Docs/IMPLEMENTATION_STATUS.md`, `Docs/WORLD_SPEC.md`
 
+### D-038: The rest of the journey, the Grand Tournament, and wandering off the paths (creative director, 2026-09-28)
+
+- **Date:** 2026-09-28
+- **Status:** Accepted (explicit creative-director instruction)
+- **Instruction (summary):** "flesh out the rest of the game, meaning we need areas/bosses to acquire all the final champion pieces, and then the grand tournament. build first, and do all tests at the end." And: "remove the invisible walls from everywhere except true no go areas. i want to be able to wander. not off cliffs or the edge of the map ... still a small sandbox, but its annoying to hit a barrier where it doesn't feel like there should be one."
+- **Pieces still to win:** the Priest, the Assassin and the Warlock (the engine has had all seven since M0). Each gets a town and a champion; the source's reward order (Priest, then Assassin) is kept in the names but the towns can be played in any order.
+  - **Lanternmere** on Mirrorwater (the lake the Willow Stream comes from), by the Stream Path: Mother Seraphine Vell, Priest + Archer (the source's first champion pair), Gold wheel, 60 coins, table at the end of a pier.
+  - **Duskhollow**, a hollow in the pinewood, by the Hollow Path from Brindlecross: Silas Thorne, the Nightjar, Assassin + Mage, Gold wheel, 80 coins, table in a ring of standing stones. Darker, closer fog there.
+  - **Ironbell** on the eastern moor, by the Bell Road from the North Road, with the Moor Track north to the Outpost: Magister Orlan Vey, Warlock + Engineer, Diamond wheel, 100 coins, table under the great bell.
+  - Three challengers per town (Standard/Expert, Silver to Diamond wheels, 18-40 coins), three errands per town, two new stalls (Maudie's Lanterns; the Bellfoundry, which sells the Gold and a new Diamond wheel at 400).
+- **The Grand Tournament at Crownhold** (north of Brindlecross, past the hall, on a walled hill):
+  - Open to a champion of all five towns; Herald Aubrey enters the player. Three rounds in a row: Dame Ottilie Frane (Assassin + Priest, Diamond), Lord Casimir Vane (Warlock + Archer, Diamond), and Aldric Mourne, Grand Champion of the Realm (Platinum; his pair changes with each entry and never repeats twice in a row, after the source's randomised final opponent, deterministic so a save meets the final it was promised).
+  - No stakes: purses of 60 / 90 / 250. A loss ends the run (enter again from round one any time, free); a tie replays the round; only the round the player is due to play counts (a rematch from the result screen is an exhibition).
+  - Winning: Grand Champion of the Realm, the Platinum Wheel (never sold), and a short epilogue; the journey continues and the title can be defended again.
+  - `GameFlow` holds the run (`TournamentRound`, `TournamentAttempts`); save version 3 stores it (older saves load outside the tournament).
+- **Wandering (no more invisible walls):**
+  - The old walkable area is now only the level ground (paths, villages, bridges, the pier, interiors) and still shapes the land. The player may go anywhere else within 40 m of it (`RoamArea`).
+  - True no-go areas remain: water (stream and lake, except bridge and pier), ground steeper than 34° or a step steeper than 1.4 m per metre, and the map's edge (14 m inside the terrain).
+  - Things block with colliders instead: buildings and walls (as before), and now fences, tree trunks, big rocks and standing stones.
+  - Off the paths the feet follow the visible land.
+- **Found while building:** the visible land had hidden creases where the nearest path changed (the "camera side is kept low" rule switched abruptly). Nobody could stand there before; once wandering was allowed they felt like invisible walls. The rule now measures "ground to the north" continuously; a test scans the land within reach for sudden steps.
+- **Presentation:**
+  - The overhead camera rises over any hill between it and the player.
+  - Trees and buildings between the camera and the player drop to shadow-only until the player moves on.
+  - Area names, music and ambience cover the new places. Music reuses the four CC0 tracks; Lanternmere adds the Fantasy Kingdom lakeshore ambience already in the project. Nothing new was downloaded.
+- **Not changed:** match rules (`RULES_SPEC.md`), the table, controls.
+- **Files updated:** `Docs/WORLD_SPEC.md`, `Docs/MILESTONES.md` (W3, W4), `Docs/IMPLEMENTATION_STATUS.md`, `AGENTS.md` (gate status)
+
 ## Open decisions
 
 The rules-level open questions and temporary prototype behaviors are maintained in `RULES_SPEC.md` Section 15. They do not block M0 or M1.

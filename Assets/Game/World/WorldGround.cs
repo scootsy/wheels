@@ -17,9 +17,14 @@ namespace Tabletop.World
         public const float StreamHalfWidth = 2.4f;
         public static readonly Vector2 PitCenter = new Vector2(84f, 205f);
         public static readonly Vector2 KnollCenter = new Vector2(101f, 171f);
+        /// <summary>Mirrorwater, the lake at Lanternmere that feeds the Willow Stream (D-038).</summary>
+        public static readonly Vector2 LakeCenter = new Vector2(-85f, 72f);
+        public const float LakeRadius = 17f;
+        /// <summary>Interiors (the Champion's Hall) are built east of this, away from the land, at height 0.</summary>
+        public const float InteriorThreshold = 185f;
 
         /// <summary>Terrain extents (x, z) and the vertical range it can represent.</summary>
-        public static readonly Rect Extent = new Rect(-130f, -80f, 280f, 350f);
+        public static readonly Rect Extent = new Rect(-160f, -80f, 330f, 380f);
         public const float MinHeight = -8f;
         public const float MaxHeight = 52f;
 
@@ -47,13 +52,21 @@ namespace Tabletop.World
             return Valley[Valley.Length - 1].y;
         }
 
+        /// <summary>Places with a level of their own (D-038): centre, flat radius, blend distance, height.</summary>
+        private static readonly (Vector2 c, float r, float fall, float level)[] Levels =
+        {
+            (new Vector2(-85f, 92f), 26f, 14f, 1.2f),   // Lanternmere and its lake shore
+            (new Vector2(-62f, 212f), 16f, 14f, 0.2f),  // Duskhollow, sunk into the pinewood
+            (new Vector2(0f, 238f), 34f, 16f, 6.5f),    // Crownhold, on its hill
+        };
+
         /// <summary>How far into the eastern highlands a point is (0 in the valley, 1 on the outpost plateau).</summary>
         public static float Highland(float x) => Smooth01((x - 28f) / 32f);
 
         /// <summary>Where feet go: the smooth ground everyone walks on (no hills, no stream bed).</summary>
         public static float Walk(float x, float z)
         {
-            if (x > 150f) return 0f; // interiors (the Champion's Hall) are built away from the land, at 0
+            if (x > InteriorThreshold) return 0f; // interiors (the Champion's Hall) are built away from the land, at 0
             float east = Highland(x);
             float h = Mathf.Lerp(ValleyHeight(z), OutpostLevel, east);
             if (east > 0f)
@@ -62,6 +75,11 @@ namespace Tabletop.World
                 h -= (OutpostLevel - PitFloor) * (1f - Smooth01((dp - 9f) / 6f)) * east;
                 float dk = Vector2.Distance(new Vector2(x, z), KnollCenter);
                 h += 3f * (1f - Smooth01((dk - 3.5f) / 5f)) * east;
+            }
+            foreach (var l in Levels)
+            {
+                float d = Vector2.Distance(new Vector2(x, z), l.c);
+                if (d < l.r + l.fall) h = Mathf.Lerp(h, l.level, 1f - Smooth01((d - l.r) / l.fall));
             }
             return h;
         }
@@ -73,7 +91,37 @@ namespace Tabletop.World
         public static float StreamMask(float x, float z)
         {
             float across = Mathf.Abs(z - StreamZ);
-            return (1f - Smooth01((across - StreamHalfWidth) / 2.2f)) * (1f - Smooth01((x - 22f) / 10f));
+            // Fades out east as the land climbs, and west where it leaves the lake.
+            return (1f - Smooth01((across - StreamHalfWidth) / 2.2f)) * (1f - Smooth01((x - 22f) / 10f)) * Smooth01((x + 76f) / 5f);
+        }
+
+        /// <summary>0..1: how much of the lake bed is here.</summary>
+        public static float LakeMask(float x, float z)
+        {
+            float d = Vector2.Distance(new Vector2(x, z), LakeCenter);
+            return 1f - Smooth01((d - (LakeRadius - 7f)) / 9f); // a gentle beach, not a bank
+        }
+
+        /// <summary>Water too deep to walk into (the stream and the lake), except where a bridge or pier crosses it.</summary>
+        public static bool WaterAt(float x, float z) => x < InteriorThreshold && (StreamMask(x, z) > 0.3f || LakeMask(x, z) > 0.3f);
+
+        /// <summary>
+        /// Where feet go anywhere in the world (D-038): the smooth walking surface on paths, villages, bridges and
+        /// piers; the visible land (hills included) everywhere else the player can wander.
+        /// </summary>
+        public static float Feet(float x, float z, WalkableArea paths)
+        {
+            if (x > InteriorThreshold || paths == null || paths.Contains(x, z)) return Walk(x, z);
+            return Terrain(x, z, paths);
+        }
+
+        /// <summary>Steepness of the visible land in degrees.</summary>
+        public static float SlopeDegrees(float x, float z, WalkableArea paths)
+        {
+            const float e = 0.8f;
+            float dx = Terrain(x + e, z, paths) - Terrain(x - e, z, paths);
+            float dz = Terrain(x, z + e, paths) - Terrain(x, z - e, paths);
+            return Mathf.Atan(Mathf.Sqrt(dx * dx + dz * dz) / (2f * e)) * Mathf.Rad2Deg;
         }
 
         public static float WaterLevel => Walk(-5.5f, StreamZ) - 0.7f;
@@ -83,11 +131,16 @@ namespace Tabletop.World
         {
             float f = Walk(x, z);
             float stream = StreamMask(x, z);
-            float carve = 1.8f * stream;
+            float carve = 1.8f * stream + 2.8f * LakeMask(x, z);
+            float lakeShore = 1f - Smooth01((Vector2.Distance(new Vector2(x, z), LakeCenter) - LakeRadius) / 8f);
+            stream = Mathf.Max(stream, lakeShore);
             if (walkable == null) return f - carve;
-            float d = walkable.Distance(x, z, out var nearest);
+            float d = walkable.Distance(x, z, out _);
             if (d <= 0f) return f - carve;
-            float south = nearest.y - z; // > 0: this point is south of (in front of) the walkable ground, toward the camera
+            // > 0: walkable ground lies north of this point, so it is in front of it, toward the camera. Measured as how
+            // much closer the ground is from 10 m further north: continuous everywhere, so the land has no creases
+            // where the nearest path changes (D-038: the player can walk there now).
+            float south = d - walkable.Distance(x, z + 10f, out _);
             float n1 = Mathf.PerlinNoise(x * 0.021f + 13.7f, z * 0.021f + 4.1f);
             float n2 = Mathf.PerlinNoise(x * 0.09f + 91.3f, z * 0.09f + 27.9f);
             float amp = 3.5f + 5f * n1;
