@@ -28,7 +28,9 @@
 
 **Published builds (D-030):** every published test build is on the GitHub repo's **Releases** page (Windows zip + iOS Xcode zip). To make one: **Tabletop → Build → All (Windows + iOS)**, commit, then `bash Tools/publish_builds.sh "what changed"`.
 
-**iPhone / iPad (test builds, D-029):** in Unity choose **Tabletop → Build → iOS Xcode Project (iPhone + iPad)**. It writes `Builds/TabletopReels-iOS-Xcode.zip`. On a Mac:
+**iPhone / iPad without a Mac (LiveContainer, D-039):** publishing a build (above) starts the **iOS IPA** workflow on GitHub (`.github/workflows/ios-ipa.yml`). A GitHub-hosted Mac compiles the release's Xcode zip without signing and attaches `TabletopReels-iOS.ipa` to the same release. On the iPhone or iPad: open the release page, download the `.ipa`, open LiveContainer, tap **+**, and pick the file. LiveContainer signs it itself; no Apple ID or certificate is involved in the build. To build an older release (or retry), open the repo's **Actions** tab → **iOS IPA** → **Run workflow**, and enter its tag (empty = newest release). If the build fails, its `xcodebuild-log` artifact holds Xcode's errors.
+
+**iPhone / iPad with a Mac (test builds, D-029):** in Unity choose **Tabletop → Build → iOS Xcode Project (iPhone + iPad)**. It writes `Builds/TabletopReels-iOS-Xcode.zip`. On a Mac:
 1. Unzip it and open `TabletopReels/Unity-iPhone.xcodeproj` in Xcode.
 2. Select the **Unity-iPhone** target, then **Signing & Capabilities**, and choose your Apple ID team. If Xcode says the bundle id is taken, change it (e.g. add your initials).
 3. Connect the iPhone/iPad, trust the computer, turn on **Developer Mode** (Settings → Privacy & Security), then press **Run**.

@@ -1,0 +1,124 @@
+# Turns a published test build's Xcode project into an unsigned .ipa on a GitHub-hosted Mac (D-039),
+# for installing with LiveContainer (or any sideloader that signs the app itself). No Mac or Apple ID needed.
+#
+# - Release published (Tools/publish_builds.sh): builds TabletopReels-iOS-Xcode.zip from that release and
+#   attaches TabletopReels-iOS.ipa to the same release.
+# - Run workflow (Actions tab): same, for the tag given, or the newest release when left empty.
+# - Pull request that changes this file: builds the newest release as a check; the .ipa is kept as a
+#   workflow artifact only, the release is not touched.
+name: iOS IPA
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to build (leave empty for the newest release)
+        required: false
+        default: ""
+  pull_request:
+    paths:
+      - .github/workflows/ios-ipa.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ios-ipa-${{ github.event.release.tag_name || inputs.tag || github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  ipa:
+    runs-on: macos-latest
+    timeout-minutes: 90
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      XCODE_ZIP: TabletopReels-iOS-Xcode.zip
+      IPA: TabletopReels-iOS.ipa
+    steps:
+      - name: Pick the release
+        id: rel
+        env:
+          TAG: ${{ github.event.release.tag_name || inputs.tag }}
+        run: |
+          if [ -z "$TAG" ]; then
+            TAG="$(gh release list --limit 1 --json tagName --jq '.[0].tagName')"
+          fi
+          [ -n "$TAG" ] || { echo "::error::No release found"; exit 1; }
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Building the iOS app from release $TAG"
+
+      - name: Download the Xcode project
+        env:
+          TAG: ${{ steps.rel.outputs.tag }}
+        run: |
+          # The release event can arrive before its files finish uploading; wait up to 10 minutes.
+          for attempt in $(seq 1 20); do
+            gh release download "$TAG" --pattern "$XCODE_ZIP" --dir "$RUNNER_TEMP/in" --clobber && break
+            echo "Waiting for $XCODE_ZIP on $TAG ($attempt/20)..."
+            sleep 30
+          done
+          [ -f "$RUNNER_TEMP/in/$XCODE_ZIP" ] || { echo "::error::Release $TAG has no $XCODE_ZIP"; exit 1; }
+          unzip -q "$RUNNER_TEMP/in/$XCODE_ZIP" -d "$RUNNER_TEMP/src"
+          proj="$(find "$RUNNER_TEMP/src" -maxdepth 3 -name Unity-iPhone.xcodeproj -print -quit)"
+          [ -n "$proj" ] || { echo "::error::No Unity-iPhone.xcodeproj in $XCODE_ZIP"; exit 1; }
+          echo "PROJECT_DIR=$(dirname "$proj")" >> "$GITHUB_ENV"
+
+      - name: Build the app (unsigned)
+        run: |
+          xcodebuild -version
+          cd "$PROJECT_DIR"
+          # Signing is left to LiveContainer, so no Apple account or certificate is needed here.
+          xcodebuild build \
+            -project Unity-iPhone.xcodeproj \
+            -scheme Unity-iPhone \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath "$RUNNER_TEMP/dd" \
+            -quiet \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            DEVELOPMENT_TEAM="" \
+            2>&1 | tee "$RUNNER_TEMP/xcodebuild.log"
+
+      - name: Package the .ipa
+        run: |
+          app="$(find "$RUNNER_TEMP/dd/Build/Products/Release-iphoneos" -maxdepth 1 -name '*.app' -print -quit)"
+          [ -n "$app" ] || { echo "::error::xcodebuild produced no .app"; exit 1; }
+          [ -d "$app/Frameworks/UnityFramework.framework" ] || { echo "::error::UnityFramework is missing from $app"; exit 1; }
+          exe="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$app/Info.plist")"
+          lipo -info "$app/$exe"
+          mkdir -p "$RUNNER_TEMP/ipa/Payload"
+          ditto "$app" "$RUNNER_TEMP/ipa/Payload/$(basename "$app")"
+          (cd "$RUNNER_TEMP/ipa" && zip -qry "$RUNNER_TEMP/$IPA" Payload)
+          ls -lh "$RUNNER_TEMP/$IPA"
+
+      - name: Attach the .ipa to the release
+        if: github.event_name != 'pull_request'
+        env:
+          TAG: ${{ steps.rel.outputs.tag }}
+        run: gh release upload "$TAG" "$RUNNER_TEMP/$IPA" --clobber
+
+      - name: Keep the .ipa as a workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: TabletopReels-iOS-ipa
+          path: ${{ runner.temp }}/TabletopReels-iOS.ipa
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Keep the Xcode log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcodebuild-log
+          path: ${{ runner.temp }}/xcodebuild.log
+          if-no-files-found: ignore
+          retention-days: 14
