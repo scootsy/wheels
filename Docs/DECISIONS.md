@@ -437,6 +437,22 @@ This log records decisions that affect rules, player experience, architecture, s
 - **Not changed:** match rules (`RULES_SPEC.md`), the table, controls.
 - **Files updated:** `Docs/WORLD_SPEC.md`, `Docs/MILESTONES.md` (W3, W4), `Docs/IMPLEMENTATION_STATUS.md`, `AGENTS.md` (gate status)
 
+### D-039: Unsigned .ipa built by GitHub Actions for LiveContainer (creative director, 2026-10-13)
+
+- **Date:** 2026-10-13
+- **Status:** Accepted (explicit creative-director instruction)
+- **Instruction:** "How do I make it auto publish an ipa that I can download and install via LiveContainer? I don't have access to a Mac anymore and can't build it myself from the Xcode project"
+- **Decision:**
+  - New workflow `.github/workflows/ios-ipa.yml` (**iOS IPA**). When a release is published (`Tools/publish_builds.sh`), a GitHub-hosted macOS runner downloads that release's `TabletopReels-iOS-Xcode.zip`, builds the `Unity-iPhone` scheme for devices with code signing switched off, packages `Payload/<app>.app` as `TabletopReels-iOS.ipa`, and attaches it to the same release. It can also be run by hand for any tag (empty = newest release).
+  - Unsigned on purpose: LiveContainer signs what it installs, so the build needs no Apple ID, certificate, provisioning profile or repository secret.
+  - Unity itself still runs on the Windows machine: the workflow starts from the Xcode project the release already carries, so the D-032..D-036 Xcode fixes apply unchanged and CI needs no Unity licence. Building Unity in CI too (for example with GameCI and a licence stored as a secret) was not done; it would be its own decision.
+  - The repository is public, so GitHub's macOS runners cost nothing.
+  - A pull request that changes the workflow builds the newest release as a check and keeps the `.ipa` as a workflow artifact only; it never edits a release.
+  - The Mac + Xcode route (D-029) still works and is unchanged.
+- **Limits:** an unsigned `.ipa` cannot be installed directly on a stock iPhone; it needs LiveContainer or another sideloader that signs it. The runner's Xcode is whatever `macos-latest` provides, which may differ from the Xcode the earlier fixes were found on.
+- **Not changed:** the game, its build settings, `IosXcodeFixups`.
+- **Files updated:** `.github/workflows/ios-ipa.yml`, `Tools/publish_builds.sh` (release notes), `Docs/IMPLEMENTATION_STATUS.md`, `Docs/TOOLING.md`
+
 ## Open decisions
 
 The rules-level open questions and temporary prototype behaviors are maintained in `RULES_SPEC.md` Section 15. They do not block M0 or M1.
