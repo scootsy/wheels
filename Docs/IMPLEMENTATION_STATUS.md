@@ -19,6 +19,7 @@
 | W4 rest of the journey + Grand Tournament + wandering (D-038) | Complete | 150/150 EditMode, 49/49 PlayMode; Windows build self-check with screenshots of every new place |
 | W4 playtest stop | **ACTIVE** | Waiting for the creative director to play W4 |
 | Dev tools, god wheels, touch run/look (D-040) | Code complete; **not yet run in Unity** | Engine-free EditMode 88/88 under .NET; Unity-side code type-checked; PlayMode suite, build and self-check still to run in the editor |
+| Map and minimap (D-041) | Code complete; **not yet run in Unity** | Engine-free EditMode 91/91 under .NET (map painter included); Unity-side code type-checked; the real map not yet seen |
 | M2 progression | Not authorized | Untouched |
 | M3 tiny world (beyond W1) | Not authorized | Untouched |
 | M4 production presentation | Not authorized | Untouched |
@@ -292,6 +293,24 @@ Screenshots/build path: none (needs the editor)
 Known defects: the dev tools unlock needs a tap or mouse click (a controller-only player cannot unlock it).
 Blockers: the full EditMode and PlayMode suites, a Windows/iOS build and the self-check must run in Unity before release.
 Next authorized work: run the suites and a build in the editor; fixes only.
+Gate status: W4 PLAYTEST STOP ACTIVE.
+```
+
+## Update 2026-10-20 — map and minimap (D-041)
+
+```text
+Date/time: 2026-10-20 (cloud session, no Unity editor)
+Milestone: W4 + map requested by the creative director before the next release
+Completed: full map (M / RB / pause MAP / tap the minimap) painted from the land's own data with place names and
+  markers (you, challengers, beaten, champions, stalls, errands); minimap top-left while exploring, switchable, saved
+  (save version 5).
+Tests: engine-free EditMode 91/91 under .NET 8 + NUnit (3 new MapPainterTests). New PlayMode tests written and
+  type-checked but not run: map open/close, position, markers, hall door, minimap hiding and switch, touch tap.
+Console/build: not built (no editor). Unity-side code type-checked: no new errors.
+Screenshots/build path: none yet; the self-check should be extended to capture the map once it runs in the editor.
+Known defects: none known; the real map's look is unverified until it runs in Unity.
+Blockers: run the EditMode and PlayMode suites, build and self-check in Unity before publishing a release.
+Next authorized work: verification in the editor; fixes only.
 Gate status: W4 PLAYTEST STOP ACTIVE.
 ```
 

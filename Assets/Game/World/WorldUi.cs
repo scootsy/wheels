@@ -14,7 +14,7 @@ namespace Tabletop.World
         public readonly GameObject Pause;
         public readonly GameObject Dialogue;
         public readonly Button TitleContinue, TitleBegin, TitlePractice, TitleQuit;
-        public readonly Button PauseResume, PauseJournal, PauseDeck, PauseView, PauseSound, PauseHelp, PausePractice, PauseQuit;
+        public readonly Button PauseResume, PauseMap, PauseJournal, PauseDeck, PauseView, PauseSound, PauseHelp, PausePractice, PauseQuit;
         /// <summary>
         /// The PAUSED title: tapping or clicking it five times unlocks the dev tools (D-040). A tap target, not a
         /// Selectable, so controller focus can never land on it.
@@ -130,6 +130,7 @@ namespace Tabletop.World
             _hud = Ui.Label("Status", pbox.transform, "", 24, TextAnchor.UpperCenter, Theme.Gilt, FontStyle.Bold);
             _hud.rectTransform.Place(20, 78, 760, 64);
             PauseResume = Ui.Button("Resume", pbox.transform, "RESUME", null, 26, Theme.ButtonPrimary);
+            PauseMap = Ui.Button("Map", pbox.transform, "MAP", null, 26);
             PauseJournal = Ui.Button("Journal", pbox.transform, "ERRANDS AND SATCHEL", null, 26);
             PauseDeck = Ui.Button("Deck", pbox.transform, "YOUR DECK", null, 26);
             PauseView = Ui.Button("View", pbox.transform, "VIEW: OVERHEAD", null, 26);
@@ -137,9 +138,10 @@ namespace Tabletop.World
             PauseHelp = Ui.Button("Help", pbox.transform, "HOW TO PLAY", null, 26);
             PausePractice = Ui.Button("Practice", pbox.transform, "PRACTICE TABLE", null, 26);
             PauseQuit = Ui.Button("Quit", pbox.transform, "SAVE AND QUIT", null, 26);
-            var pauseButtons = new[] { PauseResume, PauseJournal, PauseDeck, PauseView, PauseSound, PauseHelp, PausePractice, PauseQuit };
+            var pauseButtons = new[] { PauseResume, PauseMap, PauseJournal, PauseDeck, PauseView, PauseSound, PauseHelp, PausePractice, PauseQuit };
             _pauseButtons = pauseButtons;
-            for (int i = 0; i < pauseButtons.Length; i++) ((RectTransform)pauseButtons[i].transform).Place(200, 150 + i * 60, 400, 52);
+            // Nine buttons (D-041 added MAP) in the space eight had, so the help text below keeps its room.
+            for (int i = 0; i < pauseButtons.Length; i++) ((RectTransform)pauseButtons[i].transform).Place(200, 150 + i * 54, 400, 48);
             _pauseText = Ui.Label("HelpText", pbox.transform, "", 21, TextAnchor.UpperLeft, Theme.Text);
             _pauseText.rectTransform.Place(40, 638, 720, 250);
             PauseDev = Ui.Button("DevTools", pbox.transform, "DEV TOOLS", null, 20);
@@ -161,7 +163,7 @@ namespace Tabletop.World
             TitleQuit = Ui.Button("Quit", Title.transform, "QUIT", null, 26);
             ((RectTransform)TitleQuit.transform).Place(760, 684, 400, 66);
             Ui.Label("How", Title.transform,
-                "Walk: WASD / arrows or left stick.  Sprint: Shift, or push the stick all the way.  Jump: Space or (A).  Talk: E or (A).  Switch view: V or (Y).  Deck: I or (X).  Menu: Esc or Start.\n"
+                "Walk: WASD / arrows or left stick.  Sprint: Shift, or push the stick all the way.  Jump: Space or (A).  Talk: E or (A).  Switch view: V or (Y).  Deck: I or (X).  Map: M or (RB).  Menu: Esc or Start.\n"
                 + "People with a golden marker above their heads play Wheels, mostly for coins. Villagers pay for errands; stalls sell charms and wheels. Your journey saves itself.",
                 23, TextAnchor.UpperCenter, Theme.TextDim).rectTransform.Place(160, 790, 1600, 120);
             Link(TitleContinue, TitleBegin, TitlePractice, TitleQuit);

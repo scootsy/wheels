@@ -162,7 +162,7 @@ HAS WORK, accept (the choice shows the reward), and:
    PLAY ROUND n / PLAY THE FINAL.
 6. **Table**: straight to figurine selection. The result screen shows the stake, coins won or lost, and any charm used.
 7. **Return**: back where you stood; the opponent reacts, then coins, favour and prize pages.
-8. **Menu** (Esc / Start): Resume, Errands and Satchel, Your Deck, View, Sound, How to play, Practice table, Save and quit.
+8. **Menu** (Esc / Start): Resume, Map, Errands and Satchel, Your Deck, View, Sound, How to play, Practice table, Save and quit.
 
 ## Controls
 
@@ -174,9 +174,26 @@ HAS WORK, accept (the choice shows the reward), and:
 | Look (first person) | Mouse | Right stick | LOOK stick, bottom right (first person only, D-040) |
 | Switch overhead / first person | V | Y | VIEW |
 | Your deck | I | X | - |
+| Map (D-041) | M | RB | tap the minimap |
 | Talk / use / pick up / advance | E (Enter/Space on focused buttons) | A | A / tap |
 | Menu | Esc | Start | MENU |
 | Close a list or conversation | Esc | B | tap CLOSE / NOT NOW |
+
+## Map and minimap (D-041)
+
+- **The map** (M / RB / the pause menu's MAP / tapping the minimap): the whole land, north up, painted once when the
+  world loads from the land itself (the terrain's grass, meadow, dirt paths, stone plazas and rock; hill shading;
+  the stream, the lake and the bridge and pier; every building's footprint; trees), on old paper, with the place names
+  written on it. On the right: where you are, your coins, a key, MINIMAP: ON/OFF and CLOSE. Esc / B / M close it.
+  Walking stops while it is open.
+- **The minimap**: a framed square in the top-left corner showing about 110 m of land around you, north up (an N on
+  the frame), while you explore. Hidden under menus, conversations, the map, at a table, and on the title. Switched
+  off and on from the map; the choice is saved (save version 5).
+- **Markers** (both): you, an arrow pointing the way you face; a gold diamond for someone who plays Wheels and is not
+  yet beaten; a green-grey diamond once beaten; a crown for a champion, the tournament opponent you are due to play,
+  or the Herald once you can enter; a hammer for a stall; a star for an errand (someone with work, a delivery to make,
+  a giver waiting, or an item to pick up). Errands come first when a person is both. Inside the Champion's Hall you
+  show at its door.
 
 ## Dev tools (testing builds, D-040)
 

@@ -589,6 +589,8 @@ namespace Tabletop.Application
         public static bool TitleShown { get; set; }
         /// <summary>Player preference: explore in first person instead of the overhead camera.</summary>
         public static bool FirstPersonView { get; set; }
+        /// <summary>Player preference: hide the minimap in the corner while exploring (D-041). Saved.</summary>
+        public static bool MinimapHidden { get; set; }
         public static int Wins => _defeated.Count;
         /// <summary>The Grand Tournament round the player is due to play (1..3), or 0 when not in the tournament (D-038).</summary>
         public static int TournamentRound { get; private set; }
@@ -889,6 +891,7 @@ namespace Tabletop.Application
             HasReturnPoint = false;
             TitleShown = false;
             FirstPersonView = false;
+            MinimapHidden = false;
             _settledThisVisit = 0;
             _visitCoinDelta = 0;
             _visitFavour = false;

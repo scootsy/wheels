@@ -32,6 +32,8 @@ namespace Tabletop.World
         public int tournamentAttempts;
         // Version 4 (D-040): the developer god wheels switch (older saves read as off).
         public bool godWheels;
+        // Version 5 (D-041): the minimap preference (older saves show it).
+        public bool hideMinimap;
     }
 
     /// <summary>
@@ -41,7 +43,7 @@ namespace Tabletop.World
     /// </summary>
     public static class SaveGame
     {
-        public const int Version = 4;
+        public const int Version = 5;
         public const string FileName = "journey.json";
 
         /// <summary>Tests and the build self-check point this at a scratch folder so they never touch a real save.</summary>
@@ -70,6 +72,7 @@ namespace Tabletop.World
             d.tournamentRound = GameFlow.TournamentRound;
             d.tournamentAttempts = GameFlow.TournamentAttempts;
             d.godWheels = GameFlow.GodWheels;
+            d.hideMinimap = GameFlow.MinimapHidden;
             return d;
         }
 
@@ -123,6 +126,7 @@ namespace Tabletop.World
             GameFlow.Restore(data.defeated, losses, data.unlocked, data.firstPerson,
                 id => ReferenceContent.Catalog.TryGetUnit(id, out _), coins, items, errands, data.tournamentRound, data.tournamentAttempts);
             GameFlow.GodWheels = data.godWheels;
+            GameFlow.MinimapHidden = data.hideMinimap;
         }
 
         public static void Delete()

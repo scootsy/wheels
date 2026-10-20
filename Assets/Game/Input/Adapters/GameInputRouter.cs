@@ -48,6 +48,7 @@ namespace Tabletop.Input
             _jump.performed += OnDevice;
             _lookStick.performed += OnDevice;
             Hook(_world.FindAction("ToggleView", true), () => ToggleView?.Invoke());
+            Hook(_world.FindAction("Map", true), () => Map?.Invoke());
             Hook(_ui.FindAction("Submit", true), () => Submit?.Invoke());
 
             Hook(_match.FindAction("Spin", true), () => Spin?.Invoke());
@@ -104,6 +105,8 @@ namespace Tabletop.Input
         /// <summary>Stick look, -1..1 (a rate: multiply by time).</summary>
         public UnityEngine.Vector2 LookStick => _world.enabled ? _lookStick.ReadValue<UnityEngine.Vector2>() : UnityEngine.Vector2.zero;
         public event Action ToggleView;
+        /// <summary>Open or close the world map (D-041).</summary>
+        public event Action Map;
 
         /// <summary>Enable walking/interacting (world scene only).</summary>
         public void EnableWorld() => _world.Enable();

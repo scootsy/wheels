@@ -225,6 +225,22 @@ namespace Tabletop.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator World_TappingTheMinimap_OpensTheMap()
+        {
+            yield return Load("World");
+            var world = Object.FindAnyObjectByType<WorldApp>();
+            world.SkipTitleForTests();
+            yield return null;
+            yield return null;
+            Assert.IsTrue(world.Map.MinimapShown, "minimap in the top-left corner (D-041)");
+            yield return TapOn(world.Map.MiniTap);
+            Assert.IsTrue(world.Map.IsOpen, "tapping the minimap opens the full map");
+            Assert.IsFalse(world.TouchPad.Visible, "the pad steps aside for the map");
+            yield return TapOn(world.Map.Close);
+            Assert.IsFalse(world.Map.IsOpen, "tapping CLOSE closes it");
+        }
+
+        [UnityTest]
         public IEnumerator World_LookStick_ShowsOnlyInFirstPerson_AndTurnsTheView()
         {
             yield return Load("World");
