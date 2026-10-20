@@ -24,7 +24,6 @@ namespace Tabletop.Input
         private readonly InputAction _lookStick;
         private readonly InputAction _accelerate;
         private readonly InputAction[] _lockSlots = new InputAction[5];
-        private double _accelerateStart = -1;
 
         /// <param name="consumeShortcuts">
         /// True for the match table (Shift+Tab must not also fire Tab). The world passes false: with consumption on,
@@ -64,8 +63,7 @@ namespace Tabletop.Input
             Hook(_match.FindAction("Help", true), () => Help?.Invoke());
             Hook(_match.FindAction("Pause", true), () => Pause?.Invoke());
             Hook(_ui.FindAction("Cancel", true), () => Cancel?.Invoke());
-            _accelerate.started += OnDevice;
-            _accelerate.canceled += OnDevice;
+            Hook(_accelerate, () => Accelerate?.Invoke());
             foreach (var a in _ui.actions) a.performed += OnDevice;
 
             // Shift+Tab must not also trigger the plain Tab binding.
@@ -83,6 +81,8 @@ namespace Tabletop.Input
         public event Action Inspect;
         public event Action Help;
         public event Action Pause;
+        /// <summary>The accelerate action was pressed: switches fast play on or off (D-042).</summary>
+        public event Action Accelerate;
         public event Action Cancel;
         public event Action Interact;
         public event Action Submit;
@@ -111,17 +111,6 @@ namespace Tabletop.Input
         /// <summary>Enable walking/interacting (world scene only).</summary>
         public void EnableWorld() => _world.Enable();
         public event Action<ControlScheme> SchemeChanged;
-
-        /// <summary>Seconds the accelerate action has been continuously held (0 when released).</summary>
-        public float AccelerateHeldSeconds
-        {
-            get
-            {
-                if (!_accelerate.IsPressed()) { _accelerateStart = -1; return 0f; }
-                if (_accelerateStart < 0) _accelerateStart = UnityEngine.Time.unscaledTimeAsDouble;
-                return (float)(UnityEngine.Time.unscaledTimeAsDouble - _accelerateStart);
-            }
-        }
 
         public void Enable()
         {

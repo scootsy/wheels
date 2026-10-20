@@ -591,6 +591,8 @@ namespace Tabletop.Application
         public static bool FirstPersonView { get; set; }
         /// <summary>Player preference: hide the minimap in the corner while exploring (D-041). Saved.</summary>
         public static bool MinimapHidden { get; set; }
+        /// <summary>Player preference: tables present everything at fast-play speed until switched off (D-042). Saved.</summary>
+        public static bool FastPlay { get; set; }
         public static int Wins => _defeated.Count;
         /// <summary>The Grand Tournament round the player is due to play (1..3), or 0 when not in the tournament (D-038).</summary>
         public static int TournamentRound { get; private set; }
@@ -892,6 +894,7 @@ namespace Tabletop.Application
             TitleShown = false;
             FirstPersonView = false;
             MinimapHidden = false;
+            FastPlay = false;
             _settledThisVisit = 0;
             _visitCoinDelta = 0;
             _visitFavour = false;

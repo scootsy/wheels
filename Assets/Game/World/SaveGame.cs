@@ -34,6 +34,8 @@ namespace Tabletop.World
         public bool godWheels;
         // Version 5 (D-041): the minimap preference (older saves show it).
         public bool hideMinimap;
+        // Version 6 (D-042): the fast-play preference (older saves play at normal speed).
+        public bool fastPlay;
     }
 
     /// <summary>
@@ -43,7 +45,7 @@ namespace Tabletop.World
     /// </summary>
     public static class SaveGame
     {
-        public const int Version = 5;
+        public const int Version = 6;
         public const string FileName = "journey.json";
 
         /// <summary>Tests and the build self-check point this at a scratch folder so they never touch a real save.</summary>
@@ -73,6 +75,7 @@ namespace Tabletop.World
             d.tournamentAttempts = GameFlow.TournamentAttempts;
             d.godWheels = GameFlow.GodWheels;
             d.hideMinimap = GameFlow.MinimapHidden;
+            d.fastPlay = GameFlow.FastPlay;
             return d;
         }
 
@@ -127,6 +130,7 @@ namespace Tabletop.World
                 id => ReferenceContent.Catalog.TryGetUnit(id, out _), coins, items, errands, data.tournamentRound, data.tournamentAttempts);
             GameFlow.GodWheels = data.godWheels;
             GameFlow.MinimapHidden = data.hideMinimap;
+            GameFlow.FastPlay = data.fastPlay;
         }
 
         public static void Delete()

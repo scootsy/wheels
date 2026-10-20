@@ -71,12 +71,9 @@ namespace Tabletop.Presentation
             // The SPIN lever: invisible buttons over the 3D lever (the lever's own plate shows what it will do).
             _spinButton = Ui.Button("Spin", t, "SPIN", OnSpinClicked, 30, Theme.ButtonPrimary);
             MakeOverlay(_spinButton);
-            _speedButton = Ui.Button("Speed", t, "HOLD TO SPEED UP", null, 20, Theme.Button);
+            // While the table plays out, the lever is the fast-play switch (D-042): one tap on, one tap off.
+            _speedButton = Ui.Button("Speed", t, "FAST PLAY: OFF", ToggleFastPlay, 20, Theme.Button);
             MakeOverlay(_speedButton);
-            var trigger = _speedButton.gameObject.AddComponent<EventTrigger>();
-            AddTrigger(trigger, EventTriggerType.PointerDown, () => SetPointerAccelerate(true));
-            AddTrigger(trigger, EventTriggerType.PointerUp, () => SetPointerAccelerate(false));
-            AddTrigger(trigger, EventTriggerType.PointerExit, () => SetPointerAccelerate(false));
 
             // Menu and help: two small round buttons in the top-right corner.
             _pauseButton = Ui.Button("Pause", t, "II", OnPause, 22, new Color(0.14f, 0.08f, 0.05f, 0.92f));
@@ -301,7 +298,7 @@ namespace Tabletop.Presentation
             _speedButton.gameObject.SetActive(presentation);
             _spinButton.interactable = Session.CanSpinOrConfirm && !AnyModalOpen;
             _spinButton.SetText(Session.CanFinalize ? "LOCK IN" : state == UxState.SpinDecision ? "SPIN UNLOCKED WHEELS" : state == UxState.MatchResult ? "MATCH OVER" : "SPIN");
-            _speedButton.SetText(Presenter.Accelerated ? "SPEED x4" : "HOLD TO SPEED UP");
+            _speedButton.SetText(FastPlayText);
             _spinsText.text = "SPINS USED " + v.SpinsUsed[0] + " / 3";
             UpdateNavigation(state);
 
@@ -329,6 +326,7 @@ namespace Tabletop.Presentation
             f.CanConfirm = Session.CanFinalize && !AnyModalOpen;
             f.SpinsUsed = v.SpinsUsed[0];
             f.Round = System.Math.Max(1, v.Round);
+            f.FastPlay = Settings.FastPlay;
             _table.Render(f);
             if (Settings.ScreenShake && !Settings.ReducedMotion && cur != null && cur.Type == MatchEventType.CrownDamaged && Presenter.Applied) _table.Shake(0.05f);
             else _table.StopShake();
@@ -455,7 +453,7 @@ namespace Tabletop.Presentation
             var items = new List<(string key, string label)>();
             if (presenting)
             {
-                items.Add(("Hold " + B("Match", "AcceleratePresentation"), "Fast-forward"));
+                items.Add((B("Match", "AcceleratePresentation"), Settings.FastPlay ? "Fast play: on" : "Fast play: off"));
                 items.Add((B("Match", "FocusNext"), "Skip step"));
             }
             else if (st == UxState.SpinDecision)

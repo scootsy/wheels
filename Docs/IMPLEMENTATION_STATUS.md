@@ -18,8 +18,9 @@
 | W3 playtest stop | Passed | Creative director asked for the rest of the journey (D-038) |
 | W4 rest of the journey + Grand Tournament + wandering (D-038) | Complete | 150/150 EditMode, 49/49 PlayMode; Windows build self-check with screenshots of every new place |
 | W4 playtest stop | **ACTIVE** | Waiting for the creative director to play W4 |
-| Dev tools, god wheels, touch run/look (D-040) | Code complete; **not yet run in Unity** | Engine-free EditMode 88/88 under .NET; Unity-side code type-checked; PlayMode suite, build and self-check still to run in the editor |
-| Map and minimap (D-041) | Code complete; **not yet run in Unity** | Engine-free EditMode 91/91 under .NET (map painter included); Unity-side code type-checked; the real map not yet seen |
+| Dev tools, god wheels, touch run/look (D-040) | Complete | Run in Unity 2026-10-20 with D-041/D-042: EditMode 161/161, PlayMode 57/57 |
+| Map and minimap (D-041) | Complete | Same runs; minimap seen in the Windows build self-check |
+| Fast play switch (D-042) | Complete | EditMode 161/161, PlayMode 57/57; Windows + iOS builds; Windows self-check clean (lever plate reads FAST PLAY) |
 | M2 progression | Not authorized | Untouched |
 | M3 tiny world (beyond W1) | Not authorized | Untouched |
 | M4 production presentation | Not authorized | Untouched |
@@ -57,7 +58,7 @@ Flow: setup (see the opponent) → choose two units (Striker, Caster) for slots 
 | Skip the current step while the round plays out | Tab | RB |
 | Inspect focused unit | I (or click a piece) | X (west) |
 | Help | H | View / Select |
-| Hold to speed up animations (x4) | hold Space | hold A or RT |
+| Fast play on / off (x4, stays on until switched off, D-042) | Space while the round plays out, click the lever, or Pause → FAST PLAY | A or RT while the round plays out, or Pause → FAST PLAY |
 | Pause / close overlay | Esc | Menu / Start (B closes overlays) |
 
 Developer mode (setup screen button) adds: fixed seed, reel tier (Copper-Platinum), AI profile (Learner/Standard/Expert), any opponent unit, forced scenarios (Victory / Defeat / Tie next round, Rank-up and bomb, Barrier wall), replay verification from the clipboard, all units in selection, "Skip all presentation" in pause, and "Replay same seed" on the result screen.

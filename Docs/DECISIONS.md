@@ -481,6 +481,20 @@ This log records decisions that affect rules, player experience, architecture, s
 - **Verified in this cloud session (no Unity editor):** `MapPainter` and its tests compiled and ran under .NET (`MapPainterTests`: same pixels every time, water and buildings land where they are, north up, the arrow points north); the engine-free suite is 91/91. The map's look was checked on a stand-in landscape rendered by the same painter. All Unity-side code and the new PlayMode tests (M opens and Esc closes, your position, markers, beaten players, the hall door, the minimap hiding under menus and its saved switch, tapping the minimap) type-check with no new errors. **Not yet run in Unity:** the PlayMode suite, a build and the self-check, so the real map has not been seen yet.
 - **Files updated:** `Docs/WORLD_SPEC.md`, `Docs/IMPLEMENTATION_STATUS.md`, `AGENTS.md`
 
+### D-042: Fast play is a switch, not a hold (creative director, 2026-10-20)
+
+- **Date:** 2026-10-20
+- **Status:** Accepted (explicit creative-director instruction)
+- **Instruction:** "add one more feature. a streamlined "speed up gameplay". because it's finicky and undoes itself easily"
+- **What was wrong:** speeding up (D-028, `MATCH_UX_SPEC.md` 7.3) needed the accelerate control *held* for 350 ms; letting go dropped back to normal at the next event, a finger sliding off the lever on a touch screen cancelled it, and every round and every table started slow again.
+- **Decisions (agent, overridable by the creative director):**
+  - **A switch:** one press of the accelerate action (Space, A or RT) while the round plays out, one tap/click on the lever (its plate reads FAST PLAY: OFF / ON), or the new FAST PLAY row at the top of the pause menu turns fast play on; the same again turns it off. Nothing else turns it off.
+  - **What it speeds up:** the whole round at 4×, as the old hold did: spins, the opponent's wait, the reveal, the step beats and every resolution event. Tab / RB still skips a step. Results, the event log and replays are unchanged (presentation timing only).
+  - **It sticks:** for the rest of the match, rematches, the next table, and the saved journey (`GameFlow.FastPlay`, save version 6 `fastPlay`; older saves load with it off; a new journey starts with it off).
+  - **Space / A / RT outside the round playing out** keep their other jobs (Submit, lock a reel, jump), so pressing A to lock a wheel never flips fast play. A pad's A on the focused lever is both the action and Submit; one press switches once.
+- **Found while building:** the pause menu's Reduced motion, Screen shake, text size and Wrap rows had no labels (blank buttons). They now read e.g. REDUCED MOTION: OFF, TEXT SIZE: 125%.
+- **Files updated:** `Docs/MATCH_UX_SPEC.md` (7.2, 7.3, controls), `Docs/IMPLEMENTATION_STATUS.md`, `Docs/WORLD_SPEC.md` (save version)
+
 ## Open decisions
 
 The rules-level open questions and temporary prototype behaviors are maintained in `RULES_SPEC.md` Section 15. They do not block M0 or M1.

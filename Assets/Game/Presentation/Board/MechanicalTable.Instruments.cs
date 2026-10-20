@@ -30,6 +30,8 @@ namespace Tabletop.Presentation
         public bool CanConfirm;
         public int SpinsUsed;
         public int Round;
+        /// <summary>Fast play is on (D-042): the lever's plate says so while the table plays out.</summary>
+        public bool FastPlay;
     }
 
     /// <summary>
@@ -410,8 +412,8 @@ namespace Tabletop.Presentation
             int left = Mathf.Clamp(3 - f.SpinsUsed, 0, 3);
             for (int i = 0; i < 3; i++) SetColor(_spinLamps[i], i < left ? Gold : new Color(0.16f, 0.09f, 0.05f));
             bool presenting = f.State == UxState.Spinning || f.State == UxState.AiCommit || f.State == UxState.Reveal || f.State == UxState.Resolving;
-            _leverLabel.text = f.CanConfirm ? "LOCK IN" : f.CanSpin ? (f.SpinsUsed == 0 ? "SPIN" : "SPIN AGAIN") : presenting ? "HOLD TO SPEED UP" : "...";
-            _leverLabel.color = f.CanConfirm ? Go : f.CanSpin ? PlateInk : PlateDim;
+            _leverLabel.text = f.CanConfirm ? "LOCK IN" : f.CanSpin ? (f.SpinsUsed == 0 ? "SPIN" : "SPIN AGAIN") : presenting ? (f.FastPlay ? "FAST PLAY: ON" : "FAST PLAY: OFF") : "...";
+            _leverLabel.color = f.CanConfirm ? Go : f.CanSpin || (presenting && f.FastPlay) ? PlateInk : PlateDim;
         }
 
         /// <summary>Symbols fly from the reel faces that produced them to where they apply.</summary>

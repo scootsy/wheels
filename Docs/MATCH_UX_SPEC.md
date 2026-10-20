@@ -262,7 +262,7 @@ The text diagram defines hierarchy, not final art. Use `VISUAL_REFERENCE.md` for
 - **The board is the interface (D-028).** Every piece of match information is a part on the table:
   - **Nameplates** lie in front of each podium: rank badge, name, XP diamonds, crown and wall damage, and the locked-gem energy tally with its result. During actions, a numbered order token appears; before that, a READY tag.
   - The **step sign** sits in the centre plaza. It flips to name the current step: LOCK OR SPIN, OPPONENT, REVEAL, XP, WALL, ENERGY, ACTIONS (action n of m), ROUND OVER. A strip beneath it lights 1 XP > 2 WALL > 3 ENERGY > 4 ACTIONS in turn.
-  - The **SPIN lever** is bottom right. Three lamps show spins left, and a plate says what the lever will do: SPIN, SPIN AGAIN, LOCK IN, or HOLD TO SPEED UP. The **round dial** is bottom left.
+  - The **SPIN lever** is bottom right. Three lamps show spins left, and a plate says what the lever will do: SPIN, SPIN AGAIN, LOCK IN, or (while the round plays out) FAST PLAY: OFF / ON, a switch (D-042). The **round dial** is bottom left.
   - Invisible hit areas over drums, podiums and lever carry focus and clicks. Focus on a piece is drawn as a gold ring on the table.
   - The only screen-space UI: a bottom-left prompt bar of key caps for what can be done now, a short toast for rejections, and round Help (?) and Menu (II) buttons top right.
 - **Removed (D-028):** corner unit panels, event log, legend, banner, preview text, on-screen SPIN/speed buttons, and the curved arch inlay in front of each crown.
@@ -352,7 +352,7 @@ Gameplay code consumes abstract actions, not device-specific keys.
 | Focus next / previous | Tab / Shift+Tab | Bumpers | Direct selection |
 | Inspect | I | West face button | Hover or info button |
 | Help | H | View/Select | Help button |
-| Accelerate presentation | Hold Space | Hold South face button | Hold skip control |
+| Fast play on / off (D-042) | Space (while the round plays out), click the lever | South face button or RT (while the round plays out) | Tap the lever |
 | Pause | Escape outside overlays | Menu/Start | Pause button |
 
 Bindings MAY be remapped. Display prompts based on the most recently used device without changing focus.
@@ -419,14 +419,14 @@ Normal presentation SHOULD use:
 - 250–500 ms for round transition;
 - no more than 8 seconds for a typical full resolution sequence.
 
-**As built (D-028):** at the creative director's request, the round is paced as a readable sequence rather than fit into 8 seconds. Each resolution step (XP, wall, energy, actions) opens with a 0.8 s beat, and resolution events run 1.6x their base duration. The opponent "thinks" for 0.8 s and the reveal holds for 1.1 s. Tab / RB skips a step and holding accelerate fast-forwards, so a player who knows the game is never slowed down.
+**As built (D-028):** at the creative director's request, the round is paced as a readable sequence rather than fit into 8 seconds. Each resolution step (XP, wall, energy, actions) opens with a 0.8 s beat, and resolution events run 1.6x their base duration. The opponent "thinks" for 0.8 s and the reveal holds for 1.1 s. Tab / RB skips a step and fast play (a switch since D-042) runs everything at 4×, so a player who knows the game is never slowed down.
 
 These are timing bounds, not permission to merge or reorder events.
 
 ### 7.3 Acceleration, skip, and reduced motion
 
-- Holding the accelerate action for 350 ms runs the current and remaining presentation at 4× speed.
-- Releasing it returns to normal speed at the next event boundary.
+- **Fast play (D-042)** is a switch: one press of the accelerate action while the round plays out, a tap on the lever (plate: FAST PLAY: OFF / ON), or the pause menu's FAST PLAY row turns it on, and the same turns it off. While on, all presentation (spins, opponent wait, reveal, step beats, resolution) runs at 4× speed.
+- Fast play changes speed immediately and stays as set for the rest of the match, rematches, later tables and the saved journey. Nothing but the player turns it off. (Before D-042 the action had to be held for 350 ms and releasing it returned to normal speed.)
 - A developer-only `SKIP ALL` completes every remaining event immediately in order.
 - **Skip step (D-028):** during presentation, the next-element action (Tab / RB) presents every remaining event of the current step instantly, in order, then continues at normal pace with the next step.
 - Reduced Motion replaces large travel, shake, zoom, and flashes with short fades, highlights, and numeric deltas.

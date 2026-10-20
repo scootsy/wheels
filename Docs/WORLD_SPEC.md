@@ -188,7 +188,7 @@ HAS WORK, accept (the choice shows the reward), and:
   Walking stops while it is open.
 - **The minimap**: a framed square in the top-left corner showing about 110 m of land around you, north up (an N on
   the frame), while you explore. Hidden under menus, conversations, the map, at a table, and on the title. Switched
-  off and on from the map; the choice is saved (save version 5).
+  off and on from the map; the choice is saved (save version 5). The table's fast-play switch (D-042) is saved too (save version 6).
 - **Markers** (both): you, an arrow pointing the way you face; a gold diamond for someone who plays Wheels and is not
   yet beaten; a green-grey diamond once beaten; a crown for a champion, the tournament opponent you are due to play,
   or the Herald once you can enter; a hammer for a stall; a star for an errand (someone with work, a delivery to make,
