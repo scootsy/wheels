@@ -109,7 +109,7 @@ namespace Tabletop.Tests.EditMode
         [Test]
         public void EachReel_ProducesOnlyFacesInItsDefinition_WithRoughlyUniformFrequency()
         {
-            foreach (ReelTier tier in System.Enum.GetValues(typeof(ReelTier)))
+            foreach (ReelTier tier in System.Enum.GetValues(typeof(ReelTier)).Cast<ReelTier>().Where(t => t != ReelTier.God)) // god wheels: DevToolsTests (D-040)
             {
                 var counts = new int[5, 8];
                 const int trials = 4000;

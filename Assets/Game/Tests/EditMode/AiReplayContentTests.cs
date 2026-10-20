@@ -31,7 +31,7 @@ namespace Tabletop.Tests.EditMode
         {
             var ids = TestKit.Catalog.Units.Select(u => u.Id).ToArray();
             long seed = 100;
-            foreach (ReelTier tier in System.Enum.GetValues(typeof(ReelTier)))
+            foreach (ReelTier tier in System.Enum.GetValues(typeof(ReelTier)).Cast<ReelTier>().Where(t => t != ReelTier.God)) // god wheels: DevToolsTests (D-040)
                 for (int i = 0; i < ids.Length; i++)
                 {
                     var m = TestKit.PlayFullMatch(seed++, ids[i], ids[(i + 1) % ids.Length], ids[(i + 2) % ids.Length], ids[(i + 3) % ids.Length], tier);

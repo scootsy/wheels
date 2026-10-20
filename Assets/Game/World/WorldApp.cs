@@ -23,7 +23,7 @@ namespace Tabletop.World
     /// hands challenges (with their stakes and charms) to the match table through <see cref="GameFlow"/>.
     /// Holds no match rules.
     /// </summary>
-    public sealed class WorldApp : MonoBehaviour
+    public sealed partial class WorldApp : MonoBehaviour
     {
         public const string MatchSceneName = "MatchPrototype";
 
@@ -247,6 +247,8 @@ namespace Tabletop.World
             Ui.PauseHelp.onClick.AddListener(() => { MarkClick(); Ui.SetPauseText(HelpText()); });
             Ui.PausePractice.onClick.AddListener(() => { MarkClick(); GoPractice(); });
             Ui.PauseQuit.onClick.AddListener(() => { MarkClick(); QuitGame(); });
+            Ui.PauseTitle.Tapped += OnPauseTitleTapped;
+            Ui.PauseDev.onClick.AddListener(() => { MarkClick(); ClosePause(); OpenDevTools(); });
             _deck.Close.onClick.AddListener(() => { MarkClick(); CloseDeck(); });
             Ui.Continue.onClick.AddListener(() => { if (MarkClick()) NextPage(); });
             RefreshSoundLabel();
@@ -447,6 +449,7 @@ namespace Tabletop.World
             else if (_seatedAt == null) Player.Rig?.SetMove(0f, false);
             // A connected controller replaces the on-screen pad (D-037).
             _touchPad?.SetVisible(!Busy && _seatedAt == null && !_touchPad.RealGamepadConnected);
+            _touchPad?.SetLookVisible(FirstPerson); // a second stick to look around in first person (D-040)
             UpdateCamera(dt);
             UpdateOccluders();
             UpdateMood(dt);
@@ -773,6 +776,8 @@ namespace Tabletop.World
         {
             _returnFocus = eventSystem.currentSelectedGameObject;
             Ui.Pause.SetActive(true);
+            _devTaps = 0;
+            Ui.ShowPauseDev(GameFlow.DevToolsUnlocked);
             Ui.SetPauseText(showHelp ? HelpText() : Ui.ControlsText);
             Select(Ui.PauseResume);
         }
@@ -784,7 +789,7 @@ namespace Tabletop.World
         }
 
         private string HelpText() =>
-            "Walk: " + Input.Binding("WorldReserved", "Move") + "   Sprint: " + Input.Binding("WorldReserved", "Sprint")
+            "Walk: " + Input.Binding("WorldReserved", "Move") + "   Sprint: " + SprintHint()
             + "   Jump: " + Input.Binding("WorldReserved", "Jump") + "\nTalk / use: " + Input.Binding("WorldReserved", "Interact")
             + "   View: " + Input.Binding("WorldReserved", "ToggleView") + "   Deck: " + Input.Binding("Match", "Inspect")
             + "   Menu: " + Input.Binding("Match", "Pause") + "\n\n"
@@ -794,10 +799,14 @@ namespace Tabletop.World
             + "Grand Tournament at Crownhold opens to you. Wander wherever the land lets you: off the paths, over the hills.\n"
             + "Your journey saves itself as you go.";
 
+        /// <summary>Sticks run when pushed nearly all the way (D-040); keyboards hold the sprint key.</summary>
+        private string SprintHint() =>
+            Input.ActiveScheme == ControlScheme.Gamepad ? "push the stick all the way" : Input.Binding("WorldReserved", "Sprint");
+
         private void RefreshControls()
         {
             if (Ui == null) return;
-            Ui.SetControls("Walk: " + Input.Binding("WorldReserved", "Move") + "   Sprint: " + Input.Binding("WorldReserved", "Sprint")
+            Ui.SetControls("Walk: " + Input.Binding("WorldReserved", "Move") + "   Sprint: " + SprintHint()
                            + "\nJump: " + Input.Binding("WorldReserved", "Jump") + "   Talk: " + Input.Binding("WorldReserved", "Interact")
                            + "   Deck: " + Input.Binding("Match", "Inspect")
                            + "\nView: " + Input.Binding("WorldReserved", "ToggleView")

@@ -232,6 +232,7 @@ namespace Tabletop.Presentation
                 _resultCards[side].color = won ? new Color(0.2f, 0.13f, 0.05f, 0.97f) : new Color(0.09f, 0.05f, 0.035f, 0.95f);
             }
             _resultBody.text = SettlementLine() ?? (p.ReelTier + " wheel   \u00b7   " + AiName(o.ControllerId) + "   \u00b7   seed " + m.Seed);
+            if (p.ReelTier == ReelTier.God && InEncounter) _resultBody.text += "   \u00b7   GOD WHEELS (dev)";
             _resultSameSeed.gameObject.SetActive(Session.Options.DeveloperMode);
         }
 

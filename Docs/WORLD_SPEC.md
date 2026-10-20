@@ -169,14 +169,33 @@ HAS WORK, accept (the choice shows the reward), and:
 | Action | Keyboard / mouse | Gamepad | Touch |
 |---|---|---|---|
 | Walk | WASD / arrow keys | Left stick / D-pad | on-screen stick |
-| Sprint (hold) | Shift | LT or L3 | RUN |
+| Sprint | hold Shift | push the left stick all the way, or hold LT / L3 | push the stick all the way (D-040) |
 | Jump | Space | A (when nobody is close enough to talk to) | A |
-| Look (first person) | Mouse | Right stick | - |
+| Look (first person) | Mouse | Right stick | LOOK stick, bottom right (first person only, D-040) |
 | Switch overhead / first person | V | Y | VIEW |
 | Your deck | I | X | - |
 | Talk / use / pick up / advance | E (Enter/Space on focused buttons) | A | A / tap |
 | Menu | Esc | Start | MENU |
 | Close a list or conversation | Esc | B | tap CLOSE / NOT NOW |
+
+## Dev tools (testing builds, D-040)
+
+Not part of the game: a hidden menu for testing.
+
+- **Unlock:** open the pause menu and tap (or click) the word PAUSED five times. A DEV TOOLS button appears at the
+  top right of the pause menu and stays for the rest of the session (the app forgets it when it closes). It needs a
+  touch or a mouse; a controller can use the button once it is unlocked.
+- **Main page:** god wheels on/off; +100 coins; +1,000 coins; coins to 0 (to test favours); Charms; Fifth wheels;
+  Figurines; Champions and the tournament; Give everything (every figurine and wheel, 9 of each charm, 9,999 coins).
+- **Charms:** +1 of any charm, or clear them all. **Fifth wheels:** give or take Bronze to Platinum.
+  **Figurines:** give or take any figurine except the starting Warrior and Mage. **Champions:** mark any town champion
+  beaten (which also gives their figurine) or not, beat all five (opens the Grand Tournament), forget every win, and
+  leave the tournament.
+- Every change is saved with the journey at once. BACK returns to the main page; Esc / B also goes back.
+- **God wheels:** all five of the player's wheels become `SSS+, DDD+, HHH, SSS+, DDD+, HHH, SSS+, DDD+` (every face a
+  triple; Square and Diamond faces also give XP) at every table, practice included. Opponents never get them and keep
+  their own wheel. The switch is saved with the journey and a new journey turns it off. The result screen says
+  GOD WHEELS (dev) after a challenge played with them. Wins, coins and prizes count as normal.
 
 ## Deliberate limits
 

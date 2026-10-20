@@ -236,5 +236,30 @@ namespace Tabletop.Tests.PlayMode
             Assert.AreEqual(3, App.UnitCardButtons.Count, "Striker, Caster and the won Ranger");
             Assert.IsNull(Session.Selection.Toggle(ReferenceContent.Ranger), "the Ranger can be picked");
         }
+
+        [UnityTest]
+        public IEnumerator GodWheels_FromTheDevTools_ReachTheTable_ForThePlayerOnly()
+        {
+            yield return Begin();
+            GameFlow.GodWheels = true; // as the DEV TOOLS switch sets it (D-040)
+            GameFlow.BeginEncounter(EncounterCatalog.Get(EncounterCatalog.Champion), 0, 0);
+            var op = SceneManager.LoadSceneAsync("MatchPrototype", LoadSceneMode.Single);
+            while (!op.isDone) yield return null;
+            yield return null;
+            App = Object.FindAnyObjectByType<MatchApp>();
+            App.Settings.TimeScale = 0.02f;
+            yield return null;
+            Assert.AreEqual(UxState.UnitSelect, Session.State);
+            Session.Selection.Toggle(ReferenceContent.Striker);
+            Session.Selection.Toggle(ReferenceContent.Caster);
+            Assert.IsTrue(Session.ConfirmUnits(), Session.LastStatus);
+            Assert.AreEqual(ReelTier.God, Session.Match.Config.Sides[0].ReelTier, "you bring the god wheels");
+            Assert.AreEqual(ReelTier.Bronze, Session.Match.Config.Sides[1].ReelTier, "Corvin keeps his Bronze wheel");
+            var godFaces = ReferenceContent.GodReelCodes.Split(',');
+            for (int r = 0; r < 5; r++)
+                Assert.AreEqual(godFaces.Length, Session.Match.ReelDefinitions(SideId.Player)[r].Faces.Count);
+            Assert.AreEqual("SSS+", Session.Match.ReelDefinitions(SideId.Player)[0].Faces[0].Code, "the table spins the god faces");
+            GameFlow.GodWheels = false;
+        }
     }
 }

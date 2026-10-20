@@ -558,7 +558,7 @@ namespace Tabletop.Application
     /// The player's journey state and the hand-off between the world and the match table. Engine-free; the world
     /// saves it by reading these properties and loads it through <see cref="Restore"/> (D-027, D-033).
     /// </summary>
-    public static class GameFlow
+    public static partial class GameFlow
     {
         public const int StartingCoins = 20;
         /// <summary>What a friendly table pays the winner.</summary>
@@ -896,6 +896,7 @@ namespace Tabletop.Application
             _visitTournament = TournamentResult.None;
             TournamentRound = 0;
             TournamentAttempts = 0;
+            GodWheels = false;
         }
     }
 }

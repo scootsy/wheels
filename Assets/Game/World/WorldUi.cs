@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Tabletop.Presentation;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace Tabletop.World
@@ -14,6 +15,14 @@ namespace Tabletop.World
         public readonly GameObject Dialogue;
         public readonly Button TitleContinue, TitleBegin, TitlePractice, TitleQuit;
         public readonly Button PauseResume, PauseJournal, PauseDeck, PauseView, PauseSound, PauseHelp, PausePractice, PauseQuit;
+        /// <summary>
+        /// The PAUSED title: tapping or clicking it five times unlocks the dev tools (D-040). A tap target, not a
+        /// Selectable, so controller focus can never land on it.
+        /// </summary>
+        public readonly TapTarget PauseTitle;
+        /// <summary>DEV TOOLS, top-right of the pause menu; hidden until unlocked (D-040).</summary>
+        public readonly Button PauseDev;
+        private readonly Button[] _pauseButtons;
         public readonly Transform Frame;
         public readonly Button Continue;
         public readonly List<Button> Choices = new List<Button>();
@@ -114,7 +123,10 @@ namespace Tabletop.World
             ((RectTransform)Pause.transform).Fill();
             var pbox = Ui.Panel("Box", Pause.transform, Theme.Panel);
             pbox.rectTransform.Place(560, 90, 800, 900);
-            Ui.Label("Title", pbox.transform, "PAUSED", 48, TextAnchor.UpperCenter, Theme.Text, FontStyle.Bold).rectTransform.Place(0, 20, 800, 60);
+            var pauseTitle = Ui.Label("Title", pbox.transform, "PAUSED", 48, TextAnchor.UpperCenter, Theme.Text, FontStyle.Bold);
+            pauseTitle.rectTransform.Place(200, 20, 400, 60);
+            pauseTitle.raycastTarget = true;
+            PauseTitle = pauseTitle.gameObject.AddComponent<TapTarget>();
             _hud = Ui.Label("Status", pbox.transform, "", 24, TextAnchor.UpperCenter, Theme.Gilt, FontStyle.Bold);
             _hud.rectTransform.Place(20, 78, 760, 64);
             PauseResume = Ui.Button("Resume", pbox.transform, "RESUME", null, 26, Theme.ButtonPrimary);
@@ -126,10 +138,13 @@ namespace Tabletop.World
             PausePractice = Ui.Button("Practice", pbox.transform, "PRACTICE TABLE", null, 26);
             PauseQuit = Ui.Button("Quit", pbox.transform, "SAVE AND QUIT", null, 26);
             var pauseButtons = new[] { PauseResume, PauseJournal, PauseDeck, PauseView, PauseSound, PauseHelp, PausePractice, PauseQuit };
+            _pauseButtons = pauseButtons;
             for (int i = 0; i < pauseButtons.Length; i++) ((RectTransform)pauseButtons[i].transform).Place(200, 150 + i * 60, 400, 52);
             _pauseText = Ui.Label("HelpText", pbox.transform, "", 21, TextAnchor.UpperLeft, Theme.Text);
             _pauseText.rectTransform.Place(40, 638, 720, 250);
-            Link(pauseButtons);
+            PauseDev = Ui.Button("DevTools", pbox.transform, "DEV TOOLS", null, 20);
+            ((RectTransform)PauseDev.transform).Place(620, 24, 160, 46);
+            ShowPauseDev(false);
             Pause.SetActive(false);
 
             // Title
@@ -146,7 +161,7 @@ namespace Tabletop.World
             TitleQuit = Ui.Button("Quit", Title.transform, "QUIT", null, 26);
             ((RectTransform)TitleQuit.transform).Place(760, 684, 400, 66);
             Ui.Label("How", Title.transform,
-                "Walk: WASD / arrows or left stick.  Sprint: Shift or LT.  Jump: Space or (A).  Talk: E or (A).  Switch view: V or (Y).  Deck: I or (X).  Menu: Esc or Start.\n"
+                "Walk: WASD / arrows or left stick.  Sprint: Shift, or push the stick all the way.  Jump: Space or (A).  Talk: E or (A).  Switch view: V or (Y).  Deck: I or (X).  Menu: Esc or Start.\n"
                 + "People with a golden marker above their heads play Wheels, mostly for coins. Villagers pay for errands; stalls sell charms and wheels. Your journey saves itself.",
                 23, TextAnchor.UpperCenter, Theme.TextDim).rectTransform.Place(160, 790, 1600, 120);
             Link(TitleContinue, TitleBegin, TitlePractice, TitleQuit);
@@ -164,6 +179,15 @@ namespace Tabletop.World
             TitleContinue.gameObject.SetActive(hasSave);
             if (hasSave) Link(TitleContinue, TitleBegin, TitlePractice, TitleQuit);
             else Link(TitleBegin, TitlePractice, TitleQuit);
+        }
+
+        /// <summary>Shows or hides DEV TOOLS in the pause menu; when shown it follows SAVE AND QUIT in the navigation.</summary>
+        public void ShowPauseDev(bool show)
+        {
+            PauseDev.gameObject.SetActive(show);
+            if (!show) { Link(_pauseButtons); return; }
+            var all = new List<Selectable>(_pauseButtons) { PauseDev };
+            Link(all.ToArray());
         }
 
         /// <summary>Adds a full-screen panel above the menus but below the fade.</summary>
@@ -244,5 +268,12 @@ namespace Tabletop.World
                 Link(active.ToArray());
             }
         }
+    }
+
+    /// <summary>Something that can be tapped or clicked without being part of controller navigation.</summary>
+    public sealed class TapTarget : MonoBehaviour, IPointerClickHandler
+    {
+        public event Action Tapped;
+        public void OnPointerClick(PointerEventData eventData) => Tapped?.Invoke();
     }
 }

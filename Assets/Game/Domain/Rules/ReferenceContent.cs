@@ -96,5 +96,29 @@ namespace Tabletop.Domain
         }
 
         public static ContentCatalog Build() => new ContentCatalog(RulesConstants.RulesVersion, BuildUnits(), BuildReelSets());
+
+        /// <summary>
+        /// The developer god wheels (D-040): every face of all five wheels is a triple, and the Square and Diamond
+        /// faces also give XP. Not part of the game: only the dev tools switch them on, and only for the player.
+        /// </summary>
+        public const string GodReelCodes = "SSS+,DDD+,HHH,SSS+,DDD+,HHH,SSS+,DDD+";
+
+        public static ReelSetDefinition BuildGodReelSet()
+        {
+            var reels = new List<ReelDefinition>();
+            for (int i = 0; i < ReelSetDefinition.ReelCount; i++) reels.Add(ParseReel("reel_" + (i + 1) + "_god", GodReelCodes));
+            return new ReelSetDefinition(ReelTier.God, reels);
+        }
+
+        /// <summary>
+        /// <paramref name="catalog"/> plus the god wheels, for a match that uses them. The standard catalog (and so its
+        /// content hash and every ordinary replay) never contains them.
+        /// </summary>
+        public static ContentCatalog WithGodWheels(ContentCatalog catalog)
+        {
+            if (catalog.TryGetReelSet(ReelTier.God, out _)) return catalog;
+            var sets = new List<ReelSetDefinition>(catalog.ReelSets) { BuildGodReelSet() };
+            return new ContentCatalog(catalog.RulesVersion, new List<UnitDefinition>(catalog.Units), sets);
+        }
     }
 }

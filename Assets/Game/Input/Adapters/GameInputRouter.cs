@@ -1,5 +1,6 @@
 using System;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Controls;
 
 namespace Tabletop.Input
 {
@@ -87,7 +88,15 @@ namespace Tabletop.Input
 
         /// <summary>World movement input (x = east, y = north), zero when the world map is disabled.</summary>
         public UnityEngine.Vector2 Move => _world.enabled ? _move.ReadValue<UnityEngine.Vector2>() : UnityEngine.Vector2.zero;
-        public bool SprintHeld => _world.enabled && _sprint.IsPressed();
+        /// <summary>
+        /// A thumb stick pushed this far (0..1) runs instead of walking (D-040), so the on-screen stick needs no RUN
+        /// button. Keys and the D-pad never cross it on their own: only an analog stick counts.
+        /// </summary>
+        public const float RunThreshold = 0.85f;
+        /// <summary>The move stick is pushed past <see cref="RunThreshold"/>.</summary>
+        public bool StickRun => _world.enabled && _move.activeControl is StickControl && Move.magnitude >= RunThreshold;
+        /// <summary>Run: the sprint button held, or the move stick pushed nearly all the way.</summary>
+        public bool SprintHeld => _world.enabled && (_sprint.IsPressed() || StickRun);
         public bool JumpPressedThisFrame => _world.enabled && _jump.WasPressedThisFrame();
         public bool InteractPressedThisFrame => _world.enabled && _interact.WasPressedThisFrame();
         /// <summary>Pointer look this frame, in pixels (first-person view).</summary>

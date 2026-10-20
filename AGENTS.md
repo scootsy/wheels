@@ -48,6 +48,8 @@ At that point, **STOP AND WAIT FOR THE CREATIVE DIRECTOR TO PLAY IT**.
 
 **The rest of the journey (2026-09-28, D-038):** the areas and champions that hold the Priest, Assassin and Warlock, the Grand Tournament, and free wandering (no invisible walls except water, cliffs and the map's edge) are authorized as described in `Docs/WORLD_SPEC.md`. When W4 is verified, stop and wait for the creative director to play it.
 
+**Dev tools, god wheels, touch run and look (2026-10-20, D-040):** a hidden in-build dev tools menu (coins, charms, wheels, figurines, champion wins), a developer-only god wheels switch for the player, running by pushing the stick all the way instead of a RUN button, and a touch look stick in first person are authorized as described in `Docs/WORLD_SPEC.md`. The god wheels are a testing tool, not part of regular play.
+
 **Imported art (2026-09-25, D-026):** creative-director-supplied models may replace W1 placeholders through `Docs/ART_WORKFLOW.md`. Keep the project original: no recognizable existing characters, nothing sexual, nothing that reads as underage in a revealing outfit. Producing new art (Blender, VFX, audio) remains gated.
 
 Do not begin any of the following without an explicit instruction approving continuation past the human playtest gate:
