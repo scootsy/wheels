@@ -37,6 +37,8 @@ namespace Tabletop.Application
         public ReelTier PlayerTier = ReelTier.Copper;
         /// <summary>Charm head start for the player's side in the next match only (D-033); cleared once it is used.</summary>
         public SideBoons PlayerBoons;
+        /// <summary>Developer god wheels for the player's side (D-040): all five wheels overpowered. Off in normal play.</summary>
+        public bool GodWheels;
     }
 
     /// <summary>
@@ -46,6 +48,7 @@ namespace Tabletop.Application
     public sealed class MatchSession
     {
         private readonly ContentCatalog _catalog;
+        private ContentCatalog _godCatalog;
         private readonly Func<long> _seedSource;
         private readonly List<MatchEvent> _presentationQueue = new List<MatchEvent>();
         private readonly List<CommandRejection> _diagnosticRejections = new List<CommandRejection>();
@@ -122,6 +125,7 @@ namespace Tabletop.Application
                 playerTier = Options.PlayerTier;
                 boons = Options.PlayerBoons;
             }
+            if (Options.GodWheels) playerTier = ReelTier.God;
             return new MatchConfig(RulesConstants.RulesVersion, seed,
                 new SideConfig(ControllerIds.Human, playerTier, Selection.Slots[0], Selection.Slots[1], boons),
                 new SideConfig(ai, tier, oppA, oppB), false, scenario);
@@ -147,7 +151,7 @@ namespace Tabletop.Application
         private bool StartMatch(long seed)
         {
             var config = BuildConfig(seed);
-            var match = Domain.Match.Start(config, _catalog, out var rejection);
+            var match = Domain.Match.Start(config, CatalogFor(config), out var rejection);
             if (match == null)
             {
                 Reject(rejection.Code, rejection.Message);
@@ -168,7 +172,7 @@ namespace Tabletop.Application
         {
             // Capture the public round-start state the AI may evaluate (MATCH_UX_SPEC 4.3, 4.6).
             var side = Match.Config.Sides[1];
-            _aiInput = AiDecisionInput.Capture(Match.Snapshot(), SideId.Opponent, _catalog, Match.ReelDefinitions(SideId.Opponent));
+            _aiInput = AiDecisionInput.Capture(Match.Snapshot(), SideId.Opponent, Match.Catalog, Match.ReelDefinitions(SideId.Opponent));
             LastStatus = "Round " + Match.Round + ": spin the wheels.";
             SetState(UxState.RoundReady);
         }
@@ -360,6 +364,13 @@ namespace Tabletop.Application
         }
 
         // ------------------------------------------------------------------ helpers
+
+        /// <summary>The standard catalog, or the same catalog plus the god wheels when the player uses them (D-040).</summary>
+        private ContentCatalog CatalogFor(MatchConfig config)
+        {
+            if (config.Sides[0].ReelTier != ReelTier.God) return _catalog;
+            return _godCatalog ?? (_godCatalog = ReferenceContent.WithGodWheels(_catalog));
+        }
 
         private CommandResult Dispatch(MatchCommand command)
         {

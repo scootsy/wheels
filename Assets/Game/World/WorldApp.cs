@@ -23,7 +23,7 @@ namespace Tabletop.World
     /// hands challenges (with their stakes and charms) to the match table through <see cref="GameFlow"/>.
     /// Holds no match rules.
     /// </summary>
-    public sealed class WorldApp : MonoBehaviour
+    public sealed partial class WorldApp : MonoBehaviour
     {
         public const string MatchSceneName = "MatchPrototype";
 
@@ -59,12 +59,15 @@ namespace Tabletop.World
         public GameInputRouter Input { get; private set; }
         public Interactable Nearest { get; private set; }
         public bool DialogueOpen => Ui.Dialogue.activeSelf;
-        public bool Busy => DialogueOpen || Ui.Pause.activeSelf || Ui.Title.activeSelf || _fading || (_deck != null && _deck.IsOpen) || (_list != null && _list.IsOpen);
+        public bool Busy => DialogueOpen || Ui.Pause.activeSelf || Ui.Title.activeSelf || _fading || (_deck != null && _deck.IsOpen) || (_list != null && _list.IsOpen)
+                            || (_map != null && _map.IsOpen);
         public bool FirstPerson => GameFlow.FirstPersonView;
         public DeckView Deck => _deck;
         /// <summary>The on-screen stick and buttons; null where there is no touchscreen.</summary>
         public WorldTouchPad TouchPad => _touchPad;
         public ListOverlay List => _list;
+        /// <summary>The world map and minimap (D-041).</summary>
+        public WorldMap Map => _map;
         public Camera WorldCamera => worldCamera;
         public string CurrentArea { get; private set; }
         public bool Seated => _seatedAt != null;
@@ -90,6 +93,7 @@ namespace Tabletop.World
         private DeckView _deck;
         private ListOverlay _list;
         private WorldTouchPad _touchPad;
+        private WorldMap _map;
         private AudioDirector _audio;
         private float _fpYaw;
         private float _fpPitch;
@@ -119,6 +123,7 @@ namespace Tabletop.World
             Input.Help += () => { if (!Busy) OpenPause(true); };
             Input.Inspect += OnDeckKey;
             Input.ToggleView += OnToggleView;
+            Input.Map += OnMapKey;
             Input.SchemeChanged += _ => RefreshControls();
             ConfigureEventSystem();
             Ui = new WorldUi(transform);
@@ -131,6 +136,9 @@ namespace Tabletop.World
                 _touchPad = new WorldTouchPad(Ui.Frame);
                 Ui.AddOverlay(_touchPad.Root);
             }
+            _map = new WorldMap(Ui.Frame, Layout, icons);
+            _map.MiniRoot.transform.SetSiblingIndex(0); // under every menu and conversation
+            Ui.AddOverlay(_map.FullRoot);
             WireUi();
             RefreshControls();
 
@@ -247,6 +255,18 @@ namespace Tabletop.World
             Ui.PauseHelp.onClick.AddListener(() => { MarkClick(); Ui.SetPauseText(HelpText()); });
             Ui.PausePractice.onClick.AddListener(() => { MarkClick(); GoPractice(); });
             Ui.PauseQuit.onClick.AddListener(() => { MarkClick(); QuitGame(); });
+            Ui.PauseTitle.Tapped += OnPauseTitleTapped;
+            Ui.PauseMap.onClick.AddListener(() => { MarkClick(); ClosePause(); OpenMap(); });
+            _map.Close.onClick.AddListener(() => { MarkClick(); CloseMap(); });
+            _map.MinimapToggle.onClick.AddListener(() =>
+            {
+                MarkClick();
+                GameFlow.MinimapHidden = !GameFlow.MinimapHidden;
+                _map.RefreshToggleLabel();
+                SaveNow();
+            });
+            _map.MiniTap.Tapped += () => { if (!Busy && _seatedAt == null && GameFlow.TitleShown) OpenMap(); };
+            Ui.PauseDev.onClick.AddListener(() => { MarkClick(); ClosePause(); OpenDevTools(); });
             _deck.Close.onClick.AddListener(() => { MarkClick(); CloseDeck(); });
             Ui.Continue.onClick.AddListener(() => { if (MarkClick()) NextPage(); });
             RefreshSoundLabel();
@@ -447,6 +467,9 @@ namespace Tabletop.World
             else if (_seatedAt == null) Player.Rig?.SetMove(0f, false);
             // A connected controller replaces the on-screen pad (D-037).
             _touchPad?.SetVisible(!Busy && _seatedAt == null && !_touchPad.RealGamepadConnected);
+            _touchPad?.SetLookVisible(FirstPerson); // a second stick to look around in first person (D-040)
+            _map.Tick(Player.transform.position, FirstPerson ? _fpYaw : Player.transform.eulerAngles.y,
+                GameFlow.TitleShown && !Busy && _seatedAt == null && !GameFlow.MinimapHidden, dt);
             UpdateCamera(dt);
             UpdateOccluders();
             UpdateMood(dt);
@@ -719,6 +742,24 @@ namespace Tabletop.World
         /// <summary>Test hook: face a direction in first person.</summary>
         public void SetFirstPersonYaw(float yaw) => _fpYaw = yaw;
 
+        // ------------------------------------------------------------------ map (D-041)
+
+        private void OnMapKey()
+        {
+            if (_map.IsOpen) { CloseMap(); return; }
+            if (Busy || _seatedAt != null || !GameFlow.TitleShown || Time.frameCount == _closedFrame) return;
+            OpenMap();
+        }
+
+        public void OpenMap() => Select(_map.Open(CurrentArea));
+
+        public void CloseMap()
+        {
+            if (!_map.IsOpen) return;
+            _map.Hide();
+            _closedFrame = Time.frameCount;
+        }
+
         // ------------------------------------------------------------------ deck
 
         private void OnDeckKey()
@@ -744,7 +785,7 @@ namespace Tabletop.World
 
         private void OnInteract()
         {
-            if (Ui.Title.activeSelf || Ui.Pause.activeSelf || _fading || _list.IsOpen) return;
+            if (Ui.Title.activeSelf || Ui.Pause.activeSelf || _fading || _list.IsOpen || _map.IsOpen) return;
             if (DialogueOpen) { _pendingInteract = true; return; }
             if (Time.frameCount == _closedFrame) return;
             if (Nearest != null) Nearest.Interact(this);
@@ -755,6 +796,7 @@ namespace Tabletop.World
             if (Ui.Title.activeSelf || _fading || Time.frameCount == _closedFrame) return;
             if (_deck.IsOpen) { CloseDeck(); return; }
             if (_list.IsOpen) { CloseList(); return; }
+            if (_map.IsOpen) { CloseMap(); return; }
             if (Ui.Pause.activeSelf) { ClosePause(); return; }
             if (DialogueOpen) { CloseDialogue(); return; }
             OpenPause(false);
@@ -765,6 +807,7 @@ namespace Tabletop.World
             if (Time.frameCount == _closedFrame) return;
             if (_deck.IsOpen) CloseDeck();
             else if (_list.IsOpen) CloseList();
+            else if (_map.IsOpen) CloseMap();
             else if (Ui.Pause.activeSelf) ClosePause();
             else if (DialogueOpen) CloseDialogue(); // like NOT NOW (or STAND UP at a champion's table)
         }
@@ -773,6 +816,8 @@ namespace Tabletop.World
         {
             _returnFocus = eventSystem.currentSelectedGameObject;
             Ui.Pause.SetActive(true);
+            _devTaps = 0;
+            Ui.ShowPauseDev(GameFlow.DevToolsUnlocked);
             Ui.SetPauseText(showHelp ? HelpText() : Ui.ControlsText);
             Select(Ui.PauseResume);
         }
@@ -784,23 +829,27 @@ namespace Tabletop.World
         }
 
         private string HelpText() =>
-            "Walk: " + Input.Binding("WorldReserved", "Move") + "   Sprint: " + Input.Binding("WorldReserved", "Sprint")
+            "Walk: " + Input.Binding("WorldReserved", "Move") + "   Sprint: " + SprintHint()
             + "   Jump: " + Input.Binding("WorldReserved", "Jump") + "\nTalk / use: " + Input.Binding("WorldReserved", "Interact")
             + "   View: " + Input.Binding("WorldReserved", "ToggleView") + "   Deck: " + Input.Binding("Match", "Inspect")
-            + "   Menu: " + Input.Binding("Match", "Pause") + "\n\n"
+            + "   Map: " + Input.Binding("WorldReserved", "Map") + "   Menu: " + Input.Binding("Match", "Pause") + "\n\n"
             + "People with a golden marker over their heads play Wheels. Most play for coins: win and take their stake, lose and pay yours. "
             + "Short of coins? They'll play you for a favour instead. Villagers pay coins for errands, and stalls sell charms "
             + "(one per match) and better wheels. Each town's Champion holds a new figurine; hold all five champion titles and the "
             + "Grand Tournament at Crownhold opens to you. Wander wherever the land lets you: off the paths, over the hills.\n"
             + "Your journey saves itself as you go.";
 
+        /// <summary>Sticks run when pushed nearly all the way (D-040); keyboards hold the sprint key.</summary>
+        private string SprintHint() =>
+            Input.ActiveScheme == ControlScheme.Gamepad ? "push the stick all the way" : Input.Binding("WorldReserved", "Sprint");
+
         private void RefreshControls()
         {
             if (Ui == null) return;
-            Ui.SetControls("Walk: " + Input.Binding("WorldReserved", "Move") + "   Sprint: " + Input.Binding("WorldReserved", "Sprint")
+            Ui.SetControls("Walk: " + Input.Binding("WorldReserved", "Move") + "   Sprint: " + SprintHint()
                            + "\nJump: " + Input.Binding("WorldReserved", "Jump") + "   Talk: " + Input.Binding("WorldReserved", "Interact")
                            + "   Deck: " + Input.Binding("Match", "Inspect")
-                           + "\nView: " + Input.Binding("WorldReserved", "ToggleView")
+                           + "\nView: " + Input.Binding("WorldReserved", "ToggleView") + "   Map: " + Input.Binding("WorldReserved", "Map")
                            + "    Menu: " + Input.Binding("Match", "Pause"));
         }
 
@@ -1291,7 +1340,8 @@ namespace Tabletop.World
         private void EnsureFocus()
         {
             if (eventSystem == null) return;
-            GameObject modal = Ui.Title.activeSelf ? Ui.Title : _deck.IsOpen ? _deck.Root : _list.IsOpen ? _list.Root : Ui.Pause.activeSelf ? Ui.Pause : DialogueOpen ? Ui.Dialogue : null;
+            GameObject modal = Ui.Title.activeSelf ? Ui.Title : _deck.IsOpen ? _deck.Root : _list.IsOpen ? _list.Root : _map.IsOpen ? _map.FullRoot
+                : Ui.Pause.activeSelf ? Ui.Pause : DialogueOpen ? Ui.Dialogue : null;
             if (modal == null) return;
             var cur = eventSystem.currentSelectedGameObject;
             if (cur == null || !cur.activeInHierarchy || !cur.transform.IsChildOf(modal.transform))

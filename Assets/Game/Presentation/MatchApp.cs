@@ -39,8 +39,7 @@ namespace Tabletop.Presentation
         private Canvas _canvas;
         private readonly List<Text> _scalableLabels = new List<Text>();
         private readonly List<int> _baseSizes = new List<int>();
-        private bool _pointerAccelerate;
-        private float _pointerAccelerateStart;
+        private int _fastPlayToggleFrame = -1;
         private int _lastOverlayCloseFrame = -1;
         private int _lastOverlayOpenFrame = -1;
         private UxState _lastRenderedState = (UxState)(-1);
@@ -85,7 +84,10 @@ namespace Tabletop.Presentation
             Input.Inspect += OnInspect;
             Input.Help += OnHelp;
             Input.Pause += OnPause;
+            // Space / A / RT switch fast play while the table is playing out; otherwise they are Submit and Jump.
+            Input.Accelerate += () => { if (Presenting && !AnyModalOpen) ToggleFastPlay(); };
             Input.Cancel += OnCancel;
+            Settings.FastPlay = GameFlow.FastPlay; // the player's choice carries over from the last table (D-042)
             Input.SchemeChanged += _ => RefreshPrompts();
             ConfigureEventSystem();
 
@@ -111,6 +113,7 @@ namespace Tabletop.Presentation
             ShowScreenFor(Session.State);
             // Arriving from the world: only the pieces the player has won are selectable (D-027).
             if (GameFlow.TitleShown) Session.Options.UnlockedUnits = GameFlow.UnlockedUnits;
+            ApplyDevOptions();
             // A challenge fixes the opponent, so skip setup and go straight to unit selection.
             var encounter = GameFlow.PendingEncounter;
             if (encounter != null)
@@ -186,10 +189,9 @@ namespace Tabletop.Presentation
 
         private void Update()
         {
-            float held = Input.AccelerateHeldSeconds;
-            if (_pointerAccelerate) held = Mathf.Max(held, Time.unscaledTime - _pointerAccelerateStart);
             bool overlayFrozen = _helpOverlay.activeSelf || _pauseOverlay.activeSelf;
-            if (!overlayFrozen) Presenter.Tick(Time.unscaledDeltaTime, held);
+            if (!overlayFrozen) Presenter.Tick(Time.unscaledDeltaTime);
+            if (_pauseOverlay.activeSelf) RefreshPauseLabels();
             if (Session.FatalError != null && !_errorOverlay.activeSelf) ShowError();
             if (Session.State != _lastRenderedState)
             {
@@ -323,10 +325,17 @@ namespace Tabletop.Presentation
             Session.Options.ScenarioName = scenario;
         }
 
-        public void SetPointerAccelerate(bool held)
+        /// <summary>
+        /// Fast play on or off (D-042). It stays as set for the rest of this match, the next ones and the saved journey.
+        /// A pad's A is both the accelerate action and Submit on the focused speed control, so one press arrives
+        /// twice in a frame: only the first counts.
+        /// </summary>
+        public void ToggleFastPlay()
         {
-            _pointerAccelerate = held;
-            _pointerAccelerateStart = Time.unscaledTime;
+            if (Time.frameCount == _fastPlayToggleFrame) return;
+            _fastPlayToggleFrame = Time.frameCount;
+            Settings.FastPlay = !Settings.FastPlay;
+            GameFlow.FastPlay = Settings.FastPlay;
         }
 
         // ------------------------------------------------------------------ helpers

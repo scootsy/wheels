@@ -16,6 +16,10 @@ namespace Tabletop.World
         public readonly RoamArea Roam;
         /// <summary>Trees and buildings the overhead camera looks through when they stand in the way (D-038).</summary>
         public readonly List<Occluder> Occluders = new List<Occluder>();
+        /// <summary>Building footprints for the map (D-041): centre, width x depth, yaw. Recorded however the building is drawn.</summary>
+        public readonly List<(Vector2 at, Vector2 size, float yaw)> MapBuildings = new List<(Vector2, Vector2, float)>();
+        /// <summary>Tree positions for the map (D-041).</summary>
+        public readonly List<Vector2> MapTrees = new List<Vector2>();
         public readonly List<Interactable> Interactables = new List<Interactable>();
         public readonly List<Npc> Npcs = new List<Npc>();
         public readonly List<Pickup> Pickups = new List<Pickup>();
@@ -267,6 +271,7 @@ namespace Tabletop.World
         {
             var key = area + "/" + name;
             _layout.BuildingKeys.Add(key);
+            _layout.MapBuildings.Add((at, new Vector2(width, depth), yaw));
             var pos = G(at.x, at.y);
             _clear.Add(new Vector3(at.x, at.y, Mathf.Max(width, depth) * 0.75f + 2f));
             var slot = _art != null ? _art.Building(key) : null;
@@ -351,6 +356,7 @@ namespace Tabletop.World
         /// <summary>A tree on the terrain: a pack tree of the given family, or the primitive tree.</summary>
         private void Tree(float x, float z, string[] family, float scale = 1f)
         {
+            _layout.MapTrees.Add(new Vector2(x, z));
             float y = T(x, z);
             var pf = P(Pick(family));
             if (pf == null) { WorldPieces.Tree(_kit, _static, new Vector3(x, y, z), scale * (0.9f + Rand() * 0.5f), (int)(x * 7 + z)); return; }
@@ -631,6 +637,7 @@ namespace Tabletop.World
         {
             var at = new Vector2(0, 167);
             _layout.BuildingKeys.Add(Areas.Hall + "/Hall");
+            _layout.MapBuildings.Add((at, new Vector2(16f, 12.5f), 0f));
             var pf = P("Preset_House_Archway_01");
             var hall = new GameObject("ChampionsHall").transform;
             hall.SetParent(pf != null ? _models : _static, false);

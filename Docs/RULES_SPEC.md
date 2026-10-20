@@ -179,6 +179,12 @@ Each physical reel has eight faces. Face order should be preserved for visual fi
 
 The first four reels never change. Collection progression replaces only reel 5.
 
+**Developer god wheels (D-040, IMPLEMENTATION DECISION, not a game rule):** a sixth tier, `God`, that only the dev
+tools can give, and only to the human side. All five reels are `SSS+, DDD+, HHH, SSS+, DDD+, HHH, SSS+, DDD+`. The set is
+not part of the standard content catalog, so normal matches, their content hash and their replays are unchanged; a
+match that uses it runs on the catalog plus this set, and its replay verifies against the same pair. A configuration
+that gives the god wheels to an AI side is rejected.
+
 **Confidence:** CONFIRMED. The same exact distributions appear in two independently maintained rule references. [S1][S2]
 
 ### 5.4 Randomness

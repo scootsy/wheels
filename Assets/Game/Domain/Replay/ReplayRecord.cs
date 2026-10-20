@@ -83,6 +83,8 @@ namespace Tabletop.Domain
         public string Verify(ContentCatalog catalog, out Match replayed)
         {
             replayed = null;
+            // A god-wheels match (D-040) was played on the catalog plus the god set.
+            if (Player.ReelTier == ReelTier.God) catalog = ReferenceContent.WithGodWheels(catalog);
             if (catalog.ContentHash != ContentHash) return "Content hash mismatch: replay " + ContentHash + ", local " + catalog.ContentHash;
             var match = Match.Start(ToConfig(), catalog, out var rejection);
             if (match == null) return "Invalid configuration: " + rejection;

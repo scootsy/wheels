@@ -1,5 +1,6 @@
 using System;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Controls;
 
 namespace Tabletop.Input
 {
@@ -23,7 +24,6 @@ namespace Tabletop.Input
         private readonly InputAction _lookStick;
         private readonly InputAction _accelerate;
         private readonly InputAction[] _lockSlots = new InputAction[5];
-        private double _accelerateStart = -1;
 
         /// <param name="consumeShortcuts">
         /// True for the match table (Shift+Tab must not also fire Tab). The world passes false: with consumption on,
@@ -47,6 +47,7 @@ namespace Tabletop.Input
             _jump.performed += OnDevice;
             _lookStick.performed += OnDevice;
             Hook(_world.FindAction("ToggleView", true), () => ToggleView?.Invoke());
+            Hook(_world.FindAction("Map", true), () => Map?.Invoke());
             Hook(_ui.FindAction("Submit", true), () => Submit?.Invoke());
 
             Hook(_match.FindAction("Spin", true), () => Spin?.Invoke());
@@ -62,8 +63,7 @@ namespace Tabletop.Input
             Hook(_match.FindAction("Help", true), () => Help?.Invoke());
             Hook(_match.FindAction("Pause", true), () => Pause?.Invoke());
             Hook(_ui.FindAction("Cancel", true), () => Cancel?.Invoke());
-            _accelerate.started += OnDevice;
-            _accelerate.canceled += OnDevice;
+            Hook(_accelerate, () => Accelerate?.Invoke());
             foreach (var a in _ui.actions) a.performed += OnDevice;
 
             // Shift+Tab must not also trigger the plain Tab binding.
@@ -81,13 +81,23 @@ namespace Tabletop.Input
         public event Action Inspect;
         public event Action Help;
         public event Action Pause;
+        /// <summary>The accelerate action was pressed: switches fast play on or off (D-042).</summary>
+        public event Action Accelerate;
         public event Action Cancel;
         public event Action Interact;
         public event Action Submit;
 
         /// <summary>World movement input (x = east, y = north), zero when the world map is disabled.</summary>
         public UnityEngine.Vector2 Move => _world.enabled ? _move.ReadValue<UnityEngine.Vector2>() : UnityEngine.Vector2.zero;
-        public bool SprintHeld => _world.enabled && _sprint.IsPressed();
+        /// <summary>
+        /// A thumb stick pushed this far (0..1) runs instead of walking (D-040), so the on-screen stick needs no RUN
+        /// button. Keys and the D-pad never cross it on their own: only an analog stick counts.
+        /// </summary>
+        public const float RunThreshold = 0.85f;
+        /// <summary>The move stick is pushed past <see cref="RunThreshold"/>.</summary>
+        public bool StickRun => _world.enabled && _move.activeControl is StickControl && Move.magnitude >= RunThreshold;
+        /// <summary>Run: the sprint button held, or the move stick pushed nearly all the way.</summary>
+        public bool SprintHeld => _world.enabled && (_sprint.IsPressed() || StickRun);
         public bool JumpPressedThisFrame => _world.enabled && _jump.WasPressedThisFrame();
         public bool InteractPressedThisFrame => _world.enabled && _interact.WasPressedThisFrame();
         /// <summary>Pointer look this frame, in pixels (first-person view).</summary>
@@ -95,21 +105,12 @@ namespace Tabletop.Input
         /// <summary>Stick look, -1..1 (a rate: multiply by time).</summary>
         public UnityEngine.Vector2 LookStick => _world.enabled ? _lookStick.ReadValue<UnityEngine.Vector2>() : UnityEngine.Vector2.zero;
         public event Action ToggleView;
+        /// <summary>Open or close the world map (D-041).</summary>
+        public event Action Map;
 
         /// <summary>Enable walking/interacting (world scene only).</summary>
         public void EnableWorld() => _world.Enable();
         public event Action<ControlScheme> SchemeChanged;
-
-        /// <summary>Seconds the accelerate action has been continuously held (0 when released).</summary>
-        public float AccelerateHeldSeconds
-        {
-            get
-            {
-                if (!_accelerate.IsPressed()) { _accelerateStart = -1; return 0f; }
-                if (_accelerateStart < 0) _accelerateStart = UnityEngine.Time.unscaledTimeAsDouble;
-                return (float)(UnityEngine.Time.unscaledTimeAsDouble - _accelerateStart);
-            }
-        }
 
         public void Enable()
         {

@@ -164,6 +164,149 @@ namespace Tabletop.Tests.PlayMode
             yield return WaitFor(() => app.Session.State != UxState.RoundReady, "spin by tap");
         }
 
+        /// <summary>
+        /// Drags <paramref name="knob"/> by <paramref name="push"/> (a fraction of the knob's width per axis), holds it
+        /// still for <paramref name="seconds"/> of game time, calls <paramref name="atStart"/> and <paramref name="atEnd"/>
+        /// around that hold, then lets go.
+        /// </summary>
+        private IEnumerator HoldStick(RectTransform knob, Vector2 push, float seconds, System.Action atStart = null, System.Action atEnd = null)
+        {
+            var at = ScreenPoint(knob);
+            var corners = new Vector3[4];
+            knob.GetWorldCorners(corners);
+            var to = push * (corners[2].x - corners[0].x);
+            int id = ++_touchId;
+            BeginTouch(id, at);
+            yield return null;
+            for (int i = 1; i <= 5; i++) { MoveTouch(id, at + to * (i / 5f)); yield return null; }
+            yield return null;
+            atStart?.Invoke();
+            float t0 = Time.time;
+            while (Time.time - t0 < seconds) yield return null;
+            atEnd?.Invoke();
+            EndTouch(id, at + to);
+            yield return null;
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator World_StickPushedAllTheWayRuns_AndThereIsNoRunButton()
+        {
+            yield return Load("World");
+            var world = Object.FindAnyObjectByType<WorldApp>();
+            world.SkipTitleForTests();
+            yield return null;
+            yield return null;
+            Assert.IsNull(world.TouchPad.Root.transform.Find("PadRUN"), "running is a stick threshold now, not a button (D-040)");
+
+            var speed = new float[2];
+            var running = new bool[2];
+            var pushes = new[] { 0.35f, 1f };
+            for (int k = 0; k < 2; k++)
+            {
+                int kk = k;
+                world.Player.Teleport(new Vector3(0, 0, -5f), 0);
+                yield return null;
+                Vector3 p0 = Vector3.zero;
+                float t0 = 0;
+                // North, as in the keyboard sprint test: open ground in Hearthmoor.
+                yield return HoldStick(world.TouchPad.StickKnob, new Vector2(0, pushes[k]), 0.25f,
+                    () => { p0 = world.Player.transform.position; t0 = Time.time; },
+                    () =>
+                    {
+                        running[kk] = world.Input.SprintHeld;
+                        speed[kk] = (world.Player.transform.position.z - p0.z) / Mathf.Max(Time.time - t0, 1e-4f);
+                    });
+            }
+            Assert.Greater(speed[0], 0.3f, "a gentle push walks");
+            Assert.IsFalse(running[0], "a gentle push does not run");
+            Assert.IsTrue(running[1], "pushed to the rim: running");
+            Assert.Greater(speed[1], speed[0] * 1.5f, "running is clearly faster (" + speed[0] + " vs " + speed[1] + " m/s)");
+        }
+
+        [UnityTest]
+        public IEnumerator World_TappingTheMinimap_OpensTheMap()
+        {
+            yield return Load("World");
+            var world = Object.FindAnyObjectByType<WorldApp>();
+            world.SkipTitleForTests();
+            yield return null;
+            yield return null;
+            Assert.IsTrue(world.Map.MinimapShown, "minimap in the top-left corner (D-041)");
+            yield return TapOn(world.Map.MiniTap);
+            Assert.IsTrue(world.Map.IsOpen, "tapping the minimap opens the full map");
+            Assert.IsFalse(world.TouchPad.Visible, "the pad steps aside for the map");
+            yield return TapOn(world.Map.Close);
+            Assert.IsFalse(world.Map.IsOpen, "tapping CLOSE closes it");
+        }
+
+        [UnityTest]
+        public IEnumerator World_LookStick_ShowsOnlyInFirstPerson_AndTurnsTheView()
+        {
+            yield return Load("World");
+            var world = Object.FindAnyObjectByType<WorldApp>();
+            world.SkipTitleForTests();
+            yield return null;
+            yield return null;
+            Assert.IsFalse(world.TouchPad.LookVisible, "overhead: no look stick");
+            world.SetView(true);
+            yield return null;
+            yield return null;
+            Assert.IsTrue(world.TouchPad.LookVisible, "first person: a second stick to look with (D-040)");
+            float yaw0 = world.WorldCamera.transform.eulerAngles.y;
+            var before = world.Player.transform.position;
+            yield return HoldStick(world.TouchPad.LookKnob, new Vector2(1f, 0), 0.4f);
+            float turned = Mathf.DeltaAngle(yaw0, world.WorldCamera.transform.eulerAngles.y);
+            Assert.Greater(turned, 10f, "dragging the look stick right turns the view right");
+            Assert.Less(Vector3.Distance(before, world.Player.transform.position), 0.05f, "looking does not walk");
+            world.SetView(false);
+            yield return null;
+            yield return null;
+            Assert.IsFalse(world.TouchPad.LookVisible, "back to overhead: the look stick goes away");
+        }
+
+        [UnityTest]
+        public IEnumerator World_TapPausedFiveTimes_UnlocksDevTools_AndTheGodWheelsSwitch()
+        {
+            GameFlow.DevToolsUnlocked = false;
+            yield return Load("World");
+            var world = Object.FindAnyObjectByType<WorldApp>();
+            world.SkipTitleForTests();
+            yield return null;
+            yield return null;
+            yield return TapOn(world.TouchPad.Root.transform.Find("PadMENU"));
+            yield return WaitFor(() => world.Ui.Pause.activeSelf, "pause menu");
+            Assert.IsFalse(world.Ui.PauseDev.gameObject.activeSelf, "hidden until unlocked");
+            for (int i = 0; i < WorldApp.DevUnlockTaps - 1; i++) yield return TapOn(world.Ui.PauseTitle);
+            Assert.IsFalse(world.Ui.PauseDev.gameObject.activeSelf, "four taps are not enough");
+            yield return TapOn(world.Ui.PauseTitle);
+            Assert.IsTrue(world.Ui.PauseDev.gameObject.activeSelf, "five taps unlock DEV TOOLS");
+            Assert.IsTrue(GameFlow.DevToolsUnlocked);
+
+            yield return TapOn(world.Ui.PauseDev);
+            yield return WaitFor(() => world.List.IsOpen, "dev tools");
+            Assert.AreEqual(WorldApp.DevPage.Main, world.OpenDevPage);
+            StringAssert.Contains("DEV TOOLS", world.List.Title);
+            Assert.IsFalse(GameFlow.GodWheels);
+            yield return TapOn(world.List.RowButtons[0]);
+            Assert.IsTrue(GameFlow.GodWheels, "the first row switches the god wheels on");
+            int coins = GameFlow.Coins;
+            yield return TapOn(world.List.RowButtons[2]);
+            Assert.AreEqual(coins + 1000, GameFlow.Coins, "+1000 coins");
+            Assert.IsTrue(SaveGame.TryLoad(out var saved) && saved.godWheels && saved.coins == GameFlow.Coins, "dev changes are saved");
+
+            yield return TapOn(world.List.RowButtons[6]); // Figurines
+            Assert.AreEqual(WorldApp.DevPage.Figurines, world.OpenDevPage);
+            yield return TapOn(world.List.RowButtons[0]); // the first figurine you don't start with
+            Assert.AreEqual(3, GameFlow.UnlockedUnits.Count, "a figurine given");
+            yield return TapOn(world.List.Close);
+            Assert.AreEqual(WorldApp.DevPage.Main, world.OpenDevPage, "BACK returns to the main page");
+            yield return TapOn(world.List.Close);
+            Assert.IsFalse(world.List.IsOpen, "CLOSE leaves the dev tools");
+            Assert.IsNull(world.OpenDevPage);
+            GameFlow.DevToolsUnlocked = false;
+        }
+
         private IEnumerator TapButton(UnityEngine.InputSystem.Controls.ButtonControl button)
         {
             Press(button);

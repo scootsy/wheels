@@ -30,6 +30,12 @@ namespace Tabletop.World
         // Version 3 (D-038): the Grand Tournament run.
         public int tournamentRound;
         public int tournamentAttempts;
+        // Version 4 (D-040): the developer god wheels switch (older saves read as off).
+        public bool godWheels;
+        // Version 5 (D-041): the minimap preference (older saves show it).
+        public bool hideMinimap;
+        // Version 6 (D-042): the fast-play preference (older saves play at normal speed).
+        public bool fastPlay;
     }
 
     /// <summary>
@@ -39,7 +45,7 @@ namespace Tabletop.World
     /// </summary>
     public static class SaveGame
     {
-        public const int Version = 3;
+        public const int Version = 6;
         public const string FileName = "journey.json";
 
         /// <summary>Tests and the build self-check point this at a scratch folder so they never touch a real save.</summary>
@@ -67,6 +73,9 @@ namespace Tabletop.World
             foreach (var e in GameFlow.Errands) { d.errandIds.Add(e.Key); d.errandStages.Add((int)e.Value); }
             d.tournamentRound = GameFlow.TournamentRound;
             d.tournamentAttempts = GameFlow.TournamentAttempts;
+            d.godWheels = GameFlow.GodWheels;
+            d.hideMinimap = GameFlow.MinimapHidden;
+            d.fastPlay = GameFlow.FastPlay;
             return d;
         }
 
@@ -119,6 +128,9 @@ namespace Tabletop.World
             int coins = data.version >= 2 ? data.coins : GameFlow.StartingCoins;
             GameFlow.Restore(data.defeated, losses, data.unlocked, data.firstPerson,
                 id => ReferenceContent.Catalog.TryGetUnit(id, out _), coins, items, errands, data.tournamentRound, data.tournamentAttempts);
+            GameFlow.GodWheels = data.godWheels;
+            GameFlow.MinimapHidden = data.hideMinimap;
+            GameFlow.FastPlay = data.fastPlay;
         }
 
         public static void Delete()

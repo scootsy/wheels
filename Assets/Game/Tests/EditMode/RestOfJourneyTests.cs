@@ -172,7 +172,7 @@ namespace Tabletop.Tests.EditMode
                 Assert.IsTrue(SaveGame.Save(new Vector3(0, 0, 237), 0));
                 GameFlow.Reset();
                 Assert.IsTrue(SaveGame.TryLoad(out var data));
-                Assert.AreEqual(3, data.version);
+                Assert.AreEqual(SaveGame.Version, data.version);
                 SaveGame.Apply(data);
                 Assert.AreEqual(2, GameFlow.TournamentRound);
                 Assert.AreEqual(1, GameFlow.TournamentAttempts);

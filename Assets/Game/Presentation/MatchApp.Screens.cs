@@ -29,7 +29,7 @@ namespace Tabletop.Presentation
         private readonly Image[] _resultCards = new Image[2];
         private readonly Text[] _resultScore = new Text[2];
         private readonly Text[] _resultTeam = new Text[2];
-        private Button _inspectClose, _helpClose, _pauseResume, _pauseReduced, _pauseShake, _pauseScale, _pauseWrap, _pauseSkip, _pauseRestart, _pauseExit;
+        private Button _inspectClose, _helpClose, _pauseResume, _pauseFast, _pauseReduced, _pauseShake, _pauseScale, _pauseWrap, _pauseSkip, _pauseRestart, _pauseExit;
         private Button _confirmYes, _confirmNo, _resultRematch, _resultChange, _resultCopy, _resultExit, _resultSameSeed, _errorCopy, _errorExit;
         private Action _confirmAction;
         private readonly Stack<(GameObject overlay, GameObject opener)> _overlayStack = new Stack<(GameObject, GameObject)>();
@@ -421,21 +421,22 @@ namespace Tabletop.Presentation
             _helpText.rectTransform.Place(28, 20, 1444, 850);
             _helpClose = BoxButton(hb, "Close", "CLOSE HELP", 630, 884, 240, 60, () => CloseOverlay(_helpOverlay));
 
-            _pauseOverlay = Overlay("PauseOverlay", 700, 800, out var pb);
+            _pauseOverlay = Overlay("PauseOverlay", 700, 866, out var pb);
             L("Title", pb, "PAUSED", 40, TextAnchor.UpperCenter, Theme.Text, FontStyle.Bold).rectTransform.Place(0, 16, 700, 56);
             _pauseResume = BoxButton(pb, "Resume", "RESUME", 150, 84, 400, 60, ResumeFromPause, Theme.ButtonPrimary);
-            _pauseReduced = BoxButton(pb, "Reduced", "", 150, 156, 400, 56, () => Settings.ReducedMotion = !Settings.ReducedMotion);
-            _pauseShake = BoxButton(pb, "Shake", "", 150, 222, 400, 56, () => Settings.ScreenShake = !Settings.ScreenShake);
-            _pauseScale = BoxButton(pb, "Scale", "", 150, 288, 400, 56, CycleUiScale);
-            _pauseWrap = BoxButton(pb, "Wrap", "", 150, 354, 400, 56, () => WrapReelNavigation = !WrapReelNavigation);
-            _pauseSkip = BoxButton(pb, "Skip", "DEV: SKIP ALL PRESENTATION", 150, 420, 400, 56, () => Presenter.SkipAll());
-            var help = BoxButton(pb, "Help", "HELP", 150, 486, 400, 56, () => OpenOverlay(_helpOverlay, _helpClose));
-            _pauseRestart = BoxButton(pb, "Restart", "RESTART MATCH", 150, 584, 400, 60,
+            _pauseFast = BoxButton(pb, "Fast", "", 150, 156, 400, 56, ToggleFastPlay);
+            _pauseReduced = BoxButton(pb, "Reduced", "", 150, 222, 400, 56, () => Settings.ReducedMotion = !Settings.ReducedMotion);
+            _pauseShake = BoxButton(pb, "Shake", "", 150, 288, 400, 56, () => Settings.ScreenShake = !Settings.ScreenShake);
+            _pauseScale = BoxButton(pb, "Scale", "", 150, 354, 400, 56, CycleUiScale);
+            _pauseWrap = BoxButton(pb, "Wrap", "", 150, 420, 400, 56, () => WrapReelNavigation = !WrapReelNavigation);
+            _pauseSkip = BoxButton(pb, "Skip", "DEV: SKIP ALL PRESENTATION", 150, 486, 400, 56, () => Presenter.SkipAll());
+            var help = BoxButton(pb, "Help", "HELP", 150, 552, 400, 56, () => OpenOverlay(_helpOverlay, _helpClose));
+            _pauseRestart = BoxButton(pb, "Restart", "RESTART MATCH", 150, 650, 400, 60,
                 () => Confirm("Restart with the same setup and a NEW seed?\nThe current match will be discarded.", () => { ResumeFromPause(); Session.Rematch(); }));
-            _pauseExit = BoxButton(pb, "Exit", "EXIT MATCH", 150, 656, 400, 60,
+            _pauseExit = BoxButton(pb, "Exit", "EXIT MATCH", 150, 722, 400, 60,
                 () => Confirm(InEncounter ? "Leave the table and return to the village?\nThis match will not count." : "Exit to setup? The current match will be discarded.",
                     () => { ResumeFromPause(); if (InEncounter) ReturnToWorld(); else Session.ExitMatch(); }));
-            LinkVertical(_pauseResume, _pauseReduced, _pauseShake, _pauseScale, _pauseWrap, _pauseSkip, help, _pauseRestart, _pauseExit);
+            LinkVertical(_pauseResume, _pauseFast, _pauseReduced,_pauseShake, _pauseScale, _pauseWrap, _pauseSkip, help, _pauseRestart, _pauseExit);
 
             _confirmOverlay = Overlay("ConfirmOverlay", 760, 320, out var cb);
             _confirmText = L("Text", cb, "", 26, TextAnchor.MiddleCenter);
@@ -605,9 +606,21 @@ namespace Tabletop.Presentation
                 "- Spin: " + B("Match", "Spin") + " (or focus SPIN and confirm)     Lock wheels directly: " + B("Match", "LockSlot1") + "-" + B("Match", "LockSlot5") + "\n" +
                 "- Next / previous element: " + B("Match", "FocusNext") + " / " + B("Match", "FocusPrevious") + " (while the round plays out, " + B("Match", "FocusNext") + " skips to the next step)     Inspect focused unit: " + B("Match", "Inspect") + "\n" +
                 "- Locking all five wheels does not end your turn: pull the lever (" + B("Match", "Spin") + ") to lock in.\n" +
-                "- Hold to speed up animations: " + B("Match", "AcceleratePresentation") + "     Help: " + B("Match", "Help") + "     Pause / close: " + B("Match", "Pause") + "\n" +
+                "- Fast play on / off: " + B("Match", "AcceleratePresentation") + " while the round plays out, tap the lever, or Pause menu. It stays as you set it.     Help: " + B("Match", "Help") + "     Pause / close: " + B("Match", "Pause") + "\n" +
                 "- Mouse: click wheels to lock, click buttons, hover a figurine for details. There is no timer.";
         }
+
+        /// <summary>The pause menu's switches say what they are set to (kept current while the menu is open).</summary>
+        private void RefreshPauseLabels()
+        {
+            _pauseFast.SetText(FastPlayText);
+            _pauseReduced.SetText(Settings.ReducedMotion ? "REDUCED MOTION: ON" : "REDUCED MOTION: OFF");
+            _pauseShake.SetText(Settings.ScreenShake ? "SCREEN SHAKE: ON" : "SCREEN SHAKE: OFF");
+            _pauseScale.SetText("TEXT SIZE: " + Mathf.RoundToInt(Settings.UiScale * 100) + "%");
+            _pauseWrap.SetText(WrapReelNavigation ? "WRAP AROUND WHEELS: ON" : "WRAP AROUND WHEELS: OFF");
+        }
+
+        public string FastPlayText => Settings.FastPlay ? "FAST PLAY: ON" : "FAST PLAY: OFF";
 
         private void RefreshPrompts()
         {

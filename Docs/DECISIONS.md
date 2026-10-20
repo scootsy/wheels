@@ -453,6 +453,48 @@ This log records decisions that affect rules, player experience, architecture, s
 - **Not changed:** the game, its build settings, `IosXcodeFixups`.
 - **Files updated:** `.github/workflows/ios-ipa.yml`, `Tools/publish_builds.sh` (release notes), `Docs/IMPLEMENTATION_STATUS.md`, `Docs/TOOLING.md`
 
+### D-040: Dev tools in builds, god wheels, run by stick threshold, touch look stick (creative director, 2026-10-20)
+
+- **Date:** 2026-10-20
+- **Status:** Accepted (explicit creative-director instruction)
+- **Instruction:** "make it so that there are like dev tools in the builds meaning I can add to my inventory and such? Overrides for testing to change my wheels, coins, items, etc? Also, fix that there is a run button. That should be a threshold on the joystick. Additionally, there needs to be a second joystick when changing to first person view to control look. Additionally, make it so that I can upgrade each of the five wheels."
+- **Clarification (asked and answered):** wheels 1–4 have no upgraded versions in the source (`RULES_SPEC.md` 5.3). Asked how upgrades should work; the answer: "Just great a god wheel, the platinum or diamond one or whatever version of each one that I can automatically insert. Basically I want to make a god mode for testing. No other character will use these, they will not be apart of regular game play, I just want an op set of wheels for testing. Toggle it on or off" Upgrades come from the dev tools only; opponents keep only their own fifth wheel; the dev tools sit behind a hidden unlock.
+- **Decisions:**
+  - **Hidden unlock:** tap or click PAUSED in the pause menu five times. DEV TOOLS appears at the top right of the pause menu for the rest of the session (`GameFlow.DevToolsUnlocked`, memory only). PAUSED is a tap target, not a focusable control, so controller focus can never get stuck on it.
+  - **Dev tools pages** (the existing list panel, 9 rows, so a main page with sub-pages; BACK or Esc / B returns): god wheels on/off, +100 / +1,000 coins, coins to 0, charms (+1 each, clear), fifth wheels (give/take Bronze–Platinum), figurines (give/take; the starting pair stays), champions (beat/undo each, beat all, forget every win, leave the tournament), give everything. Each change goes through `GameFlow` (`Application/World/DevTools.cs`) and saves at once. Beating a champion here also gives their figurine, as a real win would.
+  - **God wheels:** a developer-only `ReelTier.God`, all five reels `SSS+, DDD+, HHH, SSS+, DDD+, HHH, SSS+, DDD+`. It is not in the standard catalog: `ReferenceContent.WithGodWheels` adds it only for a match that uses it, so normal play, the content hash and every existing replay are unchanged, and `ContentCatalog.asset` did not need regenerating. `MatchConfig` rejects the god wheels on an AI side. `SetupOptions.GodWheels` (from `GameFlow.GodWheels`) applies to every table, practice included. Replays of god matches verify (`ReplayRecord.Verify` adds the set). The switch is saved (save version 4, `godWheels`; older saves read as off); a new journey turns it off. In a 30-game seeded test, Warrior + Mage on god wheels (Standard AI driving them) beat the Expert AI on Copper in at least 29.
+  - **Run by stick threshold:** the RUN pad button is gone. Any analog move stick (the on-screen stick or a real controller's left stick) pushed to 0.85 or more runs (`GameInputRouter.RunThreshold`); keys and the D-pad never do. Shift and LT / L3 still sprint. Below the threshold the stick walks at a speed proportional to how far it is pushed, as before.
+  - **Touch look stick:** a second on-screen stick labelled LOOK, bottom right beside A, drives the virtual gamepad's right stick (the existing `LookStick` binding). It shows only in first person.
+- **Verified in this cloud session (no Unity editor available):** the engine-free rules and journey code and its EditMode tests compiled and ran under .NET 8 with NUnit: 88/88 passed, 7 of them new (`DevToolsTests`). All Unity-side code (World, Presentation, Input, PlayMode tests) was type-checked against Unity 2021.3 engine reference assemblies plus the Input System 1.20.2 and uGUI source: no new errors (the one error reported, `Debug.developerConsoleEnabled` in untouched code, is a Unity 6 API missing from the 2021 references). New PlayMode tests: stick threshold runs and there is no RUN button, the look stick appears only in first person and turns the view, five taps unlock the dev tools and the god wheels / coins / figurine rows work and save, and the god wheels reach a champion's table for the player only. **Not yet run in Unity:** the PlayMode suite, the full EditMode suite, a build, the build self-check, or screenshots.
+- **Files updated:** `AGENTS.md`, `Docs/WORLD_SPEC.md`, `Docs/RULES_SPEC.md` (5.3), `Docs/IMPLEMENTATION_STATUS.md`
+
+### D-041: A map and a minimap (creative director, 2026-10-20)
+
+- **Date:** 2026-10-20
+- **Status:** Accepted (explicit creative-director instruction)
+- **Instruction:** "One more fix before we merge and have GitHub actions process a new release. It needs a maps/minimap"
+- **Decisions (agent, overridable by the creative director):**
+  - **Both:** a full map screen and a small minimap. The minimap is the one always-on piece of screen furniture in the world; it sits top-left (the touch MENU button is top-right; D-037 moved the old corner text panels into the pause menu, and this is a map, not a text panel). It can be switched off from the map, and that is saved.
+  - **How it looks:** painted from the land's own data rather than photographed by a second camera: the terrain paint and heights the world already builds, the water masks, and the footprint of every building and tree (now recorded by `WorldBuilder` as it places them, `WorldLayout.MapBuildings` / `MapTrees`, so the map is right with or without the art packs). Hill shading lit from the north-west, warm old-paper tint and darker edges. `MapPainter` is plain C# with no engine types (tested outside Unity); `WorldMap` feeds it once per run (cached across returns from the table) and draws the screen. No camera renders it, so it costs nothing per frame and cannot render differently in a build.
+  - **Opening it:** M, RB on a controller (unused in the world until now), MAP in the pause menu (the pause buttons are slightly tighter to fit a ninth), or tapping the minimap on a touch screen. Esc / B / M close it. New `WorldReserved/Map` action in `GameInput.inputactions`.
+  - **Markers:** you (arrow, your facing), challengers, beaten players, champions / your next tournament match / the Herald when you qualify, stalls, errands (people and items). Plain villagers are not marked. Place names on the full map only.
+- **Verified in this cloud session (no Unity editor):** `MapPainter` and its tests compiled and ran under .NET (`MapPainterTests`: same pixels every time, water and buildings land where they are, north up, the arrow points north); the engine-free suite is 91/91. The map's look was checked on a stand-in landscape rendered by the same painter. All Unity-side code and the new PlayMode tests (M opens and Esc closes, your position, markers, beaten players, the hall door, the minimap hiding under menus and its saved switch, tapping the minimap) type-check with no new errors. **Not yet run in Unity:** the PlayMode suite, a build and the self-check, so the real map has not been seen yet.
+- **Files updated:** `Docs/WORLD_SPEC.md`, `Docs/IMPLEMENTATION_STATUS.md`, `AGENTS.md`
+
+### D-042: Fast play is a switch, not a hold (creative director, 2026-10-20)
+
+- **Date:** 2026-10-20
+- **Status:** Accepted (explicit creative-director instruction)
+- **Instruction:** "add one more feature. a streamlined "speed up gameplay". because it's finicky and undoes itself easily"
+- **What was wrong:** speeding up (D-028, `MATCH_UX_SPEC.md` 7.3) needed the accelerate control *held* for 350 ms; letting go dropped back to normal at the next event, a finger sliding off the lever on a touch screen cancelled it, and every round and every table started slow again.
+- **Decisions (agent, overridable by the creative director):**
+  - **A switch:** one press of the accelerate action (Space, A or RT) while the round plays out, one tap/click on the lever (its plate reads FAST PLAY: OFF / ON), or the new FAST PLAY row at the top of the pause menu turns fast play on; the same again turns it off. Nothing else turns it off.
+  - **What it speeds up:** the whole round at 4×, as the old hold did: spins, the opponent's wait, the reveal, the step beats and every resolution event. Tab / RB still skips a step. Results, the event log and replays are unchanged (presentation timing only).
+  - **It sticks:** for the rest of the match, rematches, the next table, and the saved journey (`GameFlow.FastPlay`, save version 6 `fastPlay`; older saves load with it off; a new journey starts with it off).
+  - **Space / A / RT outside the round playing out** keep their other jobs (Submit, lock a reel, jump), so pressing A to lock a wheel never flips fast play. A pad's A on the focused lever is both the action and Submit; one press switches once.
+- **Found while building:** the pause menu's Reduced motion, Screen shake, text size and Wrap rows had no labels (blank buttons). They now read e.g. REDUCED MOTION: OFF, TEXT SIZE: 125%.
+- **Files updated:** `Docs/MATCH_UX_SPEC.md` (7.2, 7.3, controls), `Docs/IMPLEMENTATION_STATUS.md`, `Docs/WORLD_SPEC.md` (save version)
+
 ## Open decisions
 
 The rules-level open questions and temporary prototype behaviors are maintained in `RULES_SPEC.md` Section 15. They do not block M0 or M1.

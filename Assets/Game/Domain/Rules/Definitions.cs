@@ -8,7 +8,11 @@ namespace Tabletop.Domain
 
     public enum Rank { Bronze = 0, Silver = 1, Gold = 2 }
 
-    public enum ReelTier { Copper = 0, Bronze = 1, Silver = 2, Gold = 3, Diamond = 4, Platinum = 5 }
+    /// <summary>
+    /// Fifth-wheel tiers. <see cref="God"/> is a developer-only set (D-040): all five wheels overpowered, for the human
+    /// side only, and never in the standard catalog (see <see cref="ReferenceContent.WithGodWheels"/>).
+    /// </summary>
+    public enum ReelTier { Copper = 0, Bronze = 1, Silver = 2, Gold = 3, Diamond = 4, Platinum = 5, God = 6 }
 
     /// <summary>Resolution priority group from RULES_SPEC Section 10.</summary>
     public enum ActionKind

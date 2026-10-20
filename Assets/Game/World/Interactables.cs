@@ -58,7 +58,7 @@ namespace Tabletop.World
         }
 
         /// <summary>"  -  HAS WORK" / "  -  DELIVERY HERE" when an errand involves this person (D-033).</summary>
-        private string ErrandHint()
+        public string ErrandHint()
         {
             foreach (var e in ErrandCatalog.All)
             {

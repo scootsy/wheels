@@ -1,7 +1,7 @@
 # Implementation Status
 
 **Current authorized target:** W4 (D-038, `WORLD_SPEC.md`): Lanternmere, Duskhollow and Ironbell with the champions who hold the Priest, the Assassin and the Warlock; the Grand Tournament at Crownhold; free wandering off the paths. Then stop for the creative director to play it.  
-**Last updated:** 2026-09-28  
+**Last updated:** 2026-10-20  
 
 **W4 COMPLETE - waiting for the creative director to play it.** Nothing beyond `WORLD_SPEC.md` is authorized.
 
@@ -18,6 +18,9 @@
 | W3 playtest stop | Passed | Creative director asked for the rest of the journey (D-038) |
 | W4 rest of the journey + Grand Tournament + wandering (D-038) | Complete | 150/150 EditMode, 49/49 PlayMode; Windows build self-check with screenshots of every new place |
 | W4 playtest stop | **ACTIVE** | Waiting for the creative director to play W4 |
+| Dev tools, god wheels, touch run/look (D-040) | Complete | Run in Unity 2026-10-20 with D-041/D-042: EditMode 161/161, PlayMode 57/57 |
+| Map and minimap (D-041) | Complete | Same runs; minimap seen in the Windows build self-check |
+| Fast play switch (D-042) | Complete | EditMode 161/161, PlayMode 57/57; Windows + iOS builds; Windows self-check clean (lever plate reads FAST PLAY) |
 | M2 progression | Not authorized | Untouched |
 | M3 tiny world (beyond W1) | Not authorized | Untouched |
 | M4 production presentation | Not authorized | Untouched |
@@ -38,7 +41,7 @@
 
 The first Xcode build compiles the game code (about 640 steps) and takes several minutes; later builds are quicker. Let it finish: Xcode shows "Build stopped" if it is cancelled, which is not a failure (D-034). If Xcode offers "Update to recommended settings", decline it; only the signing team needs changing (D-035). Lines like `ld: warning: no platform load command found in lib_burst_generated.a` are harmless. If an earlier attempt failed, choose **Product → Clean Build Folder** (Shift-Cmd-K) once before building a new zip, so Xcode does not reuse files from the failed attempt. A `CodeSign ... internal error in Code Signing subsystem` on UnityFramework means the zip predates D-036.
 
-On a touchscreen the world shows a thumb stick (walk) and A (talk/jump), RUN, VIEW and MENU buttons (D-032, working since D-037). Tap works for menus, reels, pieces and the lever. Connecting a Bluetooth controller hides the on-screen pad; it returns when the controller disconnects. The place, coins, wins and controls are in the pause menu (MENU / Esc / Start), not in the screen corners (D-037). If Xcode ever shows `Sandbox: ... deny` or `umbrella header` errors, the build predates D-032: rebuild from Unity.
+On a touchscreen the world shows a thumb stick (walk; push it all the way to run, D-040) and A (talk/jump), VIEW and MENU buttons (D-032, working since D-037). In first person a second LOOK stick appears bottom right (D-040). Tap works for menus, reels, pieces and the lever. Connecting a Bluetooth controller hides the on-screen pad; it returns when the controller disconnects. The place, coins, wins and controls are in the pause menu (MENU / Esc / Start), not in the screen corners (D-037). If Xcode ever shows `Sandbox: ... deny` or `umbrella header` errors, the build predates D-032: rebuild from Unity.
 
 **In Unity:** open `Assets/Game/Scenes/World.unity` (the journey) or `Assets/Game/Scenes/MatchPrototype.unity` (practice table) and press Play.
 
@@ -55,7 +58,7 @@ Flow: setup (see the opponent) → choose two units (Striker, Caster) for slots 
 | Skip the current step while the round plays out | Tab | RB |
 | Inspect focused unit | I (or click a piece) | X (west) |
 | Help | H | View / Select |
-| Hold to speed up animations (x4) | hold Space | hold A or RT |
+| Fast play on / off (x4, stays on until switched off, D-042) | Space while the round plays out, click the lever, or Pause → FAST PLAY | A or RT while the round plays out, or Pause → FAST PLAY |
 | Pause / close overlay | Esc | Menu / Start (B closes overlays) |
 
 Developer mode (setup screen button) adds: fixed seed, reel tier (Copper-Platinum), AI profile (Learner/Standard/Expert), any opponent unit, forced scenarios (Victory / Defeat / Tie next round, Rank-up and bomb, Barrier wall), replay verification from the clipboard, all units in selection, "Skip all presentation" in pause, and "Replay same seed" on the result screen.
@@ -271,6 +274,44 @@ Known defects: music reuses the four existing tracks; the tournament arena and I
   the Grand Champion ending is dialogue pages, not a cutscene; faint ridge lines where two hills meet.
 Blockers: none
 Next authorized work: fixes only, until the creative director plays W4.
+Gate status: W4 PLAYTEST STOP ACTIVE.
+```
+
+## Update 2026-10-20 — dev tools, god wheels, touch run and look (D-040)
+
+```text
+Date/time: 2026-10-20 (cloud session, no Unity editor)
+Milestone: W4 + testing tools requested by the creative director
+Completed: hidden DEV TOOLS (tap PAUSED five times): god wheels switch, coins, charms, fifth wheels, figurines,
+  champion wins, give everything; god wheels (player only, all five wheels overpowered, saved, replays verify);
+  the touch RUN button replaced by pushing the stick all the way (also on a real controller's left stick);
+  a LOOK stick on touch screens in first person.
+Tests: engine-free EditMode subset 88/88 under .NET 8 + NUnit (7 new DevToolsTests). New PlayMode tests written and
+  type-checked but not run: touch run threshold, look stick, dev tools unlock and rows, god wheels at the table.
+Console/build: no Unity editor in this session. Unity-side code type-checked against Unity 2021.3 reference assemblies
+  + Input System 1.20.2 + uGUI source: no new errors. Not built; self-check not run.
+Screenshots/build path: none (needs the editor)
+Known defects: the dev tools unlock needs a tap or mouse click (a controller-only player cannot unlock it).
+Blockers: the full EditMode and PlayMode suites, a Windows/iOS build and the self-check must run in Unity before release.
+Next authorized work: run the suites and a build in the editor; fixes only.
+Gate status: W4 PLAYTEST STOP ACTIVE.
+```
+
+## Update 2026-10-20 — map and minimap (D-041)
+
+```text
+Date/time: 2026-10-20 (cloud session, no Unity editor)
+Milestone: W4 + map requested by the creative director before the next release
+Completed: full map (M / RB / pause MAP / tap the minimap) painted from the land's own data with place names and
+  markers (you, challengers, beaten, champions, stalls, errands); minimap top-left while exploring, switchable, saved
+  (save version 5).
+Tests: engine-free EditMode 91/91 under .NET 8 + NUnit (3 new MapPainterTests). New PlayMode tests written and
+  type-checked but not run: map open/close, position, markers, hall door, minimap hiding and switch, touch tap.
+Console/build: not built (no editor). Unity-side code type-checked: no new errors.
+Screenshots/build path: none yet; the self-check should be extended to capture the map once it runs in the editor.
+Known defects: none known; the real map's look is unverified until it runs in Unity.
+Blockers: run the EditMode and PlayMode suites, build and self-check in Unity before publishing a release.
+Next authorized work: verification in the editor; fixes only.
 Gate status: W4 PLAYTEST STOP ACTIVE.
 ```
 

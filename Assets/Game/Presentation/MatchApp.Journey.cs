@@ -40,6 +40,9 @@ namespace Tabletop.Presentation
             Session.Options.PlayerBoons = GameFlow.PendingBoons;
         }
 
+        /// <summary>The dev tools' god wheels (D-040) apply to every table, practice included.</summary>
+        private void ApplyDevOptions() => Session.Options.GodWheels = GameFlow.GodWheels;
+
         /// <summary>Settles the finished match once (rematches settle again, the charm only once).</summary>
         private void SettleIfNeeded()
         {

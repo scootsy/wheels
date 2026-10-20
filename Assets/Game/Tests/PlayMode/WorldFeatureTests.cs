@@ -236,5 +236,93 @@ namespace Tabletop.Tests.PlayMode
             Assert.AreEqual(3, App.UnitCardButtons.Count, "Striker, Caster and the won Ranger");
             Assert.IsNull(Session.Selection.Toggle(ReferenceContent.Ranger), "the Ranger can be picked");
         }
+
+        [UnityTest]
+        public IEnumerator Map_OpensWithM_ShowsWhereYouAreAndWhoPlays_AndEscClosesIt()
+        {
+            yield return Begin();
+            World.Player.Teleport(new Vector3(0, 0, 134f), 0); // Brindlecross plaza
+            yield return null;
+            yield return null;
+            Assert.IsTrue(World.Map.MinimapShown, "the minimap shows while exploring (D-041)");
+            Assert.IsNotNull(World.Map.Texture);
+            Assert.AreEqual(WorldMap.TextureWidth, World.Map.Texture.width);
+
+            yield return Tap(Kb.mKey);
+            Assert.IsTrue(World.Map.IsOpen, "M opens the map");
+            Assert.IsTrue(World.Busy, "the map stops the player walking");
+            Assert.IsFalse(World.Map.MinimapShown, "no minimap over the full map");
+            Assert.AreEqual(World.Map.Close.gameObject, Selected, "CLOSE has focus");
+            var ext = WorldGround.Extent;
+            Assert.AreEqual((0f - ext.xMin) / ext.width, World.Map.PlayerUv.x, 0.01f);
+            Assert.AreEqual((134f - ext.yMin) / ext.height, World.Map.PlayerUv.y, 0.01f);
+            Assert.Greater(World.Map.Count(WorldMap.MarkerKind.Challenger), 3, "challengers are marked");
+            Assert.Greater(World.Map.Count(WorldMap.MarkerKind.Champion), 0, "champions are marked");
+            Assert.Greater(World.Map.Count(WorldMap.MarkerKind.Stall), 0, "stalls are marked");
+
+            yield return Tap(Kb.escapeKey);
+            Assert.IsFalse(World.Map.IsOpen, "Esc closes the map");
+            Assert.IsFalse(World.Ui.Pause.activeSelf, "without also opening the menu");
+
+            // A beaten player's marker changes; inside the hall you show at its door.
+            GameFlow.DevSetDefeated(EncounterCatalog.Gran, true);
+            World.Player.Teleport(World.Layout.HallExit.transform.position, 0);
+            yield return Tap(Kb.mKey);
+            Assert.Greater(World.Map.Count(WorldMap.MarkerKind.Beaten), 0, "Gran shows as beaten");
+            var door = World.Map.UvOf(World.Layout.HallDoor.transform.position);
+            Assert.Less(Vector2.Distance(door, World.Map.PlayerUv), 0.001f, "inside the Champion's Hall you show at its door");
+            yield return Tap(Kb.mKey);
+            Assert.IsFalse(World.Map.IsOpen, "M closes it again");
+        }
+
+        [UnityTest]
+        public IEnumerator Minimap_HidesForMenus_AndItsSwitchIsSaved()
+        {
+            yield return Begin();
+            yield return null;
+            Assert.IsTrue(World.Map.MinimapShown);
+            yield return Tap(Kb.escapeKey);
+            Assert.IsTrue(World.Ui.Pause.activeSelf);
+            yield return null;
+            Assert.IsFalse(World.Map.MinimapShown, "hidden under the pause menu");
+            World.Ui.PauseMap.onClick.Invoke();
+            yield return null;
+            Assert.IsTrue(World.Map.IsOpen, "the pause menu's MAP opens the map");
+            World.Map.MinimapToggle.onClick.Invoke();
+            Assert.IsTrue(GameFlow.MinimapHidden, "MINIMAP: OFF");
+            Assert.IsTrue(SaveGame.TryLoad(out var saved) && saved.hideMinimap, "the choice is saved");
+            World.Map.Close.onClick.Invoke();
+            yield return null;
+            yield return null;
+            Assert.IsFalse(World.Map.MinimapShown, "switched off: no minimap while exploring");
+            GameFlow.MinimapHidden = false;
+            yield return null;
+            Assert.IsTrue(World.Map.MinimapShown);
+        }
+
+        [UnityTest]
+        public IEnumerator GodWheels_FromTheDevTools_ReachTheTable_ForThePlayerOnly()
+        {
+            yield return Begin();
+            GameFlow.GodWheels = true; // as the DEV TOOLS switch sets it (D-040)
+            GameFlow.BeginEncounter(EncounterCatalog.Get(EncounterCatalog.Champion), 0, 0);
+            var op = SceneManager.LoadSceneAsync("MatchPrototype", LoadSceneMode.Single);
+            while (!op.isDone) yield return null;
+            yield return null;
+            App = Object.FindAnyObjectByType<MatchApp>();
+            App.Settings.TimeScale = 0.02f;
+            yield return null;
+            Assert.AreEqual(UxState.UnitSelect, Session.State);
+            Session.Selection.Toggle(ReferenceContent.Striker);
+            Session.Selection.Toggle(ReferenceContent.Caster);
+            Assert.IsTrue(Session.ConfirmUnits(), Session.LastStatus);
+            Assert.AreEqual(ReelTier.God, Session.Match.Config.Sides[0].ReelTier, "you bring the god wheels");
+            Assert.AreEqual(ReelTier.Bronze, Session.Match.Config.Sides[1].ReelTier, "Corvin keeps his Bronze wheel");
+            var godFaces = ReferenceContent.GodReelCodes.Split(',');
+            for (int r = 0; r < 5; r++)
+                Assert.AreEqual(godFaces.Length, Session.Match.ReelDefinitions(SideId.Player)[r].Faces.Count);
+            Assert.AreEqual("SSS+", Session.Match.ReelDefinitions(SideId.Player)[0].Faces[0].Code, "the table spins the god faces");
+            GameFlow.GodWheels = false;
+        }
     }
 }

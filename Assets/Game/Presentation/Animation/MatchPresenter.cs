@@ -121,6 +121,11 @@ namespace Tabletop.Presentation
     {
         public bool ReducedMotion;
         public bool ScreenShake;
+        /// <summary>
+        /// Fast play (D-042): every event, beat, opponent wait and reveal runs at <see cref="MatchPresenter.FastSpeed"/>
+        /// until switched off. A switch, not a hold: nothing turns it off but the player.
+        /// </summary>
+        public bool FastPlay;
         /// <summary>Cosmetic "opponent choosing" wait. Tests and reduced-wait settings set 0.</summary>
         public float AiThinkSeconds = 0.8f;
         public float RevealSeconds = 1.1f;
@@ -148,7 +153,6 @@ namespace Tabletop.Presentation
         private float _duration;
         private bool _applied;
         private float _stateTimer;
-        private float _speed = 1f;
         private readonly List<string> _log = new List<string>();
         private Match _match;
         private float _beat;
@@ -168,7 +172,8 @@ namespace Tabletop.Presentation
         public bool Applied => _applied;
         public string Banner { get; private set; } = "";
         public IReadOnlyList<string> Log => _log;
-        public bool Accelerated => _speed > 1f;
+        public const float FastSpeed = 4f;
+        public bool Accelerated => _settings.FastPlay;
         public bool OpponentRevealed { get; private set; }
         /// <summary>Test hook: corrupt the visual state before the next reconciliation.</summary>
         public bool InjectDesyncForTest;
@@ -294,21 +299,19 @@ namespace Tabletop.Presentation
             return 0.3f;
         }
 
-        /// <param name="accelerateHeldSeconds">How long the accelerate action has been held (0 when released).</param>
-        public void Tick(float deltaTime, float accelerateHeldSeconds)
+        public void Tick(float deltaTime)
         {
             if (_session.Match != _match) Reset();
             if (_session.Paused || _session.Match == null || _session.FatalError != null) return;
-            // Accelerate applies immediately; releasing returns to normal at the next event boundary.
-            if (accelerateHeldSeconds >= 0.35f) _speed = 4f;
-            float dt = deltaTime * _speed / Math.Max(0.0001f, _settings.TimeScale);
+            // Fast play applies at once, either way, and only the player switches it.
+            float speed = _settings.FastPlay ? FastSpeed : 1f;
+            float dt = deltaTime * speed / Math.Max(0.0001f, _settings.TimeScale);
 
             int guard = 0;
             while (dt >= 0 && guard++ < 10000)
             {
                 if (_current == null)
                 {
-                    if (accelerateHeldSeconds < 0.35f) _speed = 1f;
                     if (_pending == null)
                     {
                         _pending = _session.DequeueEvent();

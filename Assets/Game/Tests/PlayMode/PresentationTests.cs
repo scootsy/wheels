@@ -12,9 +12,13 @@ namespace Tabletop.Tests.PlayMode
     public class PresentationTests : MatchSceneFixture
     {
         private bool _sawAccelerated;
+        private bool _sawNormalAfterFast;
 
-        /// <summary>Each round: spin once, lock all five, pull the lever to confirm.</summary>
-        private IEnumerator LockAllEveryRound(bool holdAccelerate)
+        private bool Presenting => Session.State == UxState.Spinning || Session.State == UxState.AiCommit
+            || Session.State == UxState.Reveal || Session.State == UxState.Resolving;
+
+        /// <summary>Each round: spin once, lock all five, pull the lever to confirm. With fastPlay, one Space tap in round 1 only.</summary>
+        private IEnumerator LockAllEveryRound(bool fastPlay)
         {
             for (int round = 0; round < 80 && Session.State != UxState.MatchResult; round++)
             {
@@ -31,13 +35,18 @@ namespace Tabletop.Tests.PlayMode
                     yield return Tap(Kb.digit5Key);
                     yield return Tap(Kb.rKey); // locking all five waits for the lever to confirm (D-028)
                 }
-                if (holdAccelerate) Press(Kb.spaceKey);
+                if (fastPlay && round == 0)
+                {
+                    yield return WaitFor(() => Presenting, 10f, "the round playing out");
+                    yield return Tap(Kb.spaceKey);
+                    Assert.IsTrue(App.Presenter.Accelerated, "one tap of the accelerate action switches fast play on");
+                }
                 yield return WaitFor(() =>
                 {
                     _sawAccelerated |= App.Presenter.Accelerated;
+                    if (_sawAccelerated && !App.Presenter.Accelerated) _sawNormalAfterFast = true;
                     return Session.State == UxState.RoundReady || Session.State == UxState.MatchResult;
                 }, 60f, "round resolved");
-                if (holdAccelerate) { Release(Kb.spaceKey); yield return null; }
             }
             Assert.AreEqual(UxState.MatchResult, Session.State);
         }
@@ -59,11 +68,57 @@ namespace Tabletop.Tests.PlayMode
             App.Settings.ReducedMotion = true;
             yield return KeyboardStartMatch(developer: true, seed: seed);
             yield return LockAllEveryRound(true);
-            Assert.IsTrue(_sawAccelerated, "holding accelerate switched to x4");
+            Assert.IsTrue(_sawAccelerated, "fast play switched on");
+            Assert.IsFalse(_sawNormalAfterFast, "fast play stays on for the whole match once switched on (D-042)");
             Assert.AreEqual(normalHash, Session.Match.StateHash());
             Assert.AreEqual(normalLog, Session.Match.EventLogHash());
             Assert.AreEqual(normalReplay, Session.ReplayText);
             Assert.IsNull(Session.FatalError, "visual state reconciled at every event");
+        }
+
+        /// <summary>
+        /// D-042: fast play is a switch. One press turns it on (a pad's A is also Submit on the focused lever, yet it
+        /// switches once), it survives a rematch and the next table, and one tap on the lever turns it off.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator FastPlay_OnePress_StaysOnThroughRematchAndTheNextTable_AndOneTapTurnsItOff()
+        {
+            yield return KeyboardStartMatch();
+            App.Settings.TimeScale = 1f;
+            Assert.IsFalse(App.Settings.FastPlay);
+            yield return Tap(Kb.rKey);
+            yield return WaitFor(() => Presenting && Selected == App.SpeedButton.gameObject, 5f, "the lever focused while the reels spin");
+            yield return Tap(Pad.buttonSouth);
+            Assert.IsTrue(App.Settings.FastPlay, "A switched fast play on (and not straight back off)");
+            Assert.IsTrue(App.Presenter.Accelerated);
+            Assert.IsTrue(GameFlow.FastPlay, "kept for the journey");
+            Assert.AreEqual("FAST PLAY: ON", App.FastPlayText);
+
+            for (int i = 0; i < 30; i++) yield return null;
+            Assert.IsTrue(App.Settings.FastPlay, "nothing turns it off by itself");
+            Session.Rematch();
+            yield return WaitForState(UxState.RoundReady);
+            Assert.IsTrue(App.Presenter.Accelerated, "a rematch keeps it");
+
+            yield return LoadMatchScene();
+            Assert.IsTrue(App.Settings.FastPlay, "the next table starts in fast play");
+            yield return KeyboardStartMatch();
+            App.Settings.TimeScale = 1f;
+
+            // The pause menu shows it (and every other switch has a label).
+            yield return Tap(Kb.escapeKey);
+            var labels = App.PauseOverlay.GetComponentsInChildren<UnityEngine.UI.Button>()
+                .Select(b => b.GetComponentInChildren<UnityEngine.UI.Text>().text).ToList();
+            CollectionAssert.Contains(labels, "FAST PLAY: ON");
+            Assert.IsFalse(labels.Any(string.IsNullOrEmpty), "no blank buttons in the pause menu: " + string.Join(", ", labels));
+            yield return Tap(Kb.escapeKey);
+
+            yield return Tap(Kb.rKey);
+            yield return WaitFor(() => Presenting, 5f, "the reels spinning");
+            App.SpeedButton.onClick.Invoke(); // a tap on the lever
+            Assert.IsFalse(App.Settings.FastPlay);
+            Assert.IsFalse(App.Presenter.Accelerated, "off at once");
+            Assert.IsFalse(GameFlow.FastPlay);
         }
 
         [UnityTest]

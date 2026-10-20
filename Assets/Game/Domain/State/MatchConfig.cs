@@ -141,6 +141,9 @@ namespace Tabletop.Domain
             {
                 if (!ControllerIds.IsKnown(side.ControllerId)) return Reject(RejectionCode.ConfigInvalid, "Unknown controller " + side.ControllerId);
                 if (!catalog.TryGetReelSet(side.ReelTier, out _)) return Reject(RejectionCode.ConfigInvalid, "Unknown reel set " + side.ReelTier);
+                // The god wheels are a developer tool for the player (D-040); no opponent ever brings them.
+                if (side.ReelTier == ReelTier.God && side.ControllerId != ControllerIds.Human)
+                    return Reject(RejectionCode.ConfigInvalid, "God wheels are for the human player only.");
                 if (side.UnitIds.Count != RulesConstants.UnitsPerSide) return Reject(RejectionCode.ConfigInvalid, "Two units per side required.");
                 foreach (var id in side.UnitIds)
                 {
